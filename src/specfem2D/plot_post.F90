@@ -57,7 +57,8 @@
                          fluid_solid_acoustic_ispec,fluid_solid_acoustic_iedge,num_fluid_solid_edges, &
                          fluid_poro_acoustic_ispec,fluid_poro_acoustic_iedge,num_fluid_poro_edges, &
                          solid_poro_poroelastic_ispec,solid_poro_poroelastic_iedge,num_solid_poro_edges, &
-                         myrank,NPROC
+                         myrank,NPROC, &
+                         P_SV
 
   use shared_parameters, only: subsamp_postscript,imagetype_postscript,interpol, &
     meshvect,modelvect, &
@@ -192,7 +193,12 @@
   ratio_page = min(rpercentz*sizez/(zmax-zmin),rpercentx*sizex/(xmax-xmin)) / 100.d0
 
   ! compute the maximum of the norm of the vector
-  dispmax = maxval(sqrt(vector_field_display(1,:)**2 + vector_field_display(2,:)**2))
+  if (P_SV) then
+    dispmax = maxval(sqrt(vector_field_display(1,:)**2 + vector_field_display(2,:)**2))
+  else
+    ! SH (membrane) waves, plot y-component
+    dispmax = maxval(abs(vector_field_display(1,:)))
+  endif
 
   call max_all_all_dp(dispmax, dispmax_glob)
   dispmax = dispmax_glob
@@ -1516,22 +1522,39 @@
           Uxinterp(i,j) = 0.d0
           Uzinterp(i,j) = 0.d0
 
-          do k = 1,NGLLX
-            do l= 1,NGLLX
-              if (AXISYM) then
-                if (is_on_the_axis(ispec)) then
-                  Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange_GLJ(k,i)*flagrange_GLJ(l,j)
-                  Uzinterp(i,j) = Uzinterp(i,j) + vector_field_display(2,ibool(k,l,ispec))*flagrange_GLJ(k,i)*flagrange_GLJ(l,j)
+          if (P_SV) then
+            do k = 1,NGLLX
+              do l= 1,NGLLX
+                if (AXISYM) then
+                  if (is_on_the_axis(ispec)) then
+                    Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange_GLJ(k,i)*flagrange_GLJ(l,j)
+                    Uzinterp(i,j) = Uzinterp(i,j) + vector_field_display(2,ibool(k,l,ispec))*flagrange_GLJ(k,i)*flagrange_GLJ(l,j)
+                  else
+                    Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
+                    Uzinterp(i,j) = Uzinterp(i,j) + vector_field_display(2,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
+                  endif
                 else
                   Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
                   Uzinterp(i,j) = Uzinterp(i,j) + vector_field_display(2,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
                 endif
-              else
-                Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
-                Uzinterp(i,j) = Uzinterp(i,j) + vector_field_display(2,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
-              endif
+              enddo
             enddo
-          enddo
+          else
+            ! SH (membrane) waves, plot y-component
+            do k = 1,NGLLX
+              do l= 1,NGLLX
+                if (AXISYM) then
+                  if (is_on_the_axis(ispec)) then
+                    Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange_GLJ(k,i)*flagrange_GLJ(l,j)
+                  else
+                    Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
+                  endif
+                else
+                  Uxinterp(i,j) = Uxinterp(i,j) + vector_field_display(1,ibool(k,l,ispec))*flagrange(k,i)*flagrange(l,j)
+                endif
+              enddo
+            enddo
+          endif
 
           x1 =(xinterp(i,j)-xmin)*ratio_page
           z1 =(zinterp(i,j)-zmin)*ratio_page
@@ -1672,8 +1695,14 @@
       z1 =(coord(2,ipoin)-zmin)*ratio_page
 
       if (dispmax > 0.d0) then
-        x2 = vector_field_display(1,ipoin)*sizemax_arrows/dispmax
-        z2 = vector_field_display(2,ipoin)*sizemax_arrows/dispmax
+        if (P_SV) then
+          x2 = vector_field_display(1,ipoin)*sizemax_arrows/dispmax
+          z2 = vector_field_display(2,ipoin)*sizemax_arrows/dispmax
+        else
+          ! SH (membrane) waves, plot y-component
+          x2 = vector_field_display(1,ipoin)*sizemax_arrows/dispmax
+          z2 = 0.d0
+        endif
       else
         x2 = 0.d0
         z2 = 0.d0

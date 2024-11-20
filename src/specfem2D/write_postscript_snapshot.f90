@@ -52,30 +52,30 @@
   endif
 
   ! determines postscript output type
-  if (P_SV) then
-    select case (imagetype_postscript)
-    case (1)
-      ! displacement
-      if (myrank == 0) write(IMAIN,*) 'drawing displacement vector as small arrows...'
-      call compute_vector_whole_medium(potential_acoustic,displ_elastic,displs_poroelastic)
-    case (2)
-      ! velocity
-      if (myrank == 0) write(IMAIN,*) 'drawing velocity vector as small arrows...'
-      call compute_vector_whole_medium(potential_dot_acoustic,veloc_elastic,velocs_poroelastic)
-    case (3)
-      ! acceleration
-      if (myrank == 0) write(IMAIN,*) 'drawing acceleration vector as small arrows...'
-      call compute_vector_whole_medium(potential_dot_dot_acoustic,accel_elastic,accels_poroelastic)
-    case default
-      call exit_MPI(myrank,'wrong type for PostScript snapshots')
-    end select
+  select case (imagetype_postscript)
+  case (1)
+    ! displacement
+    if (myrank == 0) write(IMAIN,*) 'drawing displacement vector as small arrows...'
+    call compute_vector_whole_medium(potential_acoustic,displ_elastic,displs_poroelastic)
+  case (2)
+    ! velocity
+    if (myrank == 0) write(IMAIN,*) 'drawing velocity vector as small arrows...'
+    call compute_vector_whole_medium(potential_dot_acoustic,veloc_elastic,velocs_poroelastic)
+  case (3)
+    ! acceleration
+    if (myrank == 0) write(IMAIN,*) 'drawing acceleration vector as small arrows...'
+    call compute_vector_whole_medium(potential_dot_dot_acoustic,accel_elastic,accels_poroelastic)
+  case default
+    call exit_MPI(myrank,'wrong type for PostScript snapshots')
+  end select
 
-    ! postscript plotting
-    call plot_post()
-
-  else
-    call exit_MPI(myrank,'cannot draw a SH scalar field as a vector plot, turn PostScript plots off')
+  ! info for SH simulations
+  if (.not. P_SV) then
+    write(IMAIN,*) 'drawing a SH scalar field as a vector plot oriented along x-direction'
   endif
+
+  ! postscript plotting
+  call plot_post()
 
   ! user output
   if (myrank == 0) then
