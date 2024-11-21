@@ -60,6 +60,11 @@ involved in the community and keep them in the specfem3d github wiki:
 [specfem3d wiki](https://github.com/SPECFEM/specfem3d/wiki)
 
 
+## Our contributors :sparkles:
+
+[![SPECFEM2D contributors](https://contrib.rocks/image?repo=SPECFEM/specfem2d)](https://github.com/SPECFEM/specfem2d/graphs/contributors)
+
+
 ## Computational Infrastructure for Geodynamics (CIG)
 
 SPECFEM2D is part of the software that is hosted by the Computational Infrastructure for Geodynamics (CIG). It is available on the CIG website [here (SPECFEM2D)](https://geodynamics.org/resources/specfem2d).
