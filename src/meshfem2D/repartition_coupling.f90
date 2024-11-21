@@ -433,6 +433,7 @@
   ! user output
   write(IMAIN,*) 'done detecting points for periodic boundary conditions.'
   write(IMAIN,*) 'number of periodic elements found and grouped in the same partition: ',count(is_periodic)
+  write(IMAIN,*)
   call flush_IMAIN()
 
   ! loop on all the elements to find the first partition that contains a periodic element

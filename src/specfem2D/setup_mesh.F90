@@ -134,6 +134,7 @@
 #else
     write(IMAIN,*) 'Exact total number of grid points in the mesh: ',nglob_total
 #endif
+    write(IMAIN,*)
 
     ! percentage of elements with 2 degrees of freedom per point
     ratio_2DOFs = (nspec_total - nspec_acoustic_total) / dble(nspec_total)
@@ -145,7 +146,6 @@
     nb_elastic_DOFs  = nint(nglob_total*ratio_2DOFs*2)
 
     if (P_SV) then
-      write(IMAIN,*)
       write(IMAIN,*) 'Approximate number of acoustic degrees of freedom in the mesh: ',nb_acoustic_DOFs
       write(IMAIN,*) 'Approximate number of elastic degrees of freedom in the mesh: ',nb_elastic_DOFs
       write(IMAIN,*) '  (there are 2 degrees of freedom per point for elastic elements)'
@@ -350,7 +350,7 @@
   ! local parameters
   integer :: ispec,i,j,iglob,iglob2,ier
   double precision :: xmaxval,xminval,ymaxval,yminval,xtol,xtypdist
-  integer :: counter
+  integer :: counter,counter_all
 
 ! allocate an array to make sure that an acoustic free surface is not enforced on periodic edges
   allocate(this_ibool_is_a_periodic_edge(NGLOB),stat=ier)
@@ -362,19 +362,20 @@
   if (ADD_PERIODIC_CONDITIONS) then
     ! user output
     if (myrank == 0) then
-      write(IMAIN,*)
-      write(IMAIN,*) 'implementing periodic boundary conditions'
-      write(IMAIN,*) 'in the horizontal direction with a periodicity distance of ',PERIODIC_HORIZ_DIST,' m'
+      write(IMAIN,*) 'Periodic boundary conditions:'
+      write(IMAIN,*) '  implementing periodic boundary conditions'
+      write(IMAIN,*) '  in the horizontal direction with a periodicity distance of ',sngl(PERIODIC_HORIZ_DIST),' m'
       if (PERIODIC_HORIZ_DIST <= 0.d0) call stop_the_code( &
 'PERIODIC_HORIZ_DIST should be greater than zero when using ADD_PERIODIC_CONDITIONS')
       write(IMAIN,*)
-      write(IMAIN,*) '*****************************************************************'
-      write(IMAIN,*) '*****************************************************************'
-      write(IMAIN,*) '**** BEWARE: because of periodic conditions, values computed ****'
-      write(IMAIN,*) '****         by check_grid() below will not be reliable       ****'
-      write(IMAIN,*) '*****************************************************************'
-      write(IMAIN,*) '*****************************************************************'
+      write(IMAIN,*) '  *****************************************************************'
+      write(IMAIN,*) '  *****************************************************************'
+      write(IMAIN,*) '  **** BEWARE: because of periodic conditions, values computed ****'
+      write(IMAIN,*) '  ****         by check_grid() below will not be reliable      ****'
+      write(IMAIN,*) '  *****************************************************************'
+      write(IMAIN,*) '  *****************************************************************'
       write(IMAIN,*)
+      call flush_IMAIN()
     endif
 
     ! set up a local geometric tolerance
@@ -419,8 +420,9 @@
 ! (as implemented in routine createnum_fast() elsewhere in the code). This could be done one day if needed instead
 ! of the very simple double loop below.
     if (myrank == 0) then
-      write(IMAIN,*) 'start detecting points for periodic boundary conditions '// &
+      write(IMAIN,*) '  start detecting points for periodic boundary conditions '// &
                      '(the current algorithm can be slow and could be improved)...'
+      call flush_IMAIN()
     endif
 
     counter = 0
@@ -447,9 +449,31 @@
       enddo
     enddo
 
-    if (myrank == 0) write(IMAIN,*) 'done detecting points for periodic boundary conditions.'
+    if (myrank == 0) then
+      write(IMAIN,*) '  done detecting points for periodic boundary conditions.'
+      write(IMAIN,*)
+      call flush_IMAIN()
+    endif
 
-    if (counter > 0) write(IMAIN,*) 'implemented periodic conditions on ',counter,' grid points on proc ',myrank
+    if (counter > 0) then
+      write(IMAIN,*) '  implemented periodic conditions on ',counter,' grid points on proc ',myrank
+    endif
+
+    ! check if any points found
+    call sum_all_i(counter,counter_all)
+
+    if (myrank == 0) then
+      write(IMAIN,*) '  total number of grid points found for periodic conditions = ',counter_all
+      write(IMAIN,*)
+      if (counter_all == 0) then
+        write(IMAIN,*) '  No grid points found for periodic conditions.'
+        write(IMAIN,*) '  Detection uses a typical element size ',xtypdist,'and position tolerance ',xtol
+        write(IMAIN,*) '  Please check if periodic horizontal distance ',sngl(PERIODIC_HORIZ_DIST), &
+                       'is coherent with mesh dimensions'
+        write(IMAIN,*)
+      endif
+      call flush_IMAIN()
+    endif
 
   endif ! of if (ADD_PERIODIC_CONDITIONS)
 
