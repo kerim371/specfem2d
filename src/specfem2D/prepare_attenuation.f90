@@ -293,7 +293,7 @@
       write(IMAIN,*)
       call flush_IMAIN()
     endif
-  
+
     ! precompute Runge Kutta coefficients if viscous attenuation
     ! viscous attenuation is implemented following the memory variable formulation of
     ! J. M. Carcione Wave fields in real media: wave propagation in anisotropic,

@@ -36,6 +36,8 @@
 
 module constants
 
+  implicit none
+
   include "constants.h"
 
   ! proc number for MPI process

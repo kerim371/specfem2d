@@ -917,27 +917,27 @@
       integer, intent(in) :: Kopt
       double precision, intent(in) :: Qref,theta_min,theta_max,f_min,f_max
 
-      logical flg,flgc,flfc, constr, app, appconstr
-      logical FsbPnt, FsbPnt1, termflag, stopf
-      logical stopping, dispwarn, Reset, ksm,knan,obj
-      integer n, kstore, ajp,ajpp,knorms, k, kcheck, numelem
-      integer dispdata, ld, mxtc, termx, limxterm, nzero, krerun
-      integer warnno, kflat, stepvanish, i,j,ni,ii, kd,kj,kc,ip
-      integer iterlimit, kg,k1,k2, kless,   allocerr
-      double precision options(13),doptions(13)
-      double precision x(n),f
-      double precision nsteps(3), gnorms(10), kk, nx
-      double precision ajb,ajs, des, dq,du20,du10,du03
-      double precision n_float, cnteps
-      double precision low_bound, ZeroGrad, ddx, y
-      double precision lowxbound, lowfbound, detfr, detxr, grbnd
-      double precision fp,fp1,fc,f1,f2,fm,fopt,frec,fst, fp_rate
-      double precision PenCoef, PenCoefNew
-      double precision gamma,w,wdef,h1,h,hp
-      double precision dx,ng,ngc,nng,ngt,nrmz,ng1,d,dd, laststep
-      double precision zero,one,two,three,four,five,six,seven
-      double precision eight,nine,ten,hundr
-      double precision infty, epsnorm,epsnorm2,powerm12
+      logical :: flg,flgc,flfc, constr, app, appconstr
+      logical :: FsbPnt, FsbPnt1, termflag, stopf
+      logical :: stopping, dispwarn, Reset, ksm,knan,obj
+      integer :: n, kstore, ajp,ajpp,knorms, k, kcheck, numelem
+      integer :: dispdata, ld, mxtc, termx, limxterm, nzero, krerun
+      integer :: warnno, kflat, stepvanish, i,j,ni,ii, kd,kj,kc,ip
+      integer :: iterlimit, kg,k1,k2, kless,   allocerr
+      double precision :: options(13),doptions(13)
+      double precision :: x(n),f
+      double precision :: nsteps(3), gnorms(10), kk, nx
+      double precision :: ajb,ajs, des, dq,du20,du10,du03
+      double precision :: n_float, cnteps
+      double precision :: low_bound, ZeroGrad, ddx, y
+      double precision :: lowxbound, lowfbound, detfr, detxr, grbnd
+      double precision :: fp,fp1,fc,f1,f2,fm,fopt,frec,fst, fp_rate
+      double precision :: PenCoef, PenCoefNew
+      double precision :: gamma,w,wdef,h1,h,hp
+      double precision :: dx,ng,ngc,nng,ngt,nrmz,ng1,d,dd, laststep
+      double precision :: zero,one,two,three,four,five,six,seven
+      double precision :: eight,nine,ten,hundr
+      double precision :: infty, epsnorm,epsnorm2,powerm12
       double precision, dimension(:,:), allocatable :: B
       double precision, dimension(:), allocatable :: g
       double precision, dimension(:), allocatable :: g0
@@ -961,7 +961,8 @@
          ten/1.d1/,  hundr/1.d2/, powerm12/1.d-12/, &
          infty /1.d100/, epsnorm /1.d-15/,  epsnorm2 /1.d-30/, &
          allocerrstr/'Allocation Error = '/
-! Check the dimension:
+
+      ! Check the dimension:
       if (n < 2) then
           print *, 'SolvOpt error:'
           print *, 'Improper space dimension.'
@@ -970,7 +971,8 @@
         goto 999
       endif
       n_float=dble(n)
-! allocate working arrays:
+
+      ! allocate working arrays:
       allocate (B(n,n),stat=allocerr)
       if (allocerr /= 0) then
          options(9)=-one
@@ -1056,11 +1058,12 @@
          call stop_the_code('error in allocate statement in SolvOpt')
       endif
 
-! store flags:
+      ! store flags:
       app= .not. flg
       constr = flfc
       appconstr= .not. flgc
-! Default values for options:
+
+      ! Default values for options:
       call soptions(doptions)
       do i = 1,8
             if (options(i) == zero) then
@@ -1074,7 +1077,7 @@
             endif
       enddo
 
-! WORKING CONSTANTS AND COUNTERS ----{
+      ! WORKING CONSTANTS AND COUNTERS ----{
 
       options(10)=zero    !! counter for function calculations
       options(11)=zero    !! counter for gradient calculations
@@ -1090,7 +1093,7 @@
       k = 0                         !! Iteration counter
       wdef=one/options(7)-one     !! Default space transf. coeff.
 
-! Gamma control ---{
+      ! Gamma control ---{
       ajb = one+1.d-1/n_float**2    !! Base I
       ajp = 20
       ajpp = ajp                    !! Start value for the power
@@ -1099,8 +1102,9 @@
       do i = 1,10
        gnorms(i)=zero
       enddo
-!---}
-! Display control ---{
+      !---}
+
+      ! Display control ---{
       if (options(5) <= zero) then
          dispdata = 0
          if (options(5) == -one) then
@@ -1113,9 +1117,9 @@
          dispwarn = .true.
       endif
       ld = dispdata
-!---}
+      !---}
 
-! Stepsize control ---{
+      ! Stepsize control ---{
       dq=5.1d0           !! Step divider (at f_{i+1} > gamma*f_{i})
       du20 = two
       du10 = 1.5d0
@@ -1130,19 +1134,24 @@
         des = 3.3d0
       endif
       mxtc=3             !! Number of trial cycles (steep wall detect)
-!---}
+      !---}
+
       termx = 0
       limxterm = 50        !! Counter and limit for x-criterion
-! stepsize for gradient approximation
+
+      ! stepsize for gradient approximation
       ddx = dmax1(1.d-11,options(8))
 
       low_bound=-one+1.d-4     !! Lower bound cosine used to detect a ravine
       ZeroGrad = n_float*1.d-16  !! Lower bound for a gradient norm
       nzero = 0                  !! Zero-gradient events counter
-! Low bound for the values of variables to take into account
+
+      ! Low bound for the values of variables to take into account
       lowxbound = dmax1(options(2),1.d-3)
-! Lower bound for function values to be considered as making difference
+
+      ! Lower bound for function values to be considered as making difference
       lowfbound=options(3)**2
+
       krerun = 0                 !! Re-run events counter
       detfr=options(3)*hundr   !! Relative error for f/f_{record}
       detxr = options(2)*ten     !! Relative error for norm(x)/norm(x_{record})
@@ -1150,10 +1159,11 @@
       kflat = 0                  !! counter for points of flatness
       stepvanish = 0             !! counter for vanished steps
       stopf = .false.
-! ----}  End of setting constants
-! ----}  End of the preamble
-!--------------------------------------------------------------------
-! Compute the function  ( first time ) ----{
+      ! ----}  End of setting constants
+      ! ----}  End of the preamble
+
+      !--------------------------------------------------------------------
+      ! Compute the function  ( first time ) ----{
       call fun(x,f,Qref,n/2,n,Kopt,f_min,f_max)
       options(10)=options(10)+one
       if (dabs(f) >= infty) then
@@ -1168,7 +1178,8 @@
         xrec(i)=x(i)
       enddo
       frec = f     !! record point and function value
-! Constrained problem
+
+      ! Constrained problem
       if (constr) then
           kless = 0
           fp = f
@@ -1191,8 +1202,9 @@
         endif
         f = f+PenCoef*fc
       endif
-! ----}
-! COMPUTE THE GRADIENT ( FIRST TIME ) ----{
+      ! ----}
+
+      ! COMPUTE THE GRADIENT ( FIRST TIME ) ----{
       if (app) then
         do i = 1,n
          deltax(i)=h1*ddx
@@ -1279,8 +1291,9 @@
         grec(i)=g(i)
       enddo
       nng = ng
-! ----}
-! INITIAL STEP SIZE
+      ! ----}
+
+      ! INITIAL STEP SIZE
       d = zero
       do i = 1,n
         if (d < dabs(x(i))) d = dabs(x(i))
@@ -1292,7 +1305,7 @@
           h = h1*dmax1(one/dlog(ng+1.1d0),dabs(h)) !! calculated stepsize
       endif
 
-! RESETTING LOOP ----{
+      ! RESETTING LOOP ----{
       do while (.true.)
         kcheck = 0                       !! Set checkpoint counter.
         kg = 0                           !! stepsizes stored
@@ -1306,18 +1319,20 @@
         enddo
         fst = f
         dx = 0
-! ----}
+        ! ----}
 
-! MAIN ITERATIONS ----{
+        ! MAIN ITERATIONS ----{
 
         do while (.true.)
           k = k+1
           kcheck = kcheck+1
           laststep = dx
-! ADJUST GAMMA --{
-           gamma = one+dmax1(ajb**((ajp-kcheck)*n),two*options(3))
-           gamma = dmin1 ( gamma,ajs**dmax1(one,dlog10(nng+one)) )
-! --}
+
+          ! ADJUST GAMMA --{
+          gamma = one+dmax1(ajb**((ajp-kcheck)*n),two*options(3))
+          gamma = dmin1 ( gamma,ajs**dmax1(one,dlog10(nng+one)) )
+          ! --}
+
        ngt = zero
        ng1 = zero
        dd = zero
@@ -1336,7 +1351,8 @@
        dd = dd/ngt/ng1
 
        w = wdef
-! JUMPING OVER A RAVINE ----{
+
+       ! JUMPING OVER A RAVINE ----{
        if (dd < low_bound) then
         if (kj == 2) then
           do i = 1,n
@@ -1363,8 +1379,9 @@
        else
         kj = 0
        endif
-! ----}
-! DILATION ----{
+       ! ----}
+
+       ! DILATION ----{
        nrmz = zero
        do i = 1,n
          z(i)=gt(i)-g1(i)
@@ -1375,8 +1392,9 @@
         do i = 1,n
          z(i)=z(i)/nrmz
         enddo
-! New direction in the transformed space: g1=gt+w*(z*gt')*z and
-! new inverse matrix: B = B ( I + (1/alpha -1)zz' )
+
+        ! New direction in the transformed space: g1=gt+w*(z*gt')*z and
+        ! new inverse matrix: B = B ( I + (1/alpha -1)zz' )
         d = zero
         do i = 1,n
           d = d+z(i)*gt(i)
@@ -1413,8 +1431,9 @@
             enddo
           g0(i)=d
         enddo
-! ----}
-! RESETTING ----{
+        ! ----}
+
+        ! RESETTING ----{
         if (kcheck > 1) then
            numelem = 0
            do i = 1,n
@@ -1445,8 +1464,9 @@
               endif
            endif
         endif
-! ----}
-! STORE THE CURRENT VALUES AND SET THE COUNTERS FOR 1-D SEARCH
+        ! ----}
+
+        ! STORE THE CURRENT VALUES AND SET THE COUNTERS FOR 1-D SEARCH
         do i = 1,n
          xopt(i)=x(i)
         enddo
@@ -1458,7 +1478,8 @@
         knan = .false.
         hp = h
         if (constr) Reset = .false.
-! 1-D SEARCH ----{
+
+        ! 1-D SEARCH ----{
         do while (.true.)
          do i = 1,n
           x1(i)=x(i)
@@ -1468,7 +1489,7 @@
            FsbPnt1 = FsbPnt
            fp1 = fp
          endif
-! NEW POINT
+         ! NEW POINT
          do i = 1,n
             x(i)=x(i)+hp*g0(i)
          enddo
@@ -1476,7 +1497,7 @@
            do i = 1,n
             if (dabs(x(i)-x1(i)) < dabs(x(i))*epsnorm) ii = ii+1
            enddo
-! function value
+         ! function value
          call fun(x,f,Qref,n/2,n,Kopt,f_min,f_max)
          options(10)=options(10)+one
          if (h1*f >= infty) then
@@ -1545,7 +1566,7 @@
                   fp = fp1
                 endif
              endif
-! STEP SIZE IS ZERO TO THE EXTENT OF EPSNORM
+         ! STEP SIZE IS ZERO TO THE EXTENT OF EPSNORM
          else if (ii == n) then
                 stepvanish = stepvanish+1
                 if (stepvanish >= 5) then
@@ -1567,7 +1588,7 @@
                        fp = fp1
                     endif
                 endif
-! USE SMALLER STEP
+         ! USE SMALLER STEP
          else if (h1*f < h1*gamma**idint(dsign(one,f1))*f1) then
              if (ksm) exit
              k2 = k2+1
@@ -1582,10 +1603,10 @@
                 fp = fp1
              endif
              if (kc >= mxtc) exit
-! 1-D OPTIMIZER IS LEFT BEHIND
+         ! 1-D OPTIMIZER IS LEFT BEHIND
          else
              if (h1*f <= h1*f1) exit
-! USE LARGER STEP
+             ! USE LARGER STEP
              k1 = k1+1
              if (k2 > 0) kc=kc+1
              k2 = 0
@@ -1598,8 +1619,9 @@
              endif
          endif
         enddo
-! ----}  End of 1-D search
-! ADJUST THE TRIAL STEP SIZE ----{
+        ! ----}  End of 1-D search
+
+        ! ADJUST THE TRIAL STEP SIZE ----{
         dx = zero
         do i = 1,n
            dx = dx+(xopt(i)-x(i))**2
@@ -1636,8 +1658,9 @@
         endif
 
         if (ksm) stepvanish=stepvanish+1
-! ----}
-! COMPUTE THE GRADIENT ----{
+        ! ----}
+
+        ! COMPUTE THE GRADIENT ----{
         if (app) then
           do j = 1,n
             if (g0(j) >= zero) then
@@ -1676,7 +1699,7 @@
          endif
          ng = ZeroGrad
         endif
-! Constraints:
+        ! Constraints:
         if (constr) then
          if (.not. FsbPnt) then
            if (ng < 1.d-2*PenCoef) then
@@ -1749,7 +1772,8 @@
             grec(i)=g(i)
           enddo
         endif
-! ----}
+        ! ----}
+
        if (ng > ZeroGrad) then
         if (knorms < 10)  knorms=knorms+1
         if (knorms >= 2) then
@@ -1764,14 +1788,14 @@
           enddo
         nng = nng**(one/dble(knorms))
        endif
-! Norm X:
+       ! Norm X:
        nx = zero
        do i = 1,n
         nx = nx+x(i)*x(i)
        enddo
        nx=dsqrt(nx)
 
-! DISPLAY THE CURRENT VALUES ----{
+       ! DISPLAY THE CURRENT VALUES ----{
        if (k == ld) then
          print *, &
              'Iteration # ..... function value ..... ', &
@@ -1779,15 +1803,16 @@
          print '(5x,i5,7x,g13.5,6x,g13.5,7x,g13.5)', k,f,dx,ng
          ld = k+dispdata
        endif
-!----}
-! CHECK THE STOPPING CRITERIA ----{
+       !----}
+
+      ! CHECK THE STOPPING CRITERIA ----{
       termflag = .true.
       if (constr) then
         if (.not. FsbPnt) termflag = .false.
       endif
       if (kcheck <= 5 .or. kcheck <= 12 .and. ng > one)termflag = .false.
       if (kc >= mxtc .or. knan)termflag = .false.
-! ARGUMENT
+      ! ARGUMENT
        if (termflag) then
            ii = 0
            stopping = .true.
@@ -1808,7 +1833,7 @@
                   d = d+(x(i)-xrec(i))**2
                 enddo
                 d=dsqrt(d)
-! function
+                ! function
                 if (dabs(f-frec) > detfr*dabs(f) .and. &
                   dabs(f-fopt) <= options(3)*dabs(f) .and. &
                   krerun <= 3 .and. .not. constr) then
@@ -1896,7 +1921,7 @@
                 endif
            endif
        endif
-! ITERATIONS LIMIT
+            ! ITERATIONS LIMIT
             if (k == iterlimit) then
                 options(9)=-nine
                 if (dispwarn) then
@@ -1905,8 +1930,8 @@
                 endif
                 goto 999
             endif
-! ----}
-! ZERO GRADIENT ----{
+            ! ----}
+          ! ZERO GRADIENT ----{
           if (constr) then
             if (ng <= ZeroGrad) then
                 if (dispwarn) then
@@ -1985,8 +2010,9 @@
              exit
             endif
           endif
-! ----}
-! function is flat at the point ----{
+          ! ----}
+
+          ! function is flat at the point ----{
           if (.not. constr .and. &
              dabs(f-fopt) < dabs(fopt)*options(3) .and. kcheck > 5 .and. ng < one) then
 
@@ -2069,14 +2095,15 @@
              endif   !! a better value has been found
            endif   !! function is flat
           endif   !! pre-conditions are fulfilled
-! ----}
+       ! ----}
+
        enddo   !! iterations
       enddo   !! restart
 
 999   continue
 
-! deallocate working arrays:
-      deallocate (idx,deltax,xx,grec,xrec,xopt,x1,z,gc,gt,g1,g0,g,B)
+  ! deallocate working arrays:
+  deallocate (idx,deltax,xx,grec,xrec,xopt,x1,z,gc,gt,g1,g0,g,B)
 
   end subroutine solvopt
 

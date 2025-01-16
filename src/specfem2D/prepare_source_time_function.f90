@@ -54,7 +54,7 @@
   integer :: it,i_source,ier,num_file
   integer :: i_stage
 
-  character(len=150) :: error_msg1 = 'Error opening the file that contains the external source: '
+  character(len=150),parameter :: error_msg1 = 'Error opening the file that contains the external source: '
   character(len=250) :: error_msg
   logical :: trick_ok
 

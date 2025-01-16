@@ -60,11 +60,11 @@ module enforce_par
 
   function count_lines(filename) result(nlines)
     implicit none
-    character(len=*)    :: filename
+    character(len=*), intent(in) :: filename
     integer             :: nlines
     integer             :: io
 
-    open(10,file=filename, iostat=io, status='old')
+    open(10,file=trim(filename), iostat=io, status='old')
     if (io /= 0) call stop_the_code('Cannot open file! ')
 
     nlines = 0
