@@ -83,7 +83,7 @@
 
   implicit none
 
-  character(len=*) :: error_msg
+  character(len=*),intent(in) :: error_msg
 
   call exit_MPI(myrank,error_msg)
 

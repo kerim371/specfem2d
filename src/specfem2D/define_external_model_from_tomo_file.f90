@@ -74,6 +74,8 @@ module interpolation
 ! (modified from http://www.shocksolution.com)
 ! ----------------------------------------------------------------------------------------
 
+  implicit none
+
   contains
 
   ! ====================== Implementation part ===============

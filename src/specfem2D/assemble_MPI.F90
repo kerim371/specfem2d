@@ -1197,7 +1197,8 @@
 
        ipoin = 0
        do i = 1, nibool_interfaces_electromagnetic(num_interface)
-        buffer_send_faces_vector_em(ipoin+1:ipoin+NDIM,iinterface) = array_val(:,ibool_interfaces_electromagnetic(i,num_interface))
+        buffer_send_faces_vector_em(ipoin+1:ipoin+NDIM,iinterface) = &
+            array_val(:,ibool_interfaces_electromagnetic(i,num_interface))
         ipoin = ipoin + NDIM
        enddo
     enddo
@@ -1228,7 +1229,8 @@
        ipoin = 0
        do i = 1, nibool_interfaces_electromagnetic(num_interface)
           array_val(:,ibool_interfaces_electromagnetic(i,num_interface)) = &
-              array_val(:,ibool_interfaces_electromagnetic(i,num_interface)) + buffer_recv_faces_vector_em(ipoin+1:ipoin+NDIM,iinterface)
+              array_val(:,ibool_interfaces_electromagnetic(i,num_interface)) &
+              + buffer_recv_faces_vector_em(ipoin+1:ipoin+NDIM,iinterface)
           ipoin = ipoin + NDIM
        enddo
 

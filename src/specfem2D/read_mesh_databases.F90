@@ -1682,6 +1682,7 @@
 
     interface
        subroutine AddToList(list, element)
+         implicit none
          integer, dimension(:), allocatable, intent(inout) :: list
          integer, intent(in) :: element
        end subroutine AddToList
@@ -1748,8 +1749,9 @@
     implicit none
 
     character(len=*),intent(inout) :: string
-    character(len=512) :: stringCopy1, stringCopy2
     character,intent(in) :: char
+
+    character(len=512) :: stringCopy1, stringCopy2
 
     if (char == ' ') then
       stop 'This function can not be used to strip spaces, use StripSpaces instead'
@@ -1773,7 +1775,8 @@
 
   implicit none
 
-  character(len=*) :: string
+  character(len=*),intent(inout) :: string
+
   integer :: stringLen
   integer :: last, actual
 
@@ -1805,11 +1808,11 @@
 
   implicit none
 
-  integer :: i, isize
   integer, intent(in) :: element
   integer, dimension(:), allocatable, intent(inout) :: list
-  integer, dimension(:), allocatable :: clist
 
+  integer :: i, isize
+  integer, dimension(:), allocatable :: clist
 
   if (allocated(list)) then
       isize = size(list)

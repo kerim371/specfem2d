@@ -189,8 +189,8 @@
 
   implicit none
 
-  integer :: value_to_read
-  character(len=*) :: name
+  integer, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -209,8 +209,8 @@
 
   implicit none
 
-  double precision :: value_to_read
-  character(len=*) :: name
+  double precision, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -229,8 +229,8 @@
 
   implicit none
 
-  logical :: value_to_read
-  character(len=*) :: name
+  logical, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -249,8 +249,8 @@
 
   implicit none
 
-  character(len=*) :: value_to_read
-  character(len=*) :: name
+  character(len=*), intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -269,8 +269,8 @@
 
   implicit none
 
-  integer :: value_to_read
-  character(len=*) :: name
+  integer, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -289,8 +289,8 @@
 
   implicit none
 
-  double precision :: value_to_read
-  character(len=*) :: name
+  double precision, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
@@ -309,8 +309,8 @@
 
   implicit none
 
-  logical :: value_to_read
-  character(len=*) :: name
+  logical, intent(inout) :: value_to_read
+  character(len=*), intent(in) :: name
   character(len=MAX_STRING_LEN) :: string_read
   integer :: ierr
   common /param_err_common/ ierr
