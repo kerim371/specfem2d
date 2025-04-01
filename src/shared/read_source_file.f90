@@ -320,9 +320,9 @@
       if (time_function_type(i_source) == 8) then
         inquire(file=trim(name_of_source_file(i_source)),exist=stf_exists)
         if (.not. stf_exists) then
-          write(*,*) ''
-          write(*,*) 'Error external source time function file: ',trim(name_of_source_file(i_source)),' not found.'
-          write(*,*) ''
+          print *
+          print *,'Error external source time function file: ',trim(name_of_source_file(i_source)),' not found.'
+          print *
           call stop_the_code('Error reading SOURCE file: could not find specified external source time function file')
         endif
       endif
