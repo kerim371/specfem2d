@@ -464,7 +464,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC
+        TESTDIR: EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -488,7 +488,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC
+        TESTDIR: EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC
         TESTCASE: P-SV
       run: ./.github/scripts/run_tests.sh
       shell: bash
@@ -513,7 +513,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC
+        TESTDIR: EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC
         TESTCASE: SH
       run: ./.github/scripts/run_tests.sh
       shell: bash
@@ -538,7 +538,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC
+        TESTDIR: EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC
       run: ./.github/scripts/run_tests.sh
       shell: bash
 

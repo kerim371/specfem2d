@@ -9,7 +9,7 @@ currentdir=`pwd`
 
 # sets up directory structure in current example directoy
 echo
-echo "   setting up example..."
+echo "setting up example..."
 echo
 
 mkdir -p OUTPUT_FILES
@@ -22,10 +22,9 @@ cd $currentdir
 mkdir -p bin
 cd bin/
 rm -f xmeshfem2D xspecfem2D
-ln -s ../../../../bin/xmeshfem2D
-ln -s ../../../../bin/xspecfem2D
+ln -s ../../../../../bin/xmeshfem2D
+ln -s ../../../../../bin/xspecfem2D
 cd ../
-
 
 # stores setup
 cp DATA/Par_file OUTPUT_FILES/
@@ -36,7 +35,7 @@ NPROC=`grep ^NPROC DATA/Par_file | cut -d = -f 2 | cut -d \# -f 1 | tr -d ' '`
 
 # runs database generation
 echo
-echo "  running mesher..."
+echo "running mesher..."
 echo
 ./bin/xmeshfem2D
 # checks exit code
@@ -66,4 +65,5 @@ echo
 echo "see results in directory: OUTPUT_FILES/"
 echo
 echo "done"
-date
+echo `date`
+

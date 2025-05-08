@@ -61,12 +61,12 @@ fi
 # selects kernel script for kernel benchmark examples
 do_kernel_script=0
 
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC" ]; then do_kernel_script=1; fi
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ]; then do_kernel_script=1; fi
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC" ]; then do_kernel_script=1; fi
 
 # setup elastic kernel for SH simulations
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ] && [ "${TESTCASE}" == "SH" ]; then
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ] && [ "${TESTCASE}" == "SH" ]; then
   # sets simulation type for SH-waves
   sed -i "s:^SIM_TYPE.*:SIM_TYPE=3:" run_this_example_kernel.sh
 fi

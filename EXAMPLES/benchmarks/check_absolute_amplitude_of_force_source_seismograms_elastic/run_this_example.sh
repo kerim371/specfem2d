@@ -17,13 +17,16 @@ mkdir -p DATA
 
 # sets up local DATA/ directory
 cd DATA/
-rm -f Par_file SOURCE
-# use this to test a source that is located at a corner point shared between four spectral elements
-ln -s ./Par_file_attenuation_2D_source_in_point_shared_by_four_elements Par_file
-ln -s ./SOURCE_attenuation_2D_source_in_point_shared_by_four_elements SOURCE
-# or use this to test a source that is located inside a given element, which does NOT coincide with a GLL point
-# ln -s ./Par_file_attenuation_2D_source_in_point_inside_an_element Par_file
-# ln -s ./SOURCE_attenuation_2D_source_in_point_inside_an_element SOURCE
+
+# use this to test a source that is at a GLL point in the corner of an element, shared by several elements and assembled in the mass matrix
+cp -f ./Par_file_no_attenuation_2D_at_the_corner_between_several_spectral_elements Par_file
+cp -f ./SOURCE_no_attenuation_2D_at_the_corner_between_several_spectral_elements SOURCE
+
+# or use this to test a source that is inside a given spectral element
+# cp -f ../Par_file_no_attenuation_2D_inside_a_given_spectral_element Par_file
+# cp -f ../SOURCE_no_attenuation_2D_inside_a_given_spectral_element SOURCE
+
+#cp ./interfaces_attenuation_analytic.dat .
 cd ../
 
 # cleans output files

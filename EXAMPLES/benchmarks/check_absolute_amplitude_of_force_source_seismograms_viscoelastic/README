@@ -18,7 +18,7 @@ TO RUN:
 2. compile:
    make all
 
-3. cd EXAMPLES/check_absolute_amplitude_of_force_source_seismograms_viscoelastic
+3. cd EXAMPLES/benchmarks/check_absolute_amplitude_of_force_source_seismograms_viscoelastic
 
 4. execute script to run mesher and solver for the P-SV case:
    ./run_this_example.sh

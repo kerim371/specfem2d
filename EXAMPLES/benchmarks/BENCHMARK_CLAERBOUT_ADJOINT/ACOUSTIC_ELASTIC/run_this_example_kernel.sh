@@ -9,10 +9,10 @@ currentdir=`pwd`
 cd $currentdir
 
 ##############################################
-## Acoustic benchmark
+## Elastic benchmark
 
 # Simulation type 1 == acoustic / 2 == elastic P-SV / 3 == elastic SH / 4 == coupled acoustic-elastic
-SIM_TYPE=1
+SIM_TYPE=4
 
 # perturbation model parameter rho/vp/vs (e.g. "rho" or "vp" or "rhovp")
 perturb_param="vp"
@@ -105,7 +105,7 @@ rm -f helper_functions.py
 ln -s ../helper_functions.py
 
 rm -f change_simulation_type.pl
-ln -s ../../../utils/change_simulation_type.pl
+ln -s ../../../../utils/scripts/change_simulation_type.pl
 
 rm -f create_STATIONS_file.py
 ln -s ../create_STATIONS_file.py
@@ -218,27 +218,41 @@ cp -v DATA/*z.bin  MODELS/initial_model/
 echo
 echo "creating adjoint sources..."
 
-if [ -e OUTPUT_FILES.syn.forward/Up_file_single_p.su ]; then
-  syn=OUTPUT_FILES.syn.forward/Up_file_single_p.su
-  dat=OUTPUT_FILES.dat.forward/Up_file_single_p.su
-elif [ -e OUTPUT_FILES.syn.forward/Up_file_single_x.su ]; then
-  syn=OUTPUT_FILES.syn.forward/Up_file_single_x.su
-  dat=OUTPUT_FILES.dat.forward/Up_file_single_x.su
-elif [ -e OUTPUT_FILES.syn.forward/Ux_file_single_d.su ]; then
+# x-component
+if [ -e OUTPUT_FILES.syn.forward/Ux_file_single_d.su ]; then
   syn=OUTPUT_FILES.syn.forward/Ux_file_single_d.su
   dat=OUTPUT_FILES.dat.forward/Ux_file_single_d.su
-else
-echo "SU trace file not found"
-exit 1
+  echo "> ./adj_seismogram.py $syn $dat"
+  echo
+  # adjoint source f^adj = (s - d)
+  ./adj_seismogram.py $syn $dat
+  # checks exit code
+  if [[ $? -ne 0 ]]; then exit 1; fi
 fi
 
-echo "> ./adj_seismogram.py $syn $dat"
-echo
-# adjoint source f^adj = (s - d)
-./adj_seismogram.py $syn $dat
+# y-component
+if [ -e OUTPUT_FILES.syn.forward/Uy_file_single_d.su ]; then
+  syn=OUTPUT_FILES.syn.forward/Uy_file_single_d.su
+  dat=OUTPUT_FILES.dat.forward/Uy_file_single_d.su
+  echo "> ./adj_seismogram.py $syn $dat"
+  echo
+  # adjoint source f^adj = (s - d)
+  ./adj_seismogram.py $syn $dat
+  # checks exit code
+  if [[ $? -ne 0 ]]; then exit 1; fi
+fi
 
-# checks exit code
-if [[ $? -ne 0 ]]; then exit 1; fi
+# z-component
+if [ -e OUTPUT_FILES.syn.forward/Uz_file_single_d.su ]; then
+  syn=OUTPUT_FILES.syn.forward/Uz_file_single_d.su
+  dat=OUTPUT_FILES.dat.forward/Uz_file_single_d.su
+  echo "> ./adj_seismogram.py $syn $dat"
+  echo
+  # adjoint source f^adj = (s - d)
+  ./adj_seismogram.py $syn $dat
+  # checks exit code
+  if [[ $? -ne 0 ]]; then exit 1; fi
+fi
 
 ########################### kernel ################################
 
