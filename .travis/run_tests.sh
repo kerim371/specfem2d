@@ -22,20 +22,20 @@ case "$TESTDIR" in
 1) dir=EXAMPLES/simple_topography_and_also_a_simple_fluid_layer/ ;;
 2) dir=EXAMPLES/semi_infinite_homogeneous/ ;;
 3) dir=EXAMPLES/Gmsh_example_Stacey_MPI/ ;;
-4) dir=EXAMPLES/Tromp2005_kernel/ ;;
-5) dir=EXAMPLES/poroelastic_acoustic/ ;;
-6) dir=EXAMPLES/noise_uniform/ ;;
+4) dir=EXAMPLES/reproducible_study/Tromp2005_kernel/ ;;
+5) dir=EXAMPLES/reproducible_study/Morency2008_poroelastic_acoustic/ ;;
+6) dir=EXAMPLES/reproducible_study/Tromp2010_noise_uniform/ ;;
 7) dir=EXAMPLES/axisymmetric_case_AXISYM_option/ ;;
 8) dir=EXAMPLES/simple_topography_and_also_a_simple_fluid_layer/ ;;
 9) dir=EXAMPLES/Industrial_Format_SEP/ ;;
 10) dir=EXAMPLES/Rayleigh_wave_no_crack/ ;;
 11) dir=EXAMPLES/Rayleigh_wave_with_crack/ ;;
-12) dir=EXAMPLES/Tape2007/ ;;
+12) dir=EXAMPLES/reproducible_study/Tape2007/ ;;
 13) dir=EXAMPLES/check_absolute_amplitude_of_pressure_source_seismograms_acoustic/ ;;
 14) dir=EXAMPLES/check_absolute_amplitude_of_force_source_seismograms_elastic/ ;;
 15) dir=EXAMPLES/check_absolute_amplitude_of_force_source_seismograms_viscoelastic/ ;;
-16) dir=EXAMPLES/fluid_solid/fluid_solid_external_mesh/ ;;
-17) dir=EXAMPLES/poroelastic_semi_infinite_homogeneous/ ;;
+16) dir=EXAMPLES/reproducible_study/Komatitsch2000_fluid_solid/fluid_solid_external_mesh/ ;;
+17) dir=EXAMPLES/reproducible_study/Morency2008_poroelastic_semi_infinite_homogeneous/ ;;
 18) dir=EXAMPLES/initial_mode_LDDRK/ ;;
 19) dir=EXAMPLES/moving_sources_acoustic/ ;;
 20) dir=EXAMPLES/anisotropic_isotropic_model/ ;;
@@ -207,9 +207,9 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "0" ]; then
   ## testing noise example
   ##
   echo "##################################################################"
-  echo "EXAMPLES/noise_uniform/"
+  echo "EXAMPLES/reproducible_study/Tromp2010_noise_uniform/"
   echo
-  cd EXAMPLES/noise_uniform/
+  cd EXAMPLES/reproducible_study/Tromp2010_noise_uniform/
   sed -i "s:^NSTEP .*:NSTEP    = 10:" DATA/Par_file
   ./run_this_example.sh
   if [[ $? -ne 0 ]]; then exit 1; fi
@@ -224,9 +224,9 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "0" ]; then
   ## testing Tape2007 example
   ##
   echo "##################################################################"
-  echo "EXAMPLES/Tape2007/"
+  echo "EXAMPLES/reproducible_study/Tape2007/"
   echo
-  cd EXAMPLES/Tape2007/
+  cd EXAMPLES/reproducible_study/Tape2007/
   sed -i "s:^NSTEP .*:NSTEP    = 10:" DATA/Par_file
   ./run_this_example.sh
   if [[ $? -ne 0 ]]; then exit 1; fi
@@ -297,9 +297,9 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "1" ]; then
   ## testing kernel example
   ##
   echo "##################################################################"
-  echo "EXAMPLES/Tromp2005_kernel/"
+  echo "EXAMPLES/reproducible_study/Tromp2005_kernel/"
   echo
-  cd EXAMPLES/Tromp2005_kernel/
+  cd EXAMPLES/reproducible_study/Tromp2005_kernel/
   sed -i "s:^NSTEP .*:NSTEP    = 500:" DATA/Par_file
   ./run_this_example_kernel.sh
   if [[ $? -ne 0 ]]; then exit 1; fi
@@ -315,9 +315,9 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "1" ]; then
   ## testing poroelastic example
   ##
   echo "##################################################################"
-  echo "EXAMPLES/poroelastic_acoustic/"
+  echo "EXAMPLES/reproducible_study/Morency2008_poroelastic_acoustic/"
   echo
-  cd EXAMPLES/poroelastic_acoustic/
+  cd EXAMPLES/reproducible_study/Morency2008_poroelastic_acoustic/
   sed -i "s:^NSTEP .*:NSTEP    = 10:" DATA/Par_file
   ./run_this_example.sh
   if [[ $? -ne 0 ]]; then exit 1; fi
@@ -354,9 +354,9 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "1" ]; then
   ## testing fluid solid w/ external mesh
   ##
   echo "##################################################################"
-  echo "EXAMPLES/fluid_solid/fluid_solid_external_mesh/"
+  echo "EXAMPLES/reproducible_study/Komatitsch2000_fluid_solid/fluid_solid_external_mesh/"
   echo
-  cd EXAMPLES/fluid_solid/fluid_solid_external_mesh/
+  cd EXAMPLES/reproducible_study/Komatitsch2000_fluid_solid/fluid_solid_external_mesh/
   sed -i "s:^NPROC .*:NPROC    = 2:" DATA/Par_file
   sed -i "s:^NSTEP .*:NSTEP    = 10:" DATA/Par_file
   ./run_this_example.sh
@@ -391,7 +391,7 @@ if [ "$TESTCOV" == "1" ] && [ "$TESTID" == "1" ]; then
   echo "##################################################################"
   echo "EXAMPLES/Tromp2005_kernel"
   echo
-  cd EXAMPLES/Tromp2005_kernel
+  cd EXAMPLES/reproducible_study/Tromp2005_kernel
   sed -i "s:^NSTEP .*:NSTEP    = 500:" DATA/Par_file
   sed -i "s:^NO_BACKWARD_RECONSTRUCTION .*:NO_BACKWARD_RECONSTRUCTION = .true.:" DATA/Par_file
   sed -i "s:^NTSTEP_BETWEEN_COMPUTE_KERNELS .*:NTSTEP_BETWEEN_COMPUTE_KERNELS = 12:" DATA/Par_file

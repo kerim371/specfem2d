@@ -780,7 +780,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/electromagnetic_GPR_TM
+        TESTDIR: EXAMPLES/reproducible_study/Morency2020_electromagnetic_GPR_TM
         DEBUG: true
       run: ./.github/scripts/run_tests.sh
       shell: bash
