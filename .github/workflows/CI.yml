@@ -562,7 +562,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/moving_sources_acoustic
+        TESTDIR: EXAMPLES/applications/moving_sources_acoustic
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -586,7 +586,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/anisotropic_isotropic_model
+        TESTDIR: EXAMPLES/applications/anisotropy/anisotropic_isotropic_model
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -611,7 +611,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/Industrial_Format_SEP
+        TESTDIR: EXAMPLES/real_world/Industrial_Format_SEP
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -635,7 +635,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/axisymmetric_case_AXISYM_option
+        TESTDIR: EXAMPLES/applications/axisymmetric_examples/axisymmetric_case_AXISYM_option
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -659,7 +659,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/simple_topography_and_also_a_simple_fluid_layer
+        TESTDIR: EXAMPLES/applications/simple_topography_and_also_a_simple_fluid_layer
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -683,7 +683,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/simple_topography_and_also_a_simple_fluid_layer
+        TESTDIR: EXAMPLES/applications/simple_topography_and_also_a_simple_fluid_layer
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -708,7 +708,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/tomographic_ocean_model
+        TESTDIR: EXAMPLES/applications/ocean_acoustics/tomographic_ocean_model
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -732,7 +732,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/Marmousi2
+        TESTDIR: EXAMPLES/real_world/Marmousi2
       run: ./.github/scripts/run_tests.sh
       shell: bash
 
@@ -756,7 +756,7 @@ jobs:
 
     - name: Run test
       env:
-        TESTDIR: EXAMPLES/Gmsh_example_Stacey_MPI
+        TESTDIR: EXAMPLES/applications/meshing/Gmsh_example_Stacey_MPI
       run: ./.github/scripts/run_tests.sh
       shell: bash
 

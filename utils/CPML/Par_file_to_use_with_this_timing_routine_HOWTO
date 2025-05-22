@@ -293,7 +293,7 @@ nbmodels                        = 1
 1 1 2700.d0 3000.d0 1732.051d0 0 0 9999 9999 0 0 0 0 0 0
 
 # file containing interfaces for internal mesh
-interfacesfile                  = ../EXAMPLES/simple_topography_and_also_a_simple_fluid_layer/DATA/interfaces_simple_topo_curved.dat
+interfacesfile                  = ../EXAMPLES/applications/simple_topography_and_also_a_simple_fluid_layer/DATA/interfaces_simple_topo_curved.dat
 
 # geometry of the model (origin lower-left corner = 0,0) and mesh description
 xmin                            = 0.d0           # abscissa of left side of the model
