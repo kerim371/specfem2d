@@ -144,7 +144,7 @@ jobs:
   - template: .azure-pipelines/install-template.yml
     parameters:
       CUDA: true
-      CUDA_V: '11.4'
+      CUDA_V: '11.7'
   - template: .azure-pipelines/configure-template.yml
     parameters:
       TESTFLAGS: '--with-mpi --with-cuda=cuda11'
@@ -163,7 +163,7 @@ jobs:
   - template: .azure-pipelines/install-template.yml
     parameters:
       CUDA: true
-      CUDA_V: '11.4'
+      CUDA_V: '11.7'
   - template: .azure-pipelines/configure-template.yml
     parameters:
       TESTFLAGS: '--with-mpi --with-cuda=cuda10'
@@ -195,7 +195,7 @@ jobs:
   - template: .azure-pipelines/install-template.yml
     parameters:
       CUDA: true
-      CUDA_V: '12.1'
+      CUDA_V: '12.9'
   - template: .azure-pipelines/configure-template.yml
     parameters:
       TESTFLAGS: '--with-mpi --with-cuda=cuda12'
