@@ -40,13 +40,13 @@ cd $dir
 #sed -i "s:^NTSTEP_BETWEEN_OUTPUT_INFO .*:NTSTEP_BETWEEN_OUTPUT_INFO    = 50:" DATA/Par_file
 
 # specific example setups
-if [ "${TESTDIR}" == "EXAMPLES/moving_sources_acoustic" ]; then
+if [ "${TESTDIR}" == "EXAMPLES/applications/moving_sources_acoustic" ]; then
   sed -i "s:^NSTEP .*:NSTEP    = 3000:" DATA/Par_file
 fi
-if [ "${TESTDIR}" == "EXAMPLES/Industrial_Format_SEP" ]; then
+if [ "${TESTDIR}" == "EXAMPLES/real_world/Industrial_Format_SEP" ]; then
   sed -i "s:^NPROC .*:NPROC    = 2:" DATA/Par_file
 fi
-if [ "${TESTDIR}" == "EXAMPLES/axisymmetric_case_AXISYM_option" ]; then
+if [ "${TESTDIR}" == "EXAMPLES/applications/axisymmetric_examples/axisymmetric_case_AXISYM_option" ]; then
   sed -i "s:^NPROC .*:NPROC    = 2:" DATA/Par_file
   sed -i "s:^NSTEP .*:NSTEP    = 1400:" DATA/Par_file
 fi
@@ -61,12 +61,12 @@ fi
 # selects kernel script for kernel benchmark examples
 do_kernel_script=0
 
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC" ]; then do_kernel_script=1; fi
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ]; then do_kernel_script=1; fi
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ]; then do_kernel_script=1; fi
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ACOUSTIC_ELASTIC" ]; then do_kernel_script=1; fi
 
 # setup elastic kernel for SH simulations
-if [ "${TESTDIR}" == "EXAMPLES/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ] && [ "${TESTCASE}" == "SH" ]; then
+if [ "${TESTDIR}" == "EXAMPLES/benchmarks/BENCHMARK_CLAERBOUT_ADJOINT/ELASTIC" ] && [ "${TESTCASE}" == "SH" ]; then
   # sets simulation type for SH-waves
   sed -i "s:^SIM_TYPE.*:SIM_TYPE=3:" run_this_example_kernel.sh
 fi

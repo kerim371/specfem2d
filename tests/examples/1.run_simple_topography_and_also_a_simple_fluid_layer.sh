@@ -5,15 +5,15 @@
 NAME="simple_topography_and_also_a_simple_fluid_layer"
 
 # relative location of SPECFEM2D EXAMPLES/ directory for tests directories (e.g. SPECFEM2D/tests/compilations)
-EXAMPLES="../../EXAMPLES/"
+EXAMPLES="../../EXAMPLES/applications/"
 
 ###################################################
 
 # bash function for checking seismogram output with reference solutions
 my_test(){
   echo "testing seismograms:";
-  ../../utils/compare_seismogram_correlations.py REF_SEIS/ OUTPUT_FILES/ ;
-  ../../utils/compare_seismogram_correlations.py REF_SEIS/ OUTPUT_FILES/ | grep min/max | cut -d \| -f 3 | awk '{print "correlation:",$1; if ($1 < 0.9 ){print $1,"failed"; exit 1;}else{ print $1,"good"; exit 0;}}';
+  ../../utils/scripts/compare_seismogram_correlations.py REF_SEIS/ OUTPUT_FILES/ ;
+  ../../utils/scripts/compare_seismogram_correlations.py REF_SEIS/ OUTPUT_FILES/ | grep min/max | cut -d \| -f 3 | awk '{print "correlation:",$1; if ($1 < 0.9 ){print $1,"failed"; exit 1;}else{ print $1,"good"; exit 0;}}';
 }
 
 testdir=`pwd`
@@ -55,8 +55,8 @@ sed -i "s:^output_postscript_snapshot .*:output_postscript_snapshot      = .fals
 
 # avoid linking to binaries in ../../../bin, instead use the compiled ones in ./bin
 sed -i "s:^rm -f xmeshfem2D xspecfem2D:#rm -f xmeshfem2D xspecfem2D:" run_this_example.sh
-sed -i "s:^ln -s ../../../bin/xmeshfem2D:#ln -s ../../../bin/xmeshfem2D:g" run_this_example.sh
-sed -i "s:^ln -s ../../../bin/xspecfem2D:#ln -s ../../../bin/xspecfem2D:g" run_this_example.sh
+sed -i "s:^ln -s ../../../../bin/xmeshfem2D:#ln -s ../../../../bin/xmeshfem2D:g" run_this_example.sh
+sed -i "s:^ln -s ../../../../bin/xspecfem2D:#ln -s ../../../../bin/xspecfem2D:g" run_this_example.sh
 
 # checks exit code
 if [[ $? -ne 0 ]]; then

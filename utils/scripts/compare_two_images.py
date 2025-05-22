@@ -22,7 +22,7 @@
 # slightly modified it. It works well. You then just need to check if the
 # Structural Similarity Index (SSIM) is greater than 0.99.
 #
-# For the 2D code we can apply this to EXAMPLES/LuoYang_fluid_solid_kernel for
+# For the 2D code we can apply this to EXAMPLES/applications/fluid_solid_kernel for
 # instance in the nightly builds.
 #
 # For the 3D code for now we could just draw pictures along a couple of cut
