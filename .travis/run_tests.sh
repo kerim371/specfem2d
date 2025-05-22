@@ -31,9 +31,9 @@ case "$TESTDIR" in
 10) dir=EXAMPLES/applications/Rayleigh_wave_no_crack/ ;;
 11) dir=EXAMPLES/applications/Rayleigh_wave_with_crack/ ;;
 12) dir=EXAMPLES/reproducible_study/Tape2007/ ;;
-13) dir=EXAMPLES/check_absolute_amplitude_of_pressure_source_seismograms_acoustic/ ;;
-14) dir=EXAMPLES/check_absolute_amplitude_of_force_source_seismograms_elastic/ ;;
-15) dir=EXAMPLES/check_absolute_amplitude_of_force_source_seismograms_viscoelastic/ ;;
+13) dir=EXAMPLES/benchmarks/check_absolute_amplitude_of_pressure_source_seismograms_acoustic/ ;;
+14) dir=EXAMPLES/benchmarks/check_absolute_amplitude_of_force_source_seismograms_elastic/ ;;
+15) dir=EXAMPLES/benchmarks/check_absolute_amplitude_of_force_source_seismograms_viscoelastic/ ;;
 16) dir=EXAMPLES/reproducible_study/Komatitsch2000_fluid_solid/fluid_solid_external_mesh/ ;;
 17) dir=EXAMPLES/reproducible_study/Morency2008_poroelastic_semi_infinite_homogeneous/ ;;
 18) dir=EXAMPLES/applications/initial_mode_LDDRK/ ;;

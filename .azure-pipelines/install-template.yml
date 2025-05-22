@@ -6,9 +6,9 @@
 # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
 # ubuntu-20.04:
 # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-# ubuntu-22.04 "ubuntu-latest":
+# ubuntu-22.04:
 # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md
-#
+# ubuntu-24.04: "ubuntu-latest"
 parameters:
 - name: CUDA
   type: boolean
@@ -118,9 +118,11 @@ steps:
       #UBUNTU_VERSION=ubuntu2004
       ## distribution jammy: from ubuntu 22.04
       #UBUNTU_VERSION=ubuntu2204
+      ## distribution noble: from ubuntu 24.04
+      #UBUNTU_VERSION=ubuntu2204
 
       # default
-      UBUNTU_VERSION=ubuntu2004
+      UBUNTU_VERSION=ubuntu2204
 
       # CUDA_VERSION - specifies CUDA toolkit version
       echo "CUDA version: $CUDA_V"
@@ -145,8 +147,10 @@ steps:
         #       needs at least CUDA version 10.x
         #       - on azure VM nodes with ubuntu 20.04, default gcc version is 10.3;
         #       needs at least CUDA version 11.x
-        #       - on azure VM nodes with ubuntu-latest (22.04), default gcc version is 11.3;
+        #       - on azure VM nodes with ubuntu 22.04, default gcc version is 11.3;
         #       needs at least CUDA version 11.7
+        #       - on azure VM nodes with ubuntu 24.04 (ubuntu-latest), default gcc version is 13.3;
+        #       needs at least CUDA version ?
         CUDA_VERSION=12.1.1-1
       fi
       echo
