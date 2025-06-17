@@ -253,8 +253,15 @@
               if (ispec_is_elastic(ispec)) then
                 if (P_SV) then
                   ! P_SV case
-                  sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-                  sourcearray(2,i,j) = real(cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!                  sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!                  sourcearray(2,i,j) = real(  cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
+!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
+!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
+!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
+!! DK DK May 2018: and more generally compared to reality
+                  sourcearray(1,i,j) = real(+ sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+                  sourcearray(2,i,j) = real(- cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
                 else
                   ! SH case (membrane)
                   sourcearray(:,i,j) = real(hlagrange,kind=CUSTOM_REAL)
@@ -263,8 +270,15 @@
 
               ! source element is poroelastic
               if (ispec_is_poroelastic(ispec)) then
-                sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-                sourcearray(2,i,j) = real(cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!                sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!                sourcearray(2,i,j) = real(  cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
+!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
+!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
+!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
+!! DK DK May 2018: and more generally compared to reality
+                sourcearray(1,i,j) = real(+ sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
+                sourcearray(2,i,j) = real(- cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
               endif
 
             enddo
@@ -362,7 +376,7 @@
   integer :: it_tmp
   real(kind=CUSTOM_REAL) :: stfx,stfz
 
-  ! time step index
+  ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
 
   do irec_local = 1,nrecloc
