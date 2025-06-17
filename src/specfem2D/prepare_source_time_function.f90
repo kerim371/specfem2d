@@ -49,7 +49,7 @@
 
   ! local parameters
   double precision :: stf_used, timeval, DecT, Tc, omegat, omega_coa,dummy_t,coeff, t_used, Nc
-  double precision :: hdur,hdur_gauss
+  double precision :: hdur,hdur_gauss,f0_sampling
 
   integer :: it,i_source,ier,num_file
   integer :: i_stage
@@ -251,24 +251,35 @@
               ! is accurate at second order and thus contains significantly less numerical noise.
               ! Second derivative of Gaussian :
               source_time_function(i_source,it,i_stage) = - factor(i_source) * &
-                         comp_source_time_function_d2Gaussian(t_used,f0_source(i_source))
+                        comp_source_time_function_d2Gaussian(t_used,f0_source(i_source))
             else
               ! Gaussian or Dirac (we use a very thin Gaussian instead) source time function
               source_time_function(i_source,it,i_stage) = - factor(i_source) * &
-                          comp_source_time_function_Gaussian(t_used,f0_source(i_source))
+                        comp_source_time_function_Gaussian(t_used,f0_source(i_source))
             endif
 
           case (5)
             ! Heaviside source time function (we use a very thin error function instead)
-            hdur = 1.d0 / f0_source(i_source)
-            hdur_gauss = hdur * 5.d0 / 3.d0
+            f0_sampling = 1.d0 / (10.d0 * DT)    ! empirical sampling frequency limit
+            ! if Heaviside source time function, use a very thin error function instead
+            if (f0_source(i_source) < f0_sampling) then
+              ! can have a smooth quasi-Heaviside if 0 < f0 < sampling-frequency
+              ! uses smooth Heaviside with half-duration hdur = 1/f0
+              hdur = 1.d0 / f0_source(i_source)   ! half-duration
+            else
+              ! limit frequency to sampling size frequency
+              ! converts to half-duration
+              hdur = 1.d0 / f0_source(i_source)
+              ! adds a factor 5/3 to half-duration
+              hdur = hdur * 5.d0 / 3.d0
+            endif
 
             ! convert the half duration for triangle STF to the one for Gaussian STF
-            hdur_gauss = hdur_gauss / SOURCE_DECAY_MIMIC_TRIANGLE
+            hdur_gauss = hdur / SOURCE_DECAY_MIMIC_TRIANGLE
 
             ! quasi-Heaviside
             source_time_function(i_source,it,i_stage) = - factor(i_source) * &
-                                    comp_source_time_function_heaviside_hdur(t_used,hdur_gauss)
+                        comp_source_time_function_heaviside_hdur(t_used,hdur_gauss)
 
           case (6)
             ! ocean acoustics type I
@@ -280,7 +291,7 @@
               ! source time function from Computational Ocean Acoustics
               omegat =  omega_coa * ( timeval - DecT )
               source_time_function(i_source,it,i_stage) = factor(i_source) * HALF * &
-                    sin( omegat ) * ( ONE - cos( QUARTER * omegat ) )
+                        sin( omegat ) * ( ONE - cos( QUARTER * omegat ) )
               !source_time_function(i_source,it,i_stage) = factor(i_source) * HALF / omega_coa / omega_coa * &
               !      ( sin(omegat) - 8.d0 / 9.d0 * sin(3.d0/ 4.d0 * omegat) - 8.d0 / 25.d0 * sin(5.d0 / 4.d0 * omegat) )
             else
@@ -303,7 +314,7 @@
               ! Second derivative of source 7 :
               if (timeval > DecT .and. timeval < Tc) then ! t_used > 0 t_used < Nc/f0_source(i_source)) then
                 source_time_function(i_source,it,i_stage) = factor(i_source) * &
-                          0.5d0*(ONE-cos(omega_coa*t_used/4.0d0))*sin(omega_coa*t_used)
+                        0.5d0*(ONE-cos(omega_coa*t_used/4.0d0))*sin(omega_coa*t_used)
               else
                 source_time_function(i_source,it,i_stage) = ZERO
               endif

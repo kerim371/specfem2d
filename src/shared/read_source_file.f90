@@ -49,6 +49,7 @@
 
   ! local parameters
   integer :: ier,icounter,i_source,num_sources
+  double precision :: f0_sampling
   character(len=256) string_read
   character(len=MAX_STRING_LEN) :: source_filename,path_to_add
   integer, parameter :: IIN_SOURCE = 22
@@ -208,11 +209,30 @@
         SOURCE_IS_MOVING = .false.
       endif
 
-      ! Dirac/Heaviside
+      ! empirical sampling frequency limit for Dirac/Heaviside
+      f0_sampling = 1.d0 / (10.d0 * DT)
+
+      ! Dirac
       ! if Dirac source time function, use a very thin Gaussian instead
-      ! if Heaviside source time function, use a very thin error function instead
-      if (time_function_type(i_source) == 4 .or. time_function_type(i_source) == 5) then
-        f0_source(i_source) = 1.d0 / (10.d0 * DT)
+      if (time_function_type(i_source) == 4) then
+        f0_source(i_source) = f0_sampling
+      endif
+
+      ! Heaviside
+      if (time_function_type(i_source) == 5) then
+        ! f0 will be used to determine half-duration such that hdur = 1 / f0
+        ! note: low frequencies (== large half-durations) will lead to a smooth (quasi) Heaviside,
+        !       high frequencies (== shorter half-durations) lead to (sharp) Heaviside
+        !
+        ! can have a smooth quasi-Heaviside if 0 < f0 < sampling-frequency
+        ! if Heaviside source time function, use a very thin error function instead
+        if (f0_source(i_source) > 0.d0 .and. f0_source(i_source) < f0_sampling) then
+          ! uses smooth Heaviside with half-duration hdur = 1/f0
+          continue
+        else
+          ! limit frequency to sampling frequency
+          f0_source(i_source) = f0_sampling
+        endif
       endif
 
       ! checks source frequency
@@ -228,8 +248,9 @@
       !         here we just read in the given specifics and show them
       write(IMAIN,*) 'Source', i_source
       if (SOURCE_IS_MOVING) then
+        write(IMAIN,*) '  Moving source:'
         write(IMAIN,*) '  Initial position xs, zs = ',x_source(i_source),z_source(i_source)
-        write(IMAIN,*) '  Velocities vx, vz = ',vx_source(i_source),vz_source(i_source)
+        write(IMAIN,*) '  Velocities       vx, vz = ',vx_source(i_source),vz_source(i_source)
       else
         write(IMAIN,*) '  Position xs, zs = ',x_source(i_source),z_source(i_source)
       endif
@@ -289,9 +310,11 @@
       case (4)
         write(IMAIN,*) '  Dirac:'
         write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        if (f0_source(i_source) == f0_sampling) write(IMAIN,*) '  (Frequency limited by sampling rate DT ',sngl(DT),' s)'
       case (5)
         write(IMAIN,*) '  Heaviside:'
         write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        if (f0_source(i_source) == f0_sampling) write(IMAIN,*) '  (Frequency limited by sampling rate DT ',sngl(DT),' s)'
       case (6)
         write(IMAIN,*) '  Ocean acoustics (type I):'
         write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
