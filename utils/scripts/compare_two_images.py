@@ -157,24 +157,56 @@ def compare_images(imageA, imageB, title, show_plot=True):
 
     # index values for mean squared error
     if VERBOSE: print("comparing mean squared error...")
+
     m = mse(imageA, imageB)
+
+    if VERBOSE: print(f"  mse = {m}\n")
 
     # convert the images to grayscale
     if VERBOSE: print("converting to greyscale...")
+
     if new_version == 2:
-        imageA_grey = rgb2gray(rgba2rgb(imageA))
-        imageB_grey = rgb2gray(rgba2rgb(imageB))
+        # rgba2rgb needs 4 channels
+        if imageA.shape[2] == 4:
+            imageA_grey = rgb2gray(rgba2rgb(imageA))
+        else:
+            imageA_grey = rgb2gray(imageA)
+
+        if imageB.shape[2] == 4:
+            imageB_grey = rgb2gray(rgba2rgb(imageB))
+        else:
+            imageB_grey = rgb2gray(imageB)
     else:
         imageA_grey = rgb2gray(imageA)
         imageB_grey = rgb2gray(imageB)
+
+    if VERBOSE:
+        print(f"  image A: grey shape {imageA_grey.shape}")
+        print(f"  image B: grey shape {imageB_grey.shape}")
+        print("")
 
     # uses image copies to avoid runtime warning for ssim computation
     img1_grey = np.copy(imageA_grey)
     img2_grey = np.copy(imageB_grey)
 
+    if VERBOSE:
+        print(f"  image A: data type {img1_grey.dtype}")
+        print(f"  image B: data type {img1_grey.dtype}")
+        print("")
+
     # index values for structural similarity
     if VERBOSE: print("comparing structural similarity...")
-    s = ssim(img1_grey, img2_grey)
+
+    # data range
+    range = img1_grey.max() - img1_grey.min()
+    if VERBOSE: print(f"  data range = {range} - min/max = {img1_grey.min():.4f} / {img1_grey.max():.4f}")
+
+    if new_version == 2:
+        s = ssim(img1_grey, img2_grey, data_range=range)
+    else:
+        s = ssim(img1_grey, img2_grey)
+
+    if VERBOSE: print(f"  ssim       = {s}\n")
 
     if show_plot:
         if VERBOSE: print("plotting images...")
@@ -231,8 +263,14 @@ def plot_image_comparison(image1,image2,show):
 
     # load the images
     if VERBOSE: print("loading images...")
+
     imageA = imread(image1)
     imageB = imread(image2)
+
+    if VERBOSE:
+        print(f"  image A: shape {imageA.shape}")
+        print(f"  image B: shape {imageB.shape}")
+        print("")
 
     # compare the images
     m, s = compare_images(imageA, imageB, "Image 1 vs. Image 2", show_plot=show)
@@ -259,10 +297,11 @@ def plot_image_comparison(image1,image2,show):
 
 
 def usage():
-    print("usage: ./compare_two_images.py image1 image2 (show)")
+    print("usage: ./compare_two_images.py image1 image2 (show) (verbose)")
     print("  with")
     print("     image1,image2   - path to images (jpg,png) for comparison")
-    print("     (optional) show - set to 1 to show image plots, otherwise only outputs comparison values")
+    print("     show            - (optional) set to 1 to show image plots, otherwise only outputs comparison values")
+    print("     verbose         - (optional) set to 1 to be verbose")
 
 if __name__ == '__main__':
     # initialize
@@ -271,14 +310,17 @@ if __name__ == '__main__':
     show = False
 
     # gets arguments
-    if len(sys.argv) < 2 or len(sys.argv) > 4:
+    if len(sys.argv) < 2 or len(sys.argv) > 5:
         usage()
         sys.exit(1)
     else:
         image1 = sys.argv[1]
         image2 = sys.argv[2]
-        if len(sys.argv) == 4:
+        # optional parameters
+        if len(sys.argv) >= 4:
             if int(sys.argv[3]) == 1: show = True
+        if len(sys.argv) >= 5:
+            if int(sys.argv[4]) == 1: VERBOSE = True
 
     # compares images
     plot_image_comparison(image1,image2,show)
