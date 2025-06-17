@@ -91,6 +91,10 @@
     if (iz_start < 1) call stop_the_code('Bottom coordinate of region negative!')
     if (iz_end > nzread) call stop_the_code('Top coordinate of region too high!')
 
+    ! define -1 for convenience to be whole length
+    if (ix_end == -1) ix_end = nxread
+    if (iz_end == -1) iz_end = nzread
+
     if (iregion == 1) write(IMAIN,*) '------'
     write(IMAIN,*) 'Region ',iregion
     write(IMAIN,*) 'IX from ',ix_start,' to ',ix_end
@@ -198,6 +202,11 @@
   write(IMAIN,*)
   call flush_IMAIN()
 
-  if (minval(num_material(:)) <= 0) call stop_the_code('Velocity model not entirely set...')
+  if (minval(num_material(:)) <= 0) then
+    print *,'Error: Velocity model not entirely set:'
+    print *,'       minimum material number found in element num_material array = ',minval(num_material(:))
+    print *,'       Please check region section in Par_file.'
+    call stop_the_code('Velocity model not entirely set...')
+  endif
 
   end subroutine read_regions
