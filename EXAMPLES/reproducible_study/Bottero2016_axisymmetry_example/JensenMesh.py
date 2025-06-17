@@ -3,7 +3,7 @@
 #### Script to create the axisymmetric 2.5d mesh necessary to reproduce
 #### Jensen et al. 2007.
 #### This script can be played as a journal file in
-#### Trelis/Cubit (http://www.csimsoft.com/trelis) directly or through the script:
+#### Trelis/Cubit (https://coreform.com) directly or through the script:
 #### make_mesh.sh.
 #### It first run cubit commands and then export the mesh under specfem2d format
 #### using utils/cubit2specfem2d/cubit2specfem2d.py

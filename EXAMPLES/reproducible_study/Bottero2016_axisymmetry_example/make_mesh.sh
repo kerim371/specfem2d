@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Run Cubit/Trelis (http://www.csimsoft.com/trelis) and cubit2specfem2d to create the mesh in a new directory called MESH by default
+# Run Cubit/Trelis (https://coreform.com) and cubit2specfem2d to create the mesh in a new directory called MESH by default
 # This is how it looks:
 #  ________________________________v__________________________________
 # |   ^         ___________________|______________________________|   | ^
