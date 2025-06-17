@@ -343,7 +343,7 @@
   integer :: ier
   integer :: irec,irec_local
 
-  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add,dummystring
+  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add
 
   ! user output
   call synchronize_all()
@@ -365,14 +365,7 @@
   endif
 
   ! get number of stations from receiver file
-  open(unit=IIN,file=trim(stations_filename),status='old',action='read',iostat=ier)
-  if (ier /= 0) call exit_MPI(myrank,'No file '//trim(stations_filename)//', exit')
-  nrec = 0
-  do while(ier == 0)
-    read(IIN,"(a)",iostat=ier) dummystring
-    if (ier == 0) nrec = nrec + 1
-  enddo
-  close(IIN)
+  call get_number_of_station_records(stations_filename,nrec)
 
   if (myrank == 0) then
     write(IMAIN,*)

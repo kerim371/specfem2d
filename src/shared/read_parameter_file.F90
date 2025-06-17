@@ -1577,7 +1577,7 @@
   ! local parameters
   integer :: ireceiverlines,ier,nrec
   logical :: reread_rec_normal_to_surface
-  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add,dummystring
+  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add
 
   integer,external :: err_occurred
 
@@ -1606,29 +1606,7 @@
     call flush_IMAIN()
 
     ! counts entries
-    open(unit=IIN,file=trim(stations_filename),status='old',action='read',iostat=ier)
-    if (ier /= 0 ) then
-      print *, 'Error could not open existing STATIONS file:',trim(stations_filename)
-      print *, 'Please check if file exists.'
-      call stop_the_code('Error opening STATIONS file')
-    endif
-
-    nrec = 0
-    do while(ier == 0)
-      read(IIN,"(a)",iostat=ier) dummystring
-      if (ier == 0) then
-        ! skip empty lines
-        if (len_trim(dummystring) == 0) cycle
-
-        ! skip comment lines
-        dummystring = adjustl(dummystring)
-        if (dummystring(1:1) == "#") cycle
-
-        ! increase counter
-        nrec = nrec + 1
-      endif
-    enddo
-    close(IIN)
+    call get_number_of_station_records(stations_filename,nrec)
 
     write(IMAIN,*) '  file name is ',trim(stations_filename)
     write(IMAIN,*) '  found ',nrec,' receivers'
@@ -1690,6 +1668,51 @@
   endif
 
   end subroutine read_parameter_file_receiversets
+
+!
+!-------------------------------------------------------------------------------------------------
+!
+
+  subroutine get_number_of_station_records(stations_filename,nrec)
+
+! counts station entries in STATIONS file
+
+  use constants, only: IIN,MAX_STRING_LEN
+
+  implicit none
+  character(len=MAX_STRING_LEN),intent(in) :: stations_filename
+  integer, intent(out) :: nrec
+  ! local parameters
+  integer :: ier
+  character(len=MAX_STRING_LEN) :: line
+
+  open(unit=IIN,file=trim(stations_filename),status='old',action='read',iostat=ier)
+  if (ier /= 0 ) then
+    print *, 'Error could not open existing STATIONS file: ',trim(stations_filename)
+    print *, 'Please check if file exists.'
+    call stop_the_code('Error opening STATIONS file')
+  endif
+
+  nrec = 0
+  do while(ier == 0)
+    read(IIN,"(a)",iostat=ier) line
+    if (ier == 0) then
+      ! suppress white space
+      line = trim(adjustl(line))
+
+      ! skip empty lines
+      if (len_trim(line) == 0) cycle
+
+      ! skip comment lines
+      if (line(1:1) == '#' .or. line(1:1) == '!') cycle
+
+      ! increase counter
+      nrec = nrec + 1
+    endif
+  enddo
+  close(IIN)
+
+  end subroutine get_number_of_station_records
 
 !
 !-------------------------------------------------------------------------------------------------
