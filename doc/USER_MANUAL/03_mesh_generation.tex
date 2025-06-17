@@ -15,7 +15,7 @@ To run the mesher, please edit the main input file \texttt{DATA/Par\_file}, desc
 Then type:
 %
 \begin{verbatim}
-    ./bin/xmeshfem2D
+  ./bin/xmeshfem2D
 \end{verbatim}
 %
 to create the mesh, which will be stored in directory \texttt{OUTPUT\_FILES/}. \texttt{xmeshfem2D} will output several files called \texttt{Database??????.bin}, one for each process. These files are required for running the solver in a subsequent step.
@@ -101,11 +101,24 @@ Please also note that Qmu is always equal to Qs, but Qkappa is in general not eq
 
 The parameter \texttt{MODEL} can also have other values specified than \texttt{default}. Possible selections are:
 \begin{itemize}
-\item \texttt{ascii}: for reading in a single ASCII model file (\texttt{DATA/proc***\_rho\_vp\_vs.dat})
-\item \texttt{binary} or \texttt{gll}: for reading in binary model files (\texttt{DATA/proc***\_rho.bin}, \texttt{DATA/proc***\_vp.bin}, \texttt{DATA/proc***\_vs.bin}). In case attenuation is turned on for the simulation, it will also read in attenuation files (\texttt{DATA/proc***\_Qmu.bin}, \texttt{DATA/proc***\_Qkappa.bin}).
-\item \texttt{binary\_voigt}: for reading in an anisotropic model specified by binary files (\texttt{DATA/proc***\_rho.bin}, \texttt{DATA/proc***\_c11.bin}, \texttt{DATA/proc***\_c13.bin}, \texttt{DATA/proc***\_c15.bin}, \texttt{DATA/proc***\_c33.bin}, \texttt{DATA/proc***\_c35.bin}, \texttt{DATA/proc***\_c55.bin})
+\item \texttt{ascii}: for reading in a single ASCII model file\newline
+  (\texttt{DATA/proc***\_rho\_vp\_vs.dat})
+
+\item \texttt{binary} or \texttt{gll}: for reading in binary model files\newline
+  (\texttt{DATA/proc***\_rho.bin}, \texttt{DATA/proc***\_vp.bin}, \texttt{DATA/proc***\_vs.bin})
+
+In case attenuation is turned on for the simulation, it will also read in attenuation files\newline
+  (\texttt{DATA/proc***\_Qmu.bin}, \texttt{DATA/proc***\_Qkappa.bin})
+
+\item \texttt{binary\_voigt}: for reading in an anisotropic model specified by binary files\newline
+  (\texttt{DATA/proc***\_rho.bin}, \texttt{DATA/proc***\_c11.bin}, \texttt{DATA/proc***\_c13.bin}, \texttt{DATA/proc***\_c15.bin},\newline
+   \texttt{DATA/proc***\_c33.bin}, \texttt{DATA/proc***\_c35.bin}, \texttt{DATA/proc***\_c55.bin})
+
 \item \texttt{external}: for reading in a velocity model specified in the source code routine \texttt{define\_external\_model()} in file \texttt{src/specfem2d/define\_external\_model.f90}. The user can implement his own routine here as explained in the source file. By default, the routine implements the spherically symmetric isotropic AK135 model.
-\item \texttt{legacy}: for reading in a single ASCII model file with a legacy format of very old SPECFEM2D versions (\texttt{DATA/proc***\_model\_velocity.dat\_input})
+
+\item \texttt{legacy}: for reading in a single ASCII model file with a legacy format of very old SPECFEM2D versions\newline
+  (\texttt{DATA/proc***\_model\_velocity.dat\_input})
+
 %\item \texttt{marmousi}: for imposing the Marmousi benchmark velocity model.
 \end{itemize}
 
@@ -119,7 +132,7 @@ The parameter \texttt{MODEL} can also have other values specified than \texttt{d
 
      \item[{\texttt{materials\_file}}] is the number of the material for every element : an integer ranging from 1 to \texttt{nbmodels} on each line.
 
-     \item[{\texttt{nummaterial\_velocity\_file}}] specifies the material properties for each material of the \texttt{nbmodels} defined in the materials file. The material specification follows a format slightly different than the \texttt{nbmodels} section in the \texttt{Par\_file}, but identical to the SPECFEM3D\_Cartesian version where you can find more informations about it. Also, examples of such \texttt{nummaterial\_velocity\_file} files can be found in the \texttt{EXAMPLES/} folder and the format is described in more detail therein in the header of the files.
+     \item[{\texttt{nummaterial\_velocity\_file}}] specifies the material properties for each material of the \texttt{nbmodels} defined in the materials file. The material specification follows a format slightly different than the \texttt{nbmodels} section in the \texttt{Par\_file}, but identical to the SPECFEM3D\_Cartesian version where you can find more informations about it. Also, examples of such \texttt{nummaterial\_velocity\_file} files can be found in the \texttt{EXAMPLES/meshing/} folder and the format is described in more detail therein in the header of the files.
 
      \item[{\texttt{free\_surface\_file}}] is the file describing the edges forming the acoustic free surface: number of edges on the first line, then on each line: number of the element, number of nodes forming the free surface (1 for a point, 2 for an edge), the nodes forming the free surface for this element. If you do not want any free surface, just put 0 on the first line; you then get a rigid surface instead.
 
@@ -172,7 +185,7 @@ is a 3D finite element grid generator which can be used for the generation
 of quadrangle and hexahedral meshes. It is therefore a good candidate
 for generating meshes which can be processed by SPECFEM2D. Only two
 modules of Gmsh are of interest for the SPECFEM2D users : the geometry
-and the mesh modules. An example is given in directory \texttt{EXAMPLES/Gmsh\_example}
+and the mesh modules. An example is given in directory \texttt{EXAMPLES/applications/meshing/Gmsh\_example*}
 which illustrates the generation of an external mesh using these two
 modules. The model that is considered consists of a homogeneous
 square containing two circles filled with a different material.
@@ -248,7 +261,7 @@ running a python script called \texttt{LibGmsh2Specfem.py}, located in
 directory \texttt{utils/Gmsh}:
 %
 \begin{verbatim}
-    python LibGmsh2Specfem.py SqrCirc -t A -b A -r A -l A
+  python LibGmsh2Specfem.py SqrCirc -t A -b A -r A -l A
 \end{verbatim}
 %
 Where the options \texttt{-t}, \texttt{-b},\texttt{ -r} and \texttt{-l}
@@ -273,13 +286,13 @@ to the sides of the model are generated.
 %------------------------------------------------------------------------------------------------%
 \section{How to use Cubit/Trelis to generate an external mesh}
 %------------------------------------------------------------------------------------------------%
-Trelis (that was known as Cubit)%
-\footnote{available at \url{http://www.csimsoft.com/}}
-is a 2D/3D finite element grid generator distributed by Csimsoft which can be
-used for the generation of quadrangle and hexahedral meshes. Trelis has a convenient
+Cubit (or Trelis)%
+\footnote{available at \url{https://coreform.com}}
+is a 2D/3D finite element grid generator distributed which can be
+used for the generation of quadrangle and hexahedral meshes. Cubit has a convenient
 interface with Python (module cubit) which allows to create meshes from Python scripts. To get
 started with Cubit/Trelis we recommend you the step-by-step tutorials available at:
-\url{http://www.csimsoft.com/tutorials.jsp}
+\url{https://coreform.com/coreform-cubit-tutorials/}
 Many powerful graphical tools are available, and very useful, but we will focus here on
 the command line functionalities and especially the Python interface which is the real force of
 Cubit/Trelis.
@@ -288,20 +301,20 @@ To get started we recommend to the inpatients to open Cubit/Trelis and to click 
 following symbol: \includegraphics[width=0.15in]{figures/play_journal_file.png}. Then select the
 files of type Python Files (*.py) and play the following script:
 \begin{verbatim}
-    utils/cubit2specfem2d/simplest2DexampleWithPmls.py
+  utils/cubit2specfem2d/simplest2DexampleWithPmls.py
 \end{verbatim}
 In the case you want to perform an axisymmetric simulation, we recommend you rather to play:
 \begin{verbatim}
-    utils/cubit2specfem2d/simpleAxisym2dMesh.py
+  utils/cubit2specfem2d/simpleAxisym2dMesh.py
 \end{verbatim}
 It will create a simple mesh with PMLs. Then re-click on \includegraphics[width=0.15in]{figures/play_journal_file.png} and
 play:
 \begin{verbatim}
-    utils/cubit2specfem2d/cubit2specfem2d.py
+  utils/cubit2specfem2d/cubit2specfem2d.py
 \end{verbatim}
 This script will create (in current directory) all the mesh files necessary for a SPECFEM2D simulation.
 Other commented examples are available. We particularly recommend you to look at the folder \newline
-\texttt{EXAMPLES/paper\_axisymmetry\_example}
+\texttt{EXAMPLES/reproducible\_study/Bottero2016\_axisymmetry\_example}
 beginning by reading the README available there.
 Read carefully the comments in these scripts, they are helpful.
 Another way to use Python together with Cubit/Trelis is to use the script tab.
@@ -319,27 +332,36 @@ With this you should be able to understand how to create meshes and export them 
 %------------------------------------------------------------------------------------------------%
 Beware, there are some (annoying) differences between cubit built-in Python and the actual Python langage:
 \begin{itemize}
-\item \texttt{"aString" + 'anotherString'} can cause problems even after being stored: \newline
-      \texttt{a = "aString"} \newline
-      \texttt{b = a + 'anotherString'} \newline
-      Example which is not working:
+\item \texttt{"aString" + 'anotherString'} can cause problems even after being stored:
+{\small
 \begin{verbatim}
-pathToMeshDir = pathToSpecfem + 'EXAMPLES/reproducible_study/Bottero2016_axisymmetry_example/MESH'
-cubit.cmd('cd \"'+pathToMeshDir+'\"')
+  a = "aString"
+  b = a + 'anotherString'
 \end{verbatim}
+}
+Example that is not working:
+{\small
+\begin{verbatim}
+  pathToMeshDir = pathToSpecfem + 'EXAMPLES/reproducible_study/Bottero2016_axisymmetry_example/'
+  pathToMeshDir = pathToMeshDir + 'MESH'
+  cubit.cmd('cd \"'+pathToMeshDir+'\"')
+\end{verbatim}
+}
 \item No comments after double dots: \newline
-      Example which is not working:
+Example that is not working:
+{\small
 \begin{verbatim}
-if True: # Just a dummy comment
-    print "Ok!"
+  if True: # Just a dummy comment
+      print "Ok!"
 \end{verbatim}
-      This example works without the comment.
+}
+This example works without the comment.
 \item \texttt{os.makedirs("\texttildelow/aDirectory/")} does not work. It creates a directory named \texttt{\texttildelow} \newline
        !!!!! To remove that do: \texttt{rm -R ./\texttildelow} AND NEVER \texttt{rm -rf \texttildelow} !!!!!
 \item \texttt{sys.argv} can not be used
 \item No comments \texttt{""" """} at the beginning of a script
 \end{itemize}
-And probably many others! Think about that before getting mad.
+And probably many others! Hopefully, this will be resolved in future.
 
 
 %------------------------------------------------------------------------------------------------%
@@ -376,7 +398,7 @@ Flag& Meaning\\ [0.5ex]
 \end{table}
 
 In order to see how to add PML layers to a mesh / model created with an external mesher such as Gmsh, see the examples in directory
-\texttt{EXAMPLES/CPML\_absorbing\_layers}.
+\texttt{EXAMPLES/applications/meshing/Gmsh\_example\_CPML\_MPI}.
 
 If you use PML, the mesh elements that belong to the PML layers can be acoustic or elastic, but not viscoelastic nor poroelastic.
 Then, when defining your model, you should define these absorbing elements as either acoustic or elastic.
@@ -465,7 +487,7 @@ are significantly less efficient).}
 To examine the quality of the elements in your externally build mesh, type
 %
 \begin{verbatim}
-    ./bin/xcheck_quality_external_mesh
+  ./bin/xcheck_quality_external_mesh
 \end{verbatim}
 %
 (and answer "3" to the first question asked).
@@ -475,7 +497,7 @@ to repeat the operation until the maximum skewness of the whole mesh is less or 
 The code also shows a histogram of 20 classes of skewness which tells how many element are above the skewness = 0.75, and to which percentage of the total this amounts. To see this histogram, you could type:
 %
 \begin{verbatim}
-    gnuplot plot_mesh_quality_histogram.gnu
+  gnuplot plot_mesh_quality_histogram.gnu
 \end{verbatim}
 %
 This tool is useful to estimate the mesh quality and to see it evolve along the successive corrections.
@@ -488,7 +510,7 @@ This tool is useful to estimate the mesh quality and to see it evolve along the 
 To examine (using Gnuplot) how the mesh samples the wave field, type
 %
 \begin{verbatim}
-    gnuplot plot_points_per_wavelength_histogram.gnu
+  gnuplot plot_points_per_wavelength_histogram.gnu
 \end{verbatim}
 %
 and also check the following histogram printed on the screen or in the output file:

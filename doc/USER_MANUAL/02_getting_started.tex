@@ -6,7 +6,7 @@
 
 To download the SPECFEM2D software package, type this:
 \begin{verbatim}
-git clone --recursive --branch devel https://github.com/SPECFEM/specfem2d.git
+  git clone --recursive --branch devel https://github.com/SPECFEM/specfem2d.git
 \end{verbatim}
 
 
@@ -18,13 +18,13 @@ command names for your Fortran compiler (another option is to define FC, CC and 
 or your .cshrc file):
 %
 \begin{verbatim}
-    ./configure FC=gfortran CC=gcc
+  ./configure FC=gfortran CC=gcc
 \end{verbatim}
 %
 If you want to run in parallel, i.e., using more than one processor core, then you would type
 %
 \begin{verbatim}
-    ./configure FC=gfortran CC=gcc MPIFC=mpif90 --with-mpi
+  ./configure FC=gfortran CC=gcc MPIFC=mpif90 --with-mpi
 \end{verbatim}
 
 You can replace the GNU compilers above (gfortran and gcc) with other compilers if you want to; for instance for Intel ifort and icc use FC=ifort CC=icc instead.
@@ -53,13 +53,13 @@ The path to an existing SCOTCH installation can to be set explicitly with the op
 Just as an example:
 %
 \begin{verbatim}
-    ./configure FC=ifort MPIFC=mpif90 --with-mpi --with-scotch-dir=/opt/scotch
+  ./configure FC=ifort MPIFC=mpif90 --with-mpi --with-scotch-dir=/opt/scotch
 \end{verbatim}
 %
 If you use the Intel ifort compiler to compile the code, we recommend that you use the Intel icc C compiler to compile Scotch, i.e., use:
 %
 \begin{verbatim}
-    ./configure CC=icc FC=ifort MPIFC=mpif90
+  ./configure CC=icc FC=ifort MPIFC=mpif90
 \end{verbatim}
 %
 For further details about the installation of SCOTCH,
@@ -85,7 +85,7 @@ You may edit the \texttt{Makefile} for more specific modifications. Especially, 
 After these steps, go back to the main directory of SPECFEM2D/ and type
 %
 \begin{verbatim}
-    make
+  make
 \end{verbatim}
 %
 to create all executables which will be placed into the folder \texttt{./bin/}.\newline
@@ -158,7 +158,7 @@ architectures.\newline
 \noindent
 To enable OpenMP, add the flag \texttt{-{}-enable-openmp} to the configuration:
 \begin{verbatim}
-./configure --enable-openmp ..
+  ./configure --enable-openmp ..
 \end{verbatim}
 This will add the corresponding OpenMP flag for the chosen Fortran compiler.
 Please note that only the elastic domain solver has OpenMP support for now.\newline
