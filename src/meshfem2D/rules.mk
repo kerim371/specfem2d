@@ -73,7 +73,9 @@ meshfem2D_MODULES = \
 
 meshfem2D_SHARED_OBJECTS = \
 	$O/shared_par.shared_module.o \
+	$O/define_shape_functions.shared.o \
 	$O/exit_mpi.shared.o \
+	$O/gll_library.shared.o \
 	$O/parallel.sharedmpi.o \
 	$O/param_reader.cc.o \
 	$O/read_interfaces_file.shared.o \

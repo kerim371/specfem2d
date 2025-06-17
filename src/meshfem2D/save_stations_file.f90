@@ -111,7 +111,7 @@
 
        ! display position of the receiver
        write(IMAIN,*) 'Receiver ',irec_global_number,' = ',xrec,zrec
-
+       ! format: #station #network #x #z #elevation #depth
        write(IOUT,"('S',i4.4,'    AA ',f20.7,1x,f20.7,'       0.0         0.0')") irec_global_number,xrec,zrec
 
     enddo
