@@ -36,6 +36,9 @@
 ! check the mesh, stability and number of points per wavelength
 
   use constants, only: IMAIN,HUGEVAL,TINYVAL,ZERO,myrank
+  ! vtk output
+  use constants, only: SAVE_MESHFILES_VTK_FORMAT,OUTPUT_FILES
+
   use specfem_par
   use specfem_par_movie
 
@@ -53,7 +56,8 @@
   double precision :: f0,f0max
   double precision :: mul,rhol
   double precision :: distance_min,distance_max,distance_min_local,distance_max_local
-  double precision :: courant_stability_number_max,lambdaPImin,lambdaPImax,lambdaPIImin,lambdaPIImax,lambdaSmin,lambdaSmax, &
+  double precision :: courant_stability_number,courant_stability_number_max
+  double precision :: lambdaPImin,lambdaPImax,lambdaPIImin,lambdaPIImax,lambdaSmin,lambdaSmax, &
                       lambdaEmax,lambdaEmin
   double precision :: distance_1,distance_2,distance_3,distance_4
 
@@ -72,17 +76,22 @@
                        lambdaPmin_in_fluid_histo_glob,lambdaPmax_in_fluid_histo_glob, &
                        lambdaEmin_glob,lambdaEmax_glob
 
-  double precision :: pmax_glob,pmax
-  double precision :: dt_suggested,dt_suggested_glob
+  double precision :: pmax_glob,pmax,p_elem
+  double precision :: dt_suggested,dt_suggested_glob,dt_elem
   double precision :: avg_distance,vel_min,vel_max
 
-  integer :: i,j,ispec
+  integer :: i,j,ispec,ier
 
   ! for histogram of number of points per wavelength
   logical :: any_fluid_histo,any_fluid_histo_glob
   logical :: create_wavelength_histogram
   double precision :: lambdaPmin_in_fluid_histo,lambdaPmax_in_fluid_histo
   double precision :: lambdaSmin_histo,lambdaSmax_histo
+
+  ! vtk output
+  double precision,dimension(:),allocatable :: tmp_store1,tmp_store2    ! element data
+  double precision,dimension(:),allocatable :: xstore,zstore
+  character(len=MAX_STRING_LEN) :: filename,prname
 
   !********************************************************************************
 
@@ -99,6 +108,19 @@
     write(IMAIN,*)
     write(IMAIN,*) 'Checking mesh and stability'
     call flush_IMAIN()
+  endif
+
+  ! for VTK file output
+  if (SAVE_MESHFILES_VTK_FORMAT) then
+    allocate(tmp_store1(nspec), &
+             tmp_store2(nspec), &
+             xstore(nglob), &
+             zstore(nglob),stat=ier)
+    if (ier /= 0) call stop_the_code('Error allocating tmp_store array')
+    tmp_store1(:) = 0.d0
+    tmp_store2(:) = 0.d0
+    xstore(:) = coord(1,:)
+    zstore(:) = coord(2,:)
   endif
 
   ! define percentage of smallest distance between GLL points for NGLLX points
@@ -202,30 +224,31 @@
 
     do j = 1,NGLLZ
       do i = 1,NGLLX
-        if (.not.ispec_is_electromagnetic(ispec)) then
-        ! velocity model elastic/acoustic/poroelastic
-         mul = mustore(i,j,ispec)
-         rhol = rhostore(i,j,ispec)
-         cpIloc = rho_vpstore(i,j,ispec) / rhol
-         csloc = sqrt(mul/rhol)
+        if (.not. ispec_is_electromagnetic(ispec)) then
+          ! velocity model elastic/acoustic/poroelastic
+          mul = mustore(i,j,ispec)
+          rhol = rhostore(i,j,ispec)
+          cpIloc = rho_vpstore(i,j,ispec) / rhol
+          csloc = sqrt(mul/rhol)
 
-         ! vpII
-         if (ispec_is_poroelastic(ispec)) then
-           ! poroelastic material
-           cpIIloc = vpIIstore(i,j,ispec)
-         else
-           ! acoustic/elastic element
-           cpIIloc = 0.d0
-         endif
-         cEloc = 0.d0
+          ! vpII
+          if (ispec_is_poroelastic(ispec)) then
+            ! poroelastic material
+            cpIIloc = vpIIstore(i,j,ispec)
+          else
+            ! acoustic/elastic element
+            cpIIloc = 0.d0
+          endif
+          cEloc = 0.d0
 
         else
-         cpIloc = 0.d0
-         cpIIloc = 0.d0
-         csloc = 0.d0
-         rhol = 0.d0
-        ! velocity model electromagnetic
-         cEloc = vEstore(i,j,ispec)
+          ! electromagnetic element
+          cpIloc = 0.d0
+          cpIIloc = 0.d0
+          csloc = 0.d0
+          rhol = 0.d0
+          ! velocity model electromagnetic
+          cEloc = vEstore(i,j,ispec)
         endif
 
         !--- compute min and max of velocity and density models
@@ -278,13 +301,14 @@
     ! Courant number
     ! based on minimum GLL point distance and maximum velocity
     ! i.e. on the maximum ratio of ( velocity / gridsize )
-        if (cEloc > TINYVAL) then
-    courant_stability_number_max = max(courant_stability_number_max, &
-                                       vEmax_local * DT / (distance_min_local * percent_GLL(NGLLX)))
-        else
-    courant_stability_number_max = max(courant_stability_number_max, &
-                                       vpImax_local * DT / (distance_min_local * percent_GLL(NGLLX)))
-        endif
+    if (cEloc > TINYVAL) then
+      ! electromagnetic element
+      courant_stability_number = vEmax_local * DT / (distance_min_local * percent_GLL(NGLLX))
+    else
+      ! acoustic/elastic/poroelastic element
+      courant_stability_number = vpImax_local * DT / (distance_min_local * percent_GLL(NGLLX))
+    endif
+    courant_stability_number_max =  max(courant_stability_number_max, courant_stability_number)
 
     ! estimation of minimum period resolved
     ! based on average GLL distance within element and minimum velocity
@@ -306,22 +330,38 @@
     vel_min = min(vpImin_local,vsmin_local)
 
     if (vel_min > TINYVAL) then
-      pmax = max(pmax,avg_distance / vel_min * NPTS_PER_WAVELENGTH)
+      ! elastic/poroelastic element
+      p_elem = avg_distance / vel_min * NPTS_PER_WAVELENGTH
     else if (vpImin_local > TINYVAL) then
       ! acoustic/fluid region uses vpImin_local
-      pmax = max(pmax,avg_distance / vpImin_local * NPTS_PER_WAVELENGTH)
+      p_elem = avg_distance / vpImin_local * NPTS_PER_WAVELENGTH
     else
-      pmax = max(pmax,avg_distance / vEmin_local * NPTS_PER_WAVELENGTH)
+      ! electromagnetic element
+      p_elem = avg_distance / vEmin_local * NPTS_PER_WAVELENGTH
+    endif
+    pmax = max(pmax,p_elem)
+
+    ! store for VTK file output
+    if (SAVE_MESHFILES_VTK_FORMAT) then
+      tmp_store1(ispec) = p_elem
     endif
 
     ! suggested timestep: uses minimum GLL point distance such that
     ! dt = C * min_gll_distance / vs_max
-        if (cEloc > TINYVAL) then
-    dt_suggested = min(dt_suggested,COURANT_SUGGESTED * distance_min_local * percent_GLL(NGLLX) / vEmax_local)
-        else
-    vel_max = max(vpImax_local,vsmax_local)
-    dt_suggested = min(dt_suggested,COURANT_SUGGESTED * distance_min_local * percent_GLL(NGLLX) / vel_max)
-        endif
+    if (cEloc > TINYVAL) then
+      ! electromagnetic element
+      dt_elem = COURANT_SUGGESTED * distance_min_local * percent_GLL(NGLLX) / vEmax_local
+    else
+      ! acoustic/elastic/poroelastic element
+      vel_max = max(vpImax_local,vsmax_local)
+      dt_elem = COURANT_SUGGESTED * distance_min_local * percent_GLL(NGLLX) / vel_max
+    endif
+    dt_suggested = min(dt_suggested,dt_elem)
+
+    ! store for VTK file output
+    if (SAVE_MESHFILES_VTK_FORMAT) then
+      tmp_store2(ispec) = dt_elem
+    endif
 
     ! check if fluid region with Vs = 0
     if (vsmin_local > TINYVAL) then
@@ -538,6 +578,31 @@
   ! creates a PostScript file with stability condition
   if (output_postscript_snapshot .and. .not. ELECTROMAGNETIC_SIMULATION) then
     call check_grid_create_postscript(courant_stability_number_max,lambdaPImin,lambdaPImax,lambdaSmin,lambdaSmax)
+  endif
+
+  ! VTK file output for visualization
+  if (SAVE_MESHFILES_VTK_FORMAT) then
+    if (myrank == 0) then
+      write(IMAIN,*) 'mesh resolution output files:'
+    endif
+    write(prname,"(a,i5.5,a)") trim(OUTPUT_FILES)//'mesh',myrank,'_'
+
+    ! minimum period
+    filename = trim(prname) // 'res_minimum_period'
+    call write_VTK_data_elem_dp(nspec,nglob,ibool,xstore,zstore,tmp_store1,filename)
+    ! user output
+    if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
+
+    ! suggested DT
+    filename = trim(prname) // 'res_dt_suggested'
+    call write_VTK_data_elem_dp(nspec,nglob,ibool,xstore,zstore,tmp_store2,filename)
+    ! user output
+    if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
+
+    if (myrank == 0) then
+      write(IMAIN,*)
+      call flush_IMAIN()
+    endif
   endif
 
   end subroutine check_grid

@@ -33,7 +33,7 @@
 
   subroutine save_openDX_jacobian(nspec,npgeo,NGNOD,knods,coorg,xigll,zigll,AXISYM,is_on_the_axis,xiglj)
 
-  use constants, only: NDIM,NGLLX,NGLLZ,NGLJ,ZERO
+  use constants, only: NDIM,NGLLX,NGLLZ,NGLJ,ZERO,OUTPUT_FILES
 
   implicit none
 
@@ -61,7 +61,7 @@
   logical :: found_a_problem_in_this_element
 
   ! create an OpenDX file to visualize this element
-  open(unit=11,file='DX_all_elements_with_negative_jacobian_in_red.dx',status='unknown')
+  open(unit=11,file=trim(OUTPUT_FILES)//'DX_all_elements_with_negative_jacobian_in_red.dx',status='unknown')
 
   ! output all the points (i.e. all the control points of the mesh)
   ! the mesh is flat therefore the third coordinate is zero
