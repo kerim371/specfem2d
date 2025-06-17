@@ -362,6 +362,7 @@
 
   ! allocates temporary array
   allocate(adj_src_s(NSTEP,NDIM))
+  adj_src_s(:,:) = 0.0
 
   irec_local = 0
   do irec = 1, nrec
@@ -370,8 +371,8 @@
     if (myrank == islice_selected_rec(irec)) then
       irec_local = irec_local + 1
 
-      adj_src_s(:,:) = 0.d0
-      temp(:) = 0.d0
+      adj_src_s(:,:) = 0.0
+      temp(:) = 0.0_CUSTOM_REAL
 
       if (seismotype_adj == 4 .or. seismotype_adj == 6) then
         ! pressure/potential

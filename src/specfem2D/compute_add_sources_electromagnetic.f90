@@ -121,7 +121,7 @@
   integer :: it_tmp
   real(kind=CUSTOM_REAL) :: stfx,stfz
 
-  ! time step index
+  ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
 
   do irec_local = 1,nrecloc

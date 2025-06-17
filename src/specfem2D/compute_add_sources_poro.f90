@@ -124,6 +124,7 @@
 
   ! local parameters
   integer :: irec_local,i,j,iglob,ispec
+  integer :: it_tmp
   double precision :: phi,rho_s,rho_f,rho_bar
 
   ! checks if anything to do
@@ -131,6 +132,9 @@
 
   ! only for adjoint/kernel simulations
   if (.not. SIMULATION_TYPE == 3) return
+
+  ! time step index for adjoint source (time-reversed)
+  it_tmp = NSTEP - it + 1
 
   do irec_local = 1,nrecloc
     ! element containing adjoint source
@@ -152,17 +156,17 @@
 
           ! solid contribution
           accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) + real(xir_store_loc(irec_local,i)*&
-            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,NSTEP-it+1,1),kind=CUSTOM_REAL)
+            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,it_tmp,1),kind=CUSTOM_REAL)
           accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) + real(xir_store_loc(irec_local,i)*&
-            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,NSTEP-it+1,2),kind=CUSTOM_REAL)
+            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,it_tmp,2),kind=CUSTOM_REAL)
 
           ! fluid
           accelw_poroelastic(1,iglob) = accelw_poroelastic(1,iglob) - &
                 real(rho_f/rho_bar * xir_store_loc(irec_local,i)*gammar_store_loc(irec_local,j)* &
-                source_adjoint(irec_local,NSTEP-it+1,1),kind=CUSTOM_REAL)
+                source_adjoint(irec_local,it_tmp,1),kind=CUSTOM_REAL)
           accelw_poroelastic(2,iglob) = accelw_poroelastic(2,iglob) - &
                 real(rho_f/rho_bar * xir_store_loc(irec_local,i)*gammar_store_loc(irec_local,j)* &
-                source_adjoint(irec_local,NSTEP-it+1,2),kind=CUSTOM_REAL)
+                source_adjoint(irec_local,it_tmp,2),kind=CUSTOM_REAL)
         enddo
       enddo
 
