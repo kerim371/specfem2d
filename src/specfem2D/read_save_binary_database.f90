@@ -351,7 +351,7 @@
     allocate(source_time_function(NSOURCES,NSTEP,NSTAGE_TIME_SCHEME),stat=ier)
     if (ier /= 0) call exit_MPI(myrank,'Error allocating array source_time_function')
   endif
-  source_time_function(:,:,:) = ZERO
+  source_time_function(:,:,:) = 0.0_CUSTOM_REAL
 
   allocate(hxis_store(NSOURCES,NGLLX), &
            hgammas_store(NSOURCES,NGLLZ),stat=ier)

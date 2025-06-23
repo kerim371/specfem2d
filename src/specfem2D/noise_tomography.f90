@@ -374,7 +374,7 @@
 !
 ! ----------------------------------------------------------------------------------
 
-  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NGLJ,IIN,IOUT,IMAIN,OUTPUT_FILES
+  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NGLJ,IIN,IOUT,IMAIN,OUTPUT_FILES,PRINT_SOURCE_TIME_FUNCTION
 
   use shared_parameters, only: noise_source_time_function_type
 
@@ -519,13 +519,15 @@
   endif
 
   ! saves source time function
-  open(IOUT,file=trim(OUTPUT_FILES)//'plot_source_time_function_noise.txt',status='unknown',iostat=ier)
-  if (ier /= 0) call stop_the_code('Error opening noise source time function text-file')
-  do it = 1,NSTEP
-    t = it * DT
-    write(IOUT,*) (t-t0),noise_src(it)
-  enddo
-  close(IOUT)
+  if (PRINT_SOURCE_TIME_FUNCTION) then
+    open(IOUT,file=trim(OUTPUT_FILES)//'plot_source_time_function_noise.txt',status='unknown',iostat=ier)
+    if (ier /= 0) call stop_the_code('Error opening noise source time function text-file')
+    do it = 1,NSTEP
+      t = it * DT
+      write(IOUT,*) (t-t0),noise_src(it)
+    enddo
+    close(IOUT)
+  endif
 
   ! interpolates over GLL points
   if (AXISYM) then

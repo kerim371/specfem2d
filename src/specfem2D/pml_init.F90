@@ -829,7 +829,7 @@
   ! finish the computation of the maximum dominant frequency of all sources
 
   ! reflection coefficient (Inria report section 6.1) http://hal.inria.fr/docs/00/07/32/19/PDF/RR-3471.pdf
-  ALPHA_MAX_PML = PI*f0_max ! from Festa and Vilotte
+  ALPHA_MAX_PML = PI * f0_max ! from Festa and Vilotte
   ! By experience, the d parameter defition according to Festa and Vilotte is small, thus we use damping_change_factor_acoustic
   ! to increase the d parameter for PML implementation for acoustic simulation.
 

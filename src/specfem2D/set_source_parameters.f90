@@ -113,14 +113,15 @@
       endif
     endif
 
+    ! source start times
     ! half-duration of source
     hdur = 1.d0 / f0_source(i_source)
-
     ! sets source start times, shifted by the given (non-zero) time-shift
     if (time_function_type(i_source) == 5 .or. time_function_type(i_source) == 11) then
       ! Heaviside or Ormsby
       t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
     else if (time_function_type(i_source) == 10) then
+      ! Monochromatic/Sinus source time function
       t0_source(i_source) = 0.0
     else
       t0_source(i_source) = 1.20d0 * hdur + tshift_src(i_source)
