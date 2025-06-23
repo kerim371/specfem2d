@@ -168,9 +168,11 @@
   do i_source = 1,NSOURCES
     if (abs(source_time_function(i_source,it,i_stage)) > TINYVAL) then
       t_used = (timeval-t0-tshift_src(i_source))
+
       ! moves and re-locates sources along x and z-axis
       xsrc = x_source(i_source) + vx_source(i_source)*t_used
       zsrc = z_source(i_source) + vz_source(i_source)*t_used
+
       ! collocated force source
       if (source_type(i_source) == 1) then
         ! TODO: this would be more efficient compled with first guess as in init_moving_sources_GPU()
@@ -198,9 +200,9 @@
       endif
 
       ispec = ispec_selected_source(i_source)
+
       ! source element is elastic
       if (ispec_is_elastic(ispec)) then
-
         ! Lagrange interpolators
         if (AXISYM) then
           if (is_on_the_axis(ispec)) then
@@ -216,18 +218,17 @@
         endif
         call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
 
+        ! debug user output
         if (mod(it,10000) == 0) then
-            !  write(IMAIN,*) "myrank:",myrank
-            ! user output
-            if (myrank == islice_selected_source(i_source)) then
-              iglob = ibool(2,2,ispec_selected_source(i_source))
-              !write(IMAIN,*) 'xcoord: ',coord(1,iglob)
-              write(IMAIN,*) 'Problem... it??: ',it,'xcoord: ',coord(1,iglob)," iglob",iglob
-              !'source carried by proc',myrank,"  source x:",x_source(i_source)," ispec:",ispec_selected_source(i_source)
-
-              !call flush_IMAIN()
-            endif
-
+          !  write(IMAIN,*) "myrank:",myrank
+          ! user output
+          if (myrank == islice_selected_source(i_source)) then
+            iglob = ibool(2,2,ispec_selected_source(i_source))
+            !write(IMAIN,*) 'xcoord: ',coord(1,iglob)
+            write(IMAIN,*) 'Problem... it??: ',it,'xcoord: ',coord(1,iglob)," iglob",iglob
+            !'source carried by proc',myrank,"  source x:",x_source(i_source)," ispec:",ispec_selected_source(i_source)
+            !call flush_IMAIN()
+          endif
         endif
 
         ! stores Lagrangians for source
@@ -374,7 +375,7 @@
   !local variables
   integer :: irec_local,i,j,iglob,ispec
   integer :: it_tmp
-  real(kind=CUSTOM_REAL) :: stfx,stfz
+  real(kind=CUSTOM_REAL) :: hlagrange
 
   ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
@@ -392,11 +393,10 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
-            stfz = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,2)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_elastic(1,iglob) = accel_elastic(1,iglob) + stfx
-            accel_elastic(2,iglob) = accel_elastic(2,iglob) + stfz
+            accel_elastic(1,iglob) = accel_elastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
+            accel_elastic(2,iglob) = accel_elastic(2,iglob) + source_adjoint(irec_local,it_tmp,2) * hlagrange
           enddo
         enddo
       else
@@ -405,9 +405,9 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_elastic(1,iglob) = accel_elastic(1,iglob) + stfx
+            accel_elastic(1,iglob) = accel_elastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
           enddo
         enddo
       endif

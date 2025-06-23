@@ -70,8 +70,8 @@
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
 
-              potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) + &
-                                  real(sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec),kind=CUSTOM_REAL)
+              potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
+                                                + sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
             enddo
           enddo
 
@@ -92,7 +92,7 @@
 
   subroutine compute_add_sources_acoustic_moving_sources(potential_dot_dot_acoustic,it,i_stage)
 
-! This subroutine is the same than the previous one but with a moving source
+! This subroutine is the same as the previous one but with a moving source
 
   use constants, only: CUSTOM_REAL,NDIM,NGLLX,NGLLZ,NGLJ,TINYVAL,IMAIN
 
@@ -160,7 +160,8 @@
   do i_source = 1,NSOURCES
     if (abs(source_time_function(i_source,it,i_stage)) > TINYVAL) then
       t_used = (timeval-t0-tshift_src(i_source))
-     ! moves and re-locates sources along x and z axis
+
+      ! moves and re-locates sources along x and z axis
       xsrc = x_source(i_source) + vx_source(i_source)*t_used
       zsrc = z_source(i_source) + vz_source(i_source)*t_used
 
@@ -178,6 +179,7 @@
       ! print *,ispec_selected_source(i_source) > nspec, "xmin:", &
       !               coord(1,ibool(1,1,ispec_selected_source(i_source))), &
       !               "xmax:", coord(1,ibool(NGLLX,1,ispec_selected_source(i_source)))
+
       ! define and store Lagrange interpolators (hxis,hpxis,hgammas,hpgammas) at all the sources
       !if (AXISYM) then
       !  if (is_on_the_axis(ispec_selected_source(i_source)) .and. myrank == islice_selected_source(i_source)) then
@@ -223,9 +225,8 @@
               hlagrange = hxis_store(i_source,i) * hgammas_store(i_source,j)
               sourcearray(1,i,j) = hlagrange
 
-              potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) + &
-                      real(source_time_function(i_source,it,i_stage)*sourcearray(1,i,j) / &
-                      kappastore(i,j,ispec),kind=CUSTOM_REAL)
+              potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
+                                      + source_time_function(i_source,it,i_stage) * sourcearray(1,i,j) / kappastore(i,j,ispec)
             enddo
           enddo
           ! moment tensor
@@ -256,7 +257,7 @@
   !local variables
   integer :: irec_local,i,j,iglob,ispec
   integer :: it_tmp
-  real(kind=CUSTOM_REAL) :: stf
+  real(kind=CUSTOM_REAL) :: hlagrange
 
   ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
@@ -272,6 +273,8 @@
         do i = 1,NGLLX
           iglob = ibool(i,j,ispec)
 
+          hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
+
           ! adjoint source of Peter et al. (A8):
           !   f^adj = - sum_i \partial_t^2 (p^syn - p^obs)(T-t) \delta(x - x_i)
           ! note that using the adjoint source derived from the optimization problem, there is no 1/kappa term applied
@@ -279,9 +282,8 @@
           !
           ! since we don't know which formulation of adjoint source is used for the input, we add the adjoint source as is,
           ! without 1/kappa factor, and with a positive sign.
-          stf = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
-          potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) + stf
-
+          potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
+                                            + source_adjoint(irec_local,it_tmp,1) * hlagrange
         enddo
       enddo
     endif ! if element acoustic

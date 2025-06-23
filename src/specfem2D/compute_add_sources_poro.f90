@@ -87,16 +87,16 @@
             fac_w = real((1.d0 - rho_f/rho_bar),kind=CUSTOM_REAL)
 
             ! solid contribution
-            accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) + &
-                        fac_s * sourcearrays(1,i,j,i_source) * stf_used
-            accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) + &
-                        fac_s * sourcearrays(2,i,j,i_source) * stf_used
+            accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) &
+                                        + fac_s * sourcearrays(1,i,j,i_source) * stf_used
+            accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) &
+                                        + fac_s * sourcearrays(2,i,j,i_source) * stf_used
 
             ! fluid contribution
-            accelw_poroelastic(1,iglob) = accelw_poroelastic(1,iglob) + &
-                        fac_w * sourcearrays(1,i,j,i_source) * stf_used
-            accelw_poroelastic(2,iglob) = accelw_poroelastic(2,iglob) + &
-                        fac_w * sourcearrays(2,i,j,i_source) * stf_used
+            accelw_poroelastic(1,iglob) = accelw_poroelastic(1,iglob) &
+                                        + fac_w * sourcearrays(1,i,j,i_source) * stf_used
+            accelw_poroelastic(2,iglob) = accelw_poroelastic(2,iglob) &
+                                        + fac_w * sourcearrays(2,i,j,i_source) * stf_used
           enddo
         enddo
       endif
@@ -126,6 +126,7 @@
   integer :: irec_local,i,j,iglob,ispec
   integer :: it_tmp
   double precision :: phi,rho_s,rho_f,rho_bar
+  real(kind=CUSTOM_REAL) :: hlagrange
 
   ! checks if anything to do
   if (initialfield) return
@@ -154,19 +155,17 @@
 
           rho_bar = (1.d0 - phi)*rho_s + phi*rho_f
 
+          hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
+
           ! solid contribution
-          accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) + real(xir_store_loc(irec_local,i)*&
-            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,it_tmp,1),kind=CUSTOM_REAL)
-          accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) + real(xir_store_loc(irec_local,i)*&
-            gammar_store_loc(irec_local,j)*source_adjoint(irec_local,it_tmp,2),kind=CUSTOM_REAL)
+          accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
+          accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) + source_adjoint(irec_local,it_tmp,2) * hlagrange
 
           ! fluid
-          accelw_poroelastic(1,iglob) = accelw_poroelastic(1,iglob) - &
-                real(rho_f/rho_bar * xir_store_loc(irec_local,i)*gammar_store_loc(irec_local,j)* &
-                source_adjoint(irec_local,it_tmp,1),kind=CUSTOM_REAL)
-          accelw_poroelastic(2,iglob) = accelw_poroelastic(2,iglob) - &
-                real(rho_f/rho_bar * xir_store_loc(irec_local,i)*gammar_store_loc(irec_local,j)* &
-                source_adjoint(irec_local,it_tmp,2),kind=CUSTOM_REAL)
+          accelw_poroelastic(1,iglob) = accelw_poroelastic(1,iglob) &
+              - real(rho_f/rho_bar,kind=CUSTOM_REAL) * source_adjoint(irec_local,it_tmp,1) * hlagrange
+          accelw_poroelastic(2,iglob) = accelw_poroelastic(2,iglob) &
+              - real(rho_f/rho_bar,kind=CUSTOM_REAL) * source_adjoint(irec_local,it_tmp,2) * hlagrange
         enddo
       enddo
 
