@@ -218,8 +218,9 @@
         f0_source(i_source) = f0_sampling
       endif
 
-      ! Heaviside
-      if (time_function_type(i_source) == 5) then
+      ! Heaviside and normalized Gaussian
+      if (time_function_type(i_source) == 0 .or. &
+          time_function_type(i_source) == 5) then
         ! f0 will be used to determine half-duration such that hdur = 1 / f0
         ! note: low frequencies (== large half-durations) will lead to a smooth (quasi) Heaviside,
         !       high frequencies (== shorter half-durations) lead to (sharp) Heaviside
@@ -258,11 +259,14 @@
 
       ! source type
       if (initialfield) then
-        write(IMAIN,*) '  Source type (1=force, 2=moment tensor, 3=Rayleigh wave, 4=plane incident P, &
-                       &5=plane incident S,6=mode): ',source_type(i_source)
+        write(IMAIN,*) '  Source type for initialfield: ',source_type(i_source)
+        write(IMAIN,*) '  (1=force, 2=moment tensor, 3=Rayleigh wave, 4=plane incident P, 5=plane incident S,6=mode)'
       else
-        write(IMAIN,*) '  Source type (1=force, 2=moment tensor): ',source_type(i_source)
+        write(IMAIN,*) '  Source type: ',source_type(i_source)
+        write(IMAIN,*) '  (1=force, 2=moment tensor)'
       endif
+      write(IMAIN,*)
+
       select case (source_type(i_source))
       case (1)
         ! force
@@ -295,48 +299,74 @@
       write(IMAIN,*)
 
       ! STF
-      write(IMAIN,*) '  Time function type (1=Ricker, 2=First derivative, 3=Gaussian, 4=Dirac, 5=Heaviside, &
-                     &6,7=ocean type, 8=Read from file, 9=burst, 10=Sinusoidal, 11=Ormsby):',time_function_type(i_source)
+      write(IMAIN,*) '  Time function type:',time_function_type(i_source)
+      write(IMAIN,*) '  ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,'
+      write(IMAIN,*) '    5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,'
+      write(IMAIN,*) '   10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Joffe )'
+
       select case (time_function_type(i_source))
+      case (0)
+        write(IMAIN,*) '  Normalized Gaussian:'
+        write(IMAIN,*) '  Frequency = ',f0_source(i_source), &
+                       ' (-> half-duration = ',sngl(1.d0/f0_source(i_source)),' s)'
+        if (f0_source(i_source) == f0_sampling) write(IMAIN,*) '  (Frequency limited by sampling rate DT ',sngl(DT),' s)'
+        write(IMAIN,*) '  delay     = ',tshift_src(i_source)
       case (1)
         write(IMAIN,*) '  Ricker wavelet (second-derivative):'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (2)
         write(IMAIN,*) '  Ricker wavelet (first-derivative):'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (3)
         write(IMAIN,*) '  Gaussian:'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (4)
         write(IMAIN,*) '  Dirac:'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
         if (f0_source(i_source) == f0_sampling) write(IMAIN,*) '  (Frequency limited by sampling rate DT ',sngl(DT),' s)'
       case (5)
         write(IMAIN,*) '  Heaviside:'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
         if (f0_source(i_source) == f0_sampling) write(IMAIN,*) '  (Frequency limited by sampling rate DT ',sngl(DT),' s)'
       case (6)
         write(IMAIN,*) '  Ocean acoustics (type I):'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (7)
         write(IMAIN,*) '  Ocean acoustics (type II):'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (8)
         write(IMAIN,*) '  External source time function file:'
         write(IMAIN,*) '  Source read from file: ',trim(name_of_source_file(i_source))
       case (9)
         write(IMAIN,*) '  Burst wavelet:'
-        write(IMAIN,*) '  Burst band width: ',burst_band_width(i_source)
+        write(IMAIN,*) '  Burst band width   = ',burst_band_width(i_source)
       case (10)
         write(IMAIN,*) '  Sinusoidal source time function:'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
       case (11)
         write(IMAIN,*) '  Ormsby source time function:'
-        write(IMAIN,*) '  Frequency, delay = ',f0_source(i_source),tshift_src(i_source)
+        write(IMAIN,*) '  Frequency, delay   = ',f0_source(i_source),tshift_src(i_source)
+      case (12)
+        write(IMAIN,*) '  Brune source time function'
+        write(IMAIN,*) '  Frequency = ',f0_source(i_source), &
+                       ' (-> rise time = ',sngl(1.d0/f0_source(i_source)),' s)'
+        write(IMAIN,*) '  delay     = ',tshift_src(i_source)
+      case (13)
+        write(IMAIN,*) '  Smoothed Brune source time function'
+        write(IMAIN,*) '  Frequency = ',f0_source(i_source), &
+                       ' (-> rise time = ',sngl(1.d0/f0_source(i_source)),' s)'
+        write(IMAIN,*) '  delay     = ',tshift_src(i_source)
+      case (14)
+        write(IMAIN,*) '  Regularized Yoffe:'
+        write(IMAIN,*) '  Frequency        = ',f0_source(i_source),&
+                       ' (-> Yoffe rise time     : tauR = ',sngl(1.d0/f0_source(i_source)),' s)'
+        write(IMAIN,*) '  burst band width = ',burst_band_width(i_source), &
+                       ' (-> Triangular rise time: tauS = ',sngl(1.d0/burst_band_width(i_source)),' s)'
+        write(IMAIN,*) '  delay            = ',tshift_src(i_source)
       case default
         call stop_the_code('Error invalid source time function type! must be between 1 and 9, exiting...')
       end select
-      write(IMAIN,*) '  Multiplying factor  = ',factor(i_source)
+      write(IMAIN,*) '  Multiplying factor = ',factor(i_source)
       write(IMAIN,*)
 
       ! check if external stf file exists

@@ -59,6 +59,7 @@
 
   ! external functions
   double precision, external :: comp_source_time_function_heaviside_hdur
+  double precision, external :: comp_source_time_function_Gaussian_norm,comp_source_time_function_d2Gaussian_norm
   double precision, external :: comp_source_time_function_Gaussian,comp_source_time_function_dGaussian, &
                                 comp_source_time_function_d2Gaussian,comp_source_time_function_d3Gaussian
   double precision, external :: comp_source_time_function_marmousi
@@ -68,7 +69,8 @@
   double precision, external :: comp_source_time_function_ocean_II,comp_source_time_function_d2ocean_II
   double precision, external :: comp_source_time_function_ext
   double precision, external :: comp_source_time_function_burst,comp_source_time_function_d2burst
-
+  double precision, external :: comp_source_time_function_Brune,comp_source_time_function_Smooth_Brune
+  double precision, external :: comp_source_time_function_Yoffe
   ! user output
   if (myrank == 0) then
     write(IMAIN,*)
@@ -198,6 +200,18 @@
 
           ! determines source_time_function value for different source types
           select case (time_function_type(isource))
+          case (0)
+            ! normalized Gaussian
+            ! converts frequency to half-duration
+            hdur = 1.d0 / f0
+            ! convert the half duration for triangle STF to the one for Gaussian STF
+            hdur_gauss = hdur / SOURCE_DECAY_MIMIC_TRIANGLE
+            if (USE_TRICK_FOR_BETTER_PRESSURE) then
+              stf = comp_source_time_function_d2Gaussian_norm(t_used,hdur_gauss)
+            else
+              stf = comp_source_time_function_Gaussian_norm(t_used,hdur_gauss)
+            endif
+
           case (1)
             ! Ricker
             if (USE_TRICK_FOR_BETTER_PRESSURE) then
@@ -297,8 +311,23 @@
             endif
 
           case (11)
-              ! Marmousi Ormsby wavelet
-              stf = comp_source_time_function_marmousi(t_used,f0)
+            ! Marmousi Ormsby wavelet
+            stf = comp_source_time_function_marmousi(t_used,f0)
+
+          case (12)
+            ! Brune source time function
+            ! Frequency parameter: hdur == 1/f0 is the source duration or the rise time
+            stf = comp_source_time_function_Brune(t_used,f0)
+
+          case (13)
+            ! Smoothed Brune source time function
+            ! Frequency parameter: hdur == 1/f0 is the source duration or the rise time
+            stf = comp_source_time_function_Smooth_Brune(t_used,f0)
+
+          case (14)
+            ! Regularized Yoffe
+            ! Frequency parameter -> tauR == 1/f0 (Yoffe rise time), burst band width -> tauS == 1/bbw (Triangular rise time)
+            stf = comp_source_time_function_Yoffe(t_used,f0,burst_band_width(isource))
 
           case default
             call exit_MPI(myrank,'unknown source time function')

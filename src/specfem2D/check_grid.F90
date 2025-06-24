@@ -499,12 +499,13 @@
 
       do i = 1,NSOURCES
 
-        ! excludes Dirac and Heaviside sources
-        if (time_function_type(i) /= 4 .and. time_function_type(i) /= 5) then
+        ! only for Ricker-type source time functions
+        if (time_function_type(i) == 1 .or. time_function_type(i) == 2 .or. time_function_type(i) == 3) then
 
-          ! sets min/max frequency
           ! for a Ricker wavelet: dominant frequency f0_dominant = 2.5 * f0
           f0 = 2.5d0 * f0_source(i)
+
+          ! sets min/max frequency
           if (f0 > f0max) f0max = f0
 
           ! user output

@@ -99,13 +99,6 @@
   integer :: i,ier
   logical :: not_in_mesh_domain
 
-  ! user output
-  if (myrank == 0) then
-    write(IMAIN,*)
-    write(IMAIN,*) 'sources:'
-    call flush_IMAIN()
-  endif
-
   ! safety check
   ! note: in principle, the number of sources could be zero for noise simulations.
   !       however, we want to make sure to have one defined at least, even if not really needed.

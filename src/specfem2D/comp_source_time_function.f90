@@ -45,6 +45,65 @@
 
   end function comp_source_time_function_heaviside_hdur
 
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_Gaussian_norm(t,hdur)
+
+! normalized Gaussian source time function
+!
+! note: here, "normalized" means that the integral value of the source time function becomes 1.
+!       this function is also used as default in the SPECFEM3D versions.
+!
+!       this Gaussian function is using a different normalization factor compared to the comp_source_time_function_Gaussian()
+!       below that implements a Gaussian formulation derived from the second integral of the Ricker wavelet
+!       (given by comp_source_time_function_Ricker() or comp_source_time_function_d2Gaussian()).
+!
+!       thus, amplitudes and hdur are different here as compared to comp_source_time_function_Gaussian() values.
+
+  use constants, only: PI
+
+  implicit none
+
+  double precision, intent(in) :: t,hdur
+  double precision :: hdur_decay,a
+
+  ! note: hdur given is hdur_Gaussian = hdur/SOURCE_DECAY_MIMIC_TRIANGLE
+  !           and SOURCE_DECAY_MIMIC_TRIANGLE ~ 1.68
+  hdur_decay = hdur
+
+  ! Gaussian wavelet
+  a = 1.d0 / (hdur_decay**2)
+  comp_source_time_function_Gaussian_norm = exp(-a * t**2) / (sqrt(PI) * hdur_decay)
+
+  end function comp_source_time_function_Gaussian_norm
+
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_d2Gaussian_norm(t,hdur)
+
+! second derivative of the normalized Gaussian function above
+
+  use constants, only: PI
+
+  implicit none
+
+  double precision, intent(in) :: t,hdur
+  double precision :: hdur_decay,a
+
+  ! note: hdur given is hdur_Gaussian = hdur/SOURCE_DECAY_MIMIC_TRIANGLE
+  !           and SOURCE_DECAY_MIMIC_TRIANGLE ~ 1.68
+  hdur_decay = hdur
+
+  ! second derivative of a Gaussian wavelet
+  a = 1.d0 / (hdur_decay**2)
+  comp_source_time_function_d2Gaussian_norm = 2.d0 * a * (-1.d0 + 2.d0 * a * t**2) * exp(-a * t**2) / (sqrt(PI) * hdur_decay)
+
+  end function comp_source_time_function_d2Gaussian_norm
+
 
 
 ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -375,7 +434,7 @@
   !                                          (Nc-1.0d0)*cos((omega_coa*(Nc+1.0d0)*t_used)/Nc)) - &
   !                                           TWO*(Nc**2-1.0d0)*cos(omega_coa*t_used) ) / (8.0d0*PI*f0*(Nc-1)*(Nc+1))
   !else
-  !  stf = ZERO
+  !  comp_source_time_function_d2burst = ZERO
   !endif
 
   ! Double integral of burst
@@ -384,7 +443,7 @@
   !                                          (Nc**2*sin((TWO*f0*(Nc-1)*PI*t_used)/Nc))/(16.0d0*f0**2*(Nc-1)**2*Pi**2) + &
   !                                          (Nc**2*sin((TWO*f0*(Nc+1)*PI*t_used)/Nc))/(16.0d0*f0**2*(Nc+1)**2*Pi**2) )
   !else
-  !  stf = ZERO
+  !  comp_source_time_function_d2burst = ZERO
   !endif
 
   end function comp_source_time_function_d2burst
@@ -616,3 +675,241 @@
   comp_source_time_function_ext = stf_val
 
   end function comp_source_time_function_ext
+
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_Brune(t,f0)
+
+  use constants, only: PI
+
+  implicit none
+
+  double precision, intent(in) :: t,f0
+
+  ! local variables
+  double precision :: omega,omegat,stf_val
+
+  ! Brune source-time function
+  ! Moment function
+  !if (t < 0.d0) then
+  !  stf_val = 0.d0
+  !else
+  !  omegat = 2.d0*PI*f0*t
+  !  stf_val = 1.d0 - exp( -omegat ) * (1.0d0+omegat)
+  !endif
+
+  ! Moment rate function
+  omega = 2.d0 * PI * f0
+  omegat = omega * t
+
+  if (t < 0.d0) then
+    stf_val = 0.d0
+  else
+    stf_val = omega * omegat * exp(-omegat)
+  endif
+
+  comp_source_time_function_Brune = stf_val
+
+  end function comp_source_time_function_Brune
+
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_Smooth_Brune(t,f0)
+
+  use constants, only: PI
+
+  implicit none
+
+  double precision, intent(in) :: t,f0
+
+  ! local variables
+  double precision,parameter :: tau0 = 2.31d0
+  double precision :: omega,omegat,stf_val
+
+  ! Brune source-time function
+  ! Moment function
+  !omegat = 2.d0*PI*f0*t
+  !if (t < 0.d0) then
+  !  stf_val = 0.d0
+  !else if (omegat >= 0.d0 .and. omegat < tau0) then
+  !  stf_val = 1.d0 - exp(-omegat)*( 1.0d0 + omegat +  &
+  !            0.5d0*omegat**2 - (1.5d0*omegat**3)/tau0 + (1.5d0*omegat**4)/(tau0**2) - (0.5d0*omegat**5)/(tau0**3) )
+  !else ! (omegat > tau0) then
+  !  stf_val = 1.d0 - exp( -omegat ) * (1.0d0+omegat)
+  !endif
+
+  ! Moment rate function
+  omega = 2.d0 * PI * f0
+  omegat = omega * t
+
+  if (t < 0.d0) then
+    stf_val = 0.d0
+  else if (omegat >= 0.d0 .and. omegat < tau0) then
+    ! 0 <= omega * t < tau0
+    stf_val = ( 0.5d0 * omega * (omegat**2) * exp(-omegat)/tau0**3 ) &
+              * ( tau0**3 - 3.d0 * (tau0**2) * (omegat-3.d0) + &
+                  3.d0 * tau0 * omegat * (omegat-4.d0) - (omegat**2) * (omegat-5.d0) )
+  else
+    ! omega * t >= tau0
+    stf_val = omega * omegat * exp(-omegat)
+  endif
+
+  comp_source_time_function_Smooth_Brune = stf_val
+
+  end function comp_source_time_function_Smooth_Brune
+
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_Yoffe(t,f0,burst_band_width)
+
+! Regularized Yoffe function
+
+  use constants, only: PI
+
+  implicit none
+
+  double precision, intent(in) :: t,f0,burst_band_width
+
+  ! local variables
+  double precision :: tauR,tauS,K_val,stf_val
+
+  ! regularized Yoffe function defined in Appendix (A13) - (A20) of
+  ! Tinti et al. (2005),
+  ! A Kinematic Source-Time Function Compatible with Earthquake Dynamics,
+  ! BSSA, 95 (4), 1211-1223. https://doi.org/10.1785/0120040177
+
+  ! fixed parameter example:
+  ! acceleration time T_acc (time to peak slip velocity)
+  !    T_acc = 0.2
+  ! effective duration time T_eff
+  !    T_eff = 0.9
+  ! rise times tau
+  !    tauS = T_acc / 1.27d0         ! tauS - half-duration of the triangular function used for regularizing the Yoffe function
+  !    tauR = T_eff - 2.d0 * tauS    ! tauR - Yoffe rise-time
+
+  ! to avoid adding new parameter lines to the DATA/SOURCE files,
+  ! here, we re-interprete the source parameters for
+  !   frequency        -> tauR == 1/f0   as Yoffe rise-time
+  ! and
+  !   burst_band_width -> tauS == 1/bbw  as Triangular function rise-time
+  tauR = 1.d0 / f0
+  tauS = 1.d0 / burst_band_width
+
+  ! imposes tauS >= 0.0
+  if (tauS < 0.d0) tauS = 0.d0
+
+  ! imposes tauR >= tauS
+  if (tauR < tauS) tauR = tauS
+
+  ! check rise times
+  if (tauR == 0.d0 .or. tauS == 0.d0) then
+    comp_source_time_function_Yoffe = 0.d0
+    return
+  endif
+
+  ! defined only for times t > 0
+  if (t <= 0.d0) then
+    comp_source_time_function_Yoffe = 0.d0
+    return
+  endif
+
+  ! constant
+  K_val = 2.d0 / (PI * tauR * tauS*tauS)
+
+  ! analytical expressions of regularized Yoffe source time function values
+  ! (integrations of triangular function convolved with Yoffe function)
+  if (tauR > 2.d0 * tauS) then
+    ! (A13)
+    if (t <= tauS) then
+      stf_val = K_val * (C1() + C2())
+    else if (t <= 2.0 * tauS) then
+      stf_val = K_val * (C1() - C2() + C3())
+    else if (t < tauR) then
+      stf_val = K_val * (C1() + C3() + C4())
+    else if (t < tauR + tauS) then
+      stf_val = K_val * (C3() + C4() + C5())
+    else if (t < tauR + 2.0 * tauS) then
+      stf_val = K_val * (C4() + C6())
+    else
+      stf_val = 0.d0
+    endif
+  else
+    ! (A14)
+    ! using correction as in SeisSol implementation:
+    ! integration boundaries have been fixed here,
+    !       from
+    !         tauS < t < tauR        instead of   tauS <= t < tauS  (A14, 3. interval case)
+    !       from
+    !         tauR <= t <= 2 tauS    instead of   tauS <= t < 2 tauR (A14, 4. interval case)
+    if (t <= tauS) then
+      stf_val = K_val * (C1() + C2())
+    else if (t < tauR) then
+      stf_val = K_val * (C1() - C2() + C3())
+    else if (t <= 2.0 * tauS) then
+      stf_val = K_val * (C5() + C3() - C2())
+    else if (t < tauR + tauS) then
+      stf_val = K_val * (C3() + C4() + C5())
+    else if (t < tauR + 2.0 * tauS) then
+      stf_val = K_val * (C4() + C6())
+    else
+      stf_val = 0.d0
+    endif
+  endif
+
+  ! returns source time function value
+  comp_source_time_function_Yoffe = stf_val
+
+contains
+
+  ! C factor functions
+  double precision function C1()
+    implicit none
+    C1 = (0.5d0 * t + 0.25d0 * tauR) * sqrt(t * (tauR - t)) &
+         + (t * tauR - tauR*tauR) * asin(sqrt(t / tauR)) &
+         - 0.75d0 * tauR*tauR * atan(sqrt((tauR - t) / t))
+  end function C1
+
+  double precision function C2()
+    implicit none
+    C2 = 0.375d0 * PI * tauR*tauR
+  end function C2
+
+  double precision function C3()
+    implicit none
+    C3 = (tauS - t - 0.5d0 * tauR) * sqrt((t - tauS) * (tauR - t + tauS)) &
+         + tauR * (2.d0 * tauR - 2.d0 * t + 2.d0 * tauS) * asin(sqrt((t - tauS) / tauR)) &
+         + 1.5d0 * tauR*tauR * atan(sqrt((tauR - t + tauS) / (t - tauS)))
+  end function C3
+
+  double precision function C4()
+    implicit none
+    ! using correction as in SeisSol implementation:
+    ! 2 typos fixed in the second term compared with Tinti et al. 2005, using
+    !   .. - tauR * (tauR - t + 2.d0 * tauS) ..
+    ! instead of original formula in (A18)
+    !   .. - tauR * (tauR + t - 2.d0 * tauS) ..
+    ! see SeisSol implementation:
+    !   https://github.com/SeisSol/SeisSol/blob/master/src/Numerical/RegularizedYoffe.h
+    C4 = (-tauS + 0.5d0 * t + 0.25d0 * tauR) * sqrt((t - 2.d0 * tauS) * (tauR - t + 2.d0 * tauS)) &
+         - tauR * (tauR - t + 2.d0 * tauS) * asin(sqrt((t - 2.d0 * tauS) / tauR)) &
+         - 0.75d0 * tauR*tauR * atan(sqrt((tauR - t + 2.d0 * tauS) / (t - 2.d0 * tauS)))
+  end function C4
+
+  double precision function C5()
+    implicit none
+    C5 = 0.5d0 * PI * tauR * (t - tauR)
+  end function C5
+
+  double precision function C6()
+    implicit none
+    C6 = 0.5d0 * PI * tauR * (2.d0 * tauS - t + tauR)
+  end function C6
+
+  end function comp_source_time_function_Yoffe
+

@@ -39,7 +39,8 @@
 
   use specfem_par, only: myrank,NSOURCES,source_type,time_function_type, &
                          x_source,z_source,Mxx,Mzz,Mxz,f0_source,tshift_src,factor,anglesource, &
-                         t0,initialfield,USER_T0,vx_source,vz_source,SOURCE_IS_MOVING
+                         t0,initialfield,USER_T0,vx_source,vz_source,SOURCE_IS_MOVING, &
+                         name_of_source_file,burst_band_width
 
   implicit none
 
@@ -53,6 +54,10 @@
 
   ! user output
   if (myrank == 0) then
+    write(IMAIN,*)
+    write(IMAIN,*) 'Sources'
+    write(IMAIN,*) '======='
+    write(IMAIN,*)
     write(IMAIN,*) '  Total number of sources: ', NSOURCES
     write(IMAIN,*)
     call flush_IMAIN()
@@ -63,28 +68,35 @@
 
     ! user output
     if (myrank == 0) then
-      write(IMAIN,*)
       write(IMAIN,*) '  Setting parameters for source',i_source
       write(IMAIN,*)
       call flush_IMAIN()
     endif
 
+    ! Marmousi Ormsby wavelet
     ! half-duration of the marmousi_ormsby_wavelet whose freq signature is 5-10-60-80
     ! so here we choose 35Hz as dominant frequency
     if (time_function_type(i_source) == 11) then
       ! warning
       if (f0_source(i_source) /= F_ORMSBY) then
-        print *,'warning: Marmousi Ormsby wavelet dominant frequency will be set to 35 Hz'
+        if (myrank == 0) then
+          print *
+          print *,'***'
+          print *,'*** Warning: Marmousi Ormsby wavelet dominant frequency will be set to 35 Hz'
+          print *,'***'
+          print *
+        endif
+        ! fix source frequency
         f0_source(i_source) = F_ORMSBY
       endif
     endif
 
-    ! user output for source type
+    ! user output for sources
     if (.not. initialfield) then
-      if (source_type(i_source) == 1) then
-        ! force
-        if (myrank == 0) then
-          ! user output
+      if (myrank == 0) then
+        ! source info
+        if (source_type(i_source) == 1) then
+          ! force
           if (SOURCE_IS_MOVING) then
             write(IMAIN,213) x_source(i_source),z_source(i_source),vx_source(i_source),vz_source(i_source), &
                              f0_source(i_source), tshift_src(i_source), factor(i_source),anglesource(i_source)
@@ -92,12 +104,8 @@
             write(IMAIN,212) x_source(i_source),z_source(i_source),f0_source(i_source),tshift_src(i_source), &
                              factor(i_source),anglesource(i_source)
           endif
-          write(IMAIN,*)
-        endif
-      else if (source_type(i_source) == 2) then
-        ! moment tensor
-        if (myrank == 0) then
-          ! user output
+        else if (source_type(i_source) == 2) then
+          ! moment tensor
           if (SOURCE_IS_MOVING) then
             write(IMAIN,223) x_source(i_source),z_source(i_source),vx_source(i_source),vz_source(i_source), &
                              f0_source(i_source),tshift_src(i_source), factor(i_source),Mxx(i_source), &
@@ -106,26 +114,77 @@
             write(IMAIN,222) x_source(i_source),z_source(i_source),f0_source(i_source),tshift_src(i_source), &
                              factor(i_source),Mxx(i_source),Mzz(i_source),Mxz(i_source)
           endif
-          write(IMAIN,*)
+        else
+          call exit_MPI(myrank,'Unknown source type number !')
         endif
-      else
-        call exit_MPI(myrank,'Unknown source type number !')
-      endif
-    endif
 
-    ! source start times
+        ! source time function info
+        write(IMAIN,*) '    Source time function'
+        select case (time_function_type(i_source))
+        case (0)
+          write(IMAIN,*) '    Normalized Gaussian - half-duration = ',1.d0/f0_source(i_source),' s'
+        case (1)
+          write(IMAIN,*) '    Ricker wavelet (second-derivative)'
+        case (2)
+          write(IMAIN,*) '    Ricker wavelet (first-derivative)'
+        case (3)
+          write(IMAIN,*) '    Gaussian'
+        case (4)
+          write(IMAIN,*) '    Dirac'
+        case (5)
+          write(IMAIN,*) '    Heaviside'
+        case (6)
+          write(IMAIN,*) '    Ocean acoustics (type I)'
+        case (7)
+          write(IMAIN,*) '    Ocean acoustics (type II)'
+        case (8)
+          write(IMAIN,*) '    External source time function file ',trim(name_of_source_file(i_source))
+        case (9)
+          write(IMAIN,*) '    Burst wavelet - band width = ',burst_band_width(i_source)
+        case (10)
+          write(IMAIN,*) '    Sinusoidal'
+        case (11)
+          write(IMAIN,*) '    Ormsby'
+        case (12)
+          write(IMAIN,*) '    Brune - rise time = ',1.d0/f0_source(i_source),' s'
+        case (13)
+          write(IMAIN,*) '    Smoothed Brune - rise time = ',1.d0/f0_source(i_source),' s'
+        case (14)
+          write(IMAIN,*) '    Regularized Yoffe - tauR/tauS = ',1.d0/f0_source(i_source),'/',1.d0/burst_band_width(i_source),' s'
+        end select
+        write(IMAIN,*)
+        call flush_IMAIN()
+      endif ! myrank
+    endif ! initialfield
+
+    ! determine source start times
     ! half-duration of source
     hdur = 1.d0 / f0_source(i_source)
+
     ! sets source start times, shifted by the given (non-zero) time-shift
-    if (time_function_type(i_source) == 5 .or. time_function_type(i_source) == 11) then
-      ! Heaviside or Ormsby
+    select case (time_function_type(i_source))
+    case (0)
+      ! Normalized Gaussian (same as SPECFEM3D versions)
+      t0_source(i_source) = 1.5d0 * hdur + tshift_src(i_source)
+    case (1,2,3)
+      ! Ricker-type
+      t0_source(i_source) = 1.2d0 * hdur + tshift_src(i_source)
+    case (5)
+      ! Heaviside
       t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
-    else if (time_function_type(i_source) == 10) then
-      ! Monochromatic/Sinus source time function
-      t0_source(i_source) = 0.0
-    else
-      t0_source(i_source) = 1.20d0 * hdur + tshift_src(i_source)
-    endif
+    case (10)
+      ! Monochromatic/Sinusoidal
+      t0_source(i_source) = 0.d0
+    case (11)
+      ! Ormsby
+      t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
+    case (12,13)
+      ! Brune-type
+      t0_source(i_source) = 1.5d0 * hdur + tshift_src(i_source)
+    case default
+      ! all other
+      t0_source(i_source) = 1.2d0 * hdur + tshift_src(i_source)
+    end select
 
     ! moment-tensor source
     ! note: (mentioned also in SEM2DPACK by J.-P. Ampuero)
