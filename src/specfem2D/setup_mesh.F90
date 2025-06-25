@@ -593,7 +593,7 @@
   double precision :: c33min_glob,c33max_glob,c35min_glob,c35max_glob
   double precision :: c55min_glob,c55max_glob
 
-  logical :: has_elasticity, has_poroelasticity, has_anisotropy, has_electromagnetic
+  logical :: has_elasticity, has_poroelasticity, has_anisotropy, has_electromagnetic, has_fluid
 
   ! vtk output
   character(len=MAX_STRING_LEN) :: filename,prname
@@ -757,11 +757,58 @@
   ! sets new material properties
   ! note: velocities might have been shifted by attenuation
   do ispec = 1,nspec
+
+    ! material
+    if (ispec_is_electromagnetic(ispec)) then
+      ! material is electromagnetic
+      do j = 1,NGLLZ
+        do i = 1,NGLLX
+          ! gets material values
+          if (use_external_velocity_model) then
+            ! external model
+            permlxx = spermittivityext(1,i,j,ispec)  !e11
+            permlzz = spermittivityext(2,i,j,ispec)  !e33
+            condlxx = sconductivityext(1,i,j,ispec)  !sig11
+            condlzz = sconductivityext(2,i,j,ispec)  !sig33
+            two_inv_magpermeability = 2.d0 * inv_magpermeabilityext(i,j,ispec) !2mu0^-1
+          else
+            ! internal mesh
+            permlxx = spermittivity(1,kmato(ispec))   !e11
+            permlzz = spermittivity(2,kmato(ispec))   !e33
+            condlxx = sconductivity(1,kmato(ispec))   !sig11
+            condlzz = sconductivity(2,kmato(ispec))   !sig33
+            two_inv_magpermeability = 2.d0 * inv_magpermeability(kmato(ispec)) !2mu0^-1
+          endif
+
+          call get_electromagnetic_velocities(cpxsquare,cpzsquare,econdl,eperml, &
+                                              ATTENUATION_CONDUCTIVITY,ATTENUATION_PERMITTIVITY, &
+                                              f0_electromagnetic, &
+                                              Qe11_electromagnetic(kmato(ispec)),Qe33_electromagnetic(kmato(ispec)), &
+                                              Qs11_electromagnetic(kmato(ispec)),Qs33_electromagnetic(kmato(ispec)), &
+                                              permlxx,permlzz,condlxx,condlzz,two_inv_magpermeability)
+
+          ! stores
+          vEstore(i,j,ispec)=max(sqrt(cpxsquare),sqrt(cpzsquare))
+          spermittivitystore(1,i,j,ispec)=permlxx
+          spermittivitystore(2,i,j,ispec)=permlzz
+          sconductivitystore(1,i,j,ispec)=condlxx
+          sconductivitystore(2,i,j,ispec)=condlzz
+          inv_magpermeabilitystore(i,j,ispec)=two_inv_magpermeability/2.d0
+
+          vEmin_glob = min(vEmin_glob,max(sqrt(cpxsquare),sqrt(cpzsquare)))
+          vEmax_glob = max(vEmax_glob,max(sqrt(cpxsquare),sqrt(cpzsquare)))
+        enddo
+      enddo
+
+      ! element done, go to next one
+      cycle
+    endif
+
+    ! acoustic/elastic/poroelastic elements
     do j = 1,NGLLZ
       do i = 1,NGLLX
         ! gets material values
-       if (.not.ispec_is_electromagnetic(ispec)) then
-         if (use_external_velocity_model) then
+        if (use_external_velocity_model) then
           ! external model
           rhol = rhoext(i,j,ispec)
           vp = vpext(i,j,ispec)
@@ -792,7 +839,7 @@
           !attenuation
           qmul = Qmu_attenuationext(i,j,ispec)
           qkappal = QKappa_attenuationext(i,j,ispec)
-         else
+        else
           ! internal mesh
           imaterial = kmato(ispec)
 
@@ -810,7 +857,7 @@
           ! attenuation
           qmul = Qmu_attenuationcoef(imaterial)
           qkappal = Qkappa_attenuationcoef(imaterial)
-         endif
+        endif
 
         ! note: poroelastic materials are only defined using internal meshes so far, no external model defines it yet.
         !       in future, this might change and the corresponding arrays might have to be taken below.
@@ -881,43 +928,9 @@
 
         rho_vpstore(i,j,ispec) = rhol * vp
         rho_vsstore(i,j,ispec) = rhol * vs
-
-       else if (ispec_is_electromagnetic(ispec)) then
-       ! material is electromagnetic
-         if (use_external_velocity_model) then
-         ! external model
-          permlxx = spermittivityext(1,i,j,ispec)  !e11
-          permlzz = spermittivityext(2,i,j,ispec)  !e33
-          condlxx = sconductivityext(1,i,j,ispec)  !sig11
-          condlzz = sconductivityext(2,i,j,ispec)  !sig33
-          two_inv_magpermeability = 2.d0 * inv_magpermeabilityext(i,j,ispec) !2mu0^-1
-         else
-         ! internal mesh
-          permlxx = spermittivity(1,kmato(ispec))   !e11
-          permlzz = spermittivity(2,kmato(ispec))   !e33
-          condlxx = sconductivity(1,kmato(ispec))   !sig11
-          condlzz = sconductivity(2,kmato(ispec))   !sig33
-          two_inv_magpermeability = 2.d0 * inv_magpermeability(kmato(ispec)) !2mu0^-1
-         endif
-
-         call get_electromagnetic_velocities(cpxsquare,cpzsquare,econdl,eperml,ATTENUATION_CONDUCTIVITY, &
-             ATTENUATION_PERMITTIVITY,f0_electromagnetic,Qe11_electromagnetic(kmato(ispec)),Qe33_electromagnetic(kmato(ispec)), &
-             Qs11_electromagnetic(kmato(ispec)),Qs33_electromagnetic(kmato(ispec)), &
-             permlxx,permlzz,condlxx,condlzz,two_inv_magpermeability)
-
-        ! stores
-        vEstore(i,j,ispec)=max(sqrt(cpxsquare),sqrt(cpzsquare))
-        spermittivitystore(1,i,j,ispec)=permlxx
-        spermittivitystore(2,i,j,ispec)=permlzz
-        sconductivitystore(1,i,j,ispec)=condlxx
-        sconductivitystore(2,i,j,ispec)=condlzz
-        inv_magpermeabilitystore(i,j,ispec)=two_inv_magpermeability/2.d0
-
-        vEmin_glob = min(vEmin_glob,max(sqrt(cpxsquare),sqrt(cpzsquare)))
-        vEmax_glob = max(vEmax_glob,max(sqrt(cpxsquare),sqrt(cpzsquare)))
-       endif
       enddo
     enddo
+
   enddo
 
   ! anisotropy
@@ -1009,44 +1022,72 @@
   deallocate(spermittivityext,sconductivityext,inv_magpermeabilityext)
 
   ! stats
-  ! poroelasticity
-  ! check if any poroelastic elements in domains
+  ! check if any acoustic elements in domains
+  call any_all_l(any_acoustic,has_fluid)
+  if (has_fluid) then
+    ! rho
+    tmp_val = minval(rhostore)
+    call min_all_dp(tmp_val, rhomin_glob)
+    tmp_val = maxval(rhostore)
+    call max_all_dp(tmp_val, rhomax_glob)
+    ! vp
+    if (AXISYM) then
+      ! vp = sqrt( (kappa + FOUR_THIRDS * mu)/rho) )
+      tmp_val = minval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
+      call min_all_dp(tmp_val, vpmin_glob)
+      tmp_val = maxval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
+      call max_all_dp(tmp_val, vpmax_glob)
+    else
+      ! vp = sqrt( (kappa + mu)/rho) )
+      tmp_val = minval(sqrt((kappastore + mustore)/rhostore))
+      call min_all_dp(tmp_val, vpmin_glob)
+      tmp_val = maxval(sqrt((kappastore + mustore)/rhostore))
+      call max_all_dp(tmp_val, vpmax_glob)
+    endif
+    ! Qkappa
+    tmp_val = minval(qkappa_attenuation_store)
+    call min_all_dp(tmp_val, qkappamin_glob)
+    tmp_val = maxval(qkappa_attenuation_store)
+    call max_all_dp(tmp_val, qkappamax_glob)
+  endif
+
+  ! check if any (poro)elastic elements in domains
   call any_all_l(any_elastic,has_elasticity)
   if (has_elasticity) then
-  ! rho
-  tmp_val = minval(rhostore)
-  call min_all_dp(tmp_val, rhomin_glob)
-  tmp_val = maxval(rhostore)
-  call max_all_dp(tmp_val, rhomax_glob)
-  ! vs
-  tmp_val = minval(sqrt(mustore/rhostore))   ! vs = sqrt(mu/rho)
-  call min_all_dp(tmp_val, vsmin_glob)
-  tmp_val = maxval(sqrt(mustore/rhostore))
-  call max_all_dp(tmp_val, vsmax_glob)
-  ! vp
-  if (AXISYM) then
-    ! vp = sqrt( (kappa + FOUR_THIRDS * mu)/rho) )
-    tmp_val = minval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
-    call min_all_dp(tmp_val, vpmin_glob)
-    tmp_val = maxval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
-    call max_all_dp(tmp_val, vpmax_glob)
-  else
-    ! vp = sqrt( (kappa + mu)/rho) )
-    tmp_val = minval(sqrt((kappastore + mustore)/rhostore))
-    call min_all_dp(tmp_val, vpmin_glob)
-    tmp_val = maxval(sqrt((kappastore + mustore)/rhostore))
-    call max_all_dp(tmp_val, vpmax_glob)
-  endif
-  ! Qkappa
-  tmp_val = minval(qkappa_attenuation_store)
-  call min_all_dp(tmp_val, qkappamin_glob)
-  tmp_val = maxval(qkappa_attenuation_store)
-  call max_all_dp(tmp_val, qkappamax_glob)
-  ! Qmu
-  tmp_val = minval(qmu_attenuation_store)
-  call min_all_dp(tmp_val, qmumin_glob)
-  tmp_val = maxval(qmu_attenuation_store)
-  call max_all_dp(tmp_val, qmumax_glob)
+    ! rho
+    tmp_val = minval(rhostore)
+    call min_all_dp(tmp_val, rhomin_glob)
+    tmp_val = maxval(rhostore)
+    call max_all_dp(tmp_val, rhomax_glob)
+    ! vs
+    tmp_val = minval(sqrt(mustore/rhostore))   ! vs = sqrt(mu/rho)
+    call min_all_dp(tmp_val, vsmin_glob)
+    tmp_val = maxval(sqrt(mustore/rhostore))
+    call max_all_dp(tmp_val, vsmax_glob)
+    ! vp
+    if (AXISYM) then
+      ! vp = sqrt( (kappa + FOUR_THIRDS * mu)/rho) )
+      tmp_val = minval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
+      call min_all_dp(tmp_val, vpmin_glob)
+      tmp_val = maxval(sqrt((kappastore + FOUR_THIRDS * mustore)/rhostore))
+      call max_all_dp(tmp_val, vpmax_glob)
+    else
+      ! vp = sqrt( (kappa + mu)/rho) )
+      tmp_val = minval(sqrt((kappastore + mustore)/rhostore))
+      call min_all_dp(tmp_val, vpmin_glob)
+      tmp_val = maxval(sqrt((kappastore + mustore)/rhostore))
+      call max_all_dp(tmp_val, vpmax_glob)
+    endif
+    ! Qkappa
+    tmp_val = minval(qkappa_attenuation_store)
+    call min_all_dp(tmp_val, qkappamin_glob)
+    tmp_val = maxval(qkappa_attenuation_store)
+    call max_all_dp(tmp_val, qkappamax_glob)
+    ! Qmu
+    tmp_val = minval(qmu_attenuation_store)
+    call min_all_dp(tmp_val, qmumin_glob)
+    tmp_val = maxval(qmu_attenuation_store)
+    call max_all_dp(tmp_val, qmumax_glob)
   endif
 
   ! poroelasticity
@@ -1065,7 +1106,7 @@
     call max_all_dp(tmp_val, phimax_glob)
   endif
 
-  ! elecromagnetic
+  ! electromagnetic
   ! check if any electromagnetic elements in domains
   call any_all_l(any_electromagnetic,has_electromagnetic)
   if (has_electromagnetic) then
@@ -1136,12 +1177,18 @@
 
   ! user output
   if (myrank == 0) then
+    if (has_fluid) then
+      write(IMAIN,*) '  fluid:'
+      write(IMAIN,*) '    rho : min/max = ',sngl(rhomin_glob),'/',sngl(rhomax_glob)
+      write(IMAIN,*) '    vp  : min/max = ',sngl(vpmin_glob),'/',sngl(vpmax_glob)
+      write(IMAIN,*)
+    endif
     if (has_elasticity) then
-    write(IMAIN,*)
-    write(IMAIN,*) '  rho : min/max = ',sngl(rhomin_glob),'/',sngl(rhomax_glob)
-    write(IMAIN,*) '  vs  : min/max = ',sngl(vsmin_glob),'/',sngl(vsmax_glob)
-    write(IMAIN,*) '  vp  : min/max = ',sngl(vpmin_glob),'/',sngl(vpmax_glob)
-    write(IMAIN,*)
+      write(IMAIN,*) '  elasticitiy:'
+      write(IMAIN,*) '    rho : min/max = ',sngl(rhomin_glob),'/',sngl(rhomax_glob)
+      write(IMAIN,*) '    vs  : min/max = ',sngl(vsmin_glob),'/',sngl(vsmax_glob)
+      write(IMAIN,*) '    vp  : min/max = ',sngl(vpmin_glob),'/',sngl(vpmax_glob)
+      write(IMAIN,*)
     endif
     if (has_poroelasticity) then
       write(IMAIN,*) '  poroelasticity:'
@@ -1186,32 +1233,32 @@
     write(prname,"(a,i5.5,a)") trim(OUTPUT_FILES)//'mesh',myrank,'_'
 
     if (any_elastic) then
-    ! vs
-    tmp_store(:,:,:) = sqrt( mustore / rhostore )
-    filename = trim(prname) // 'vs'
-    call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
-    ! user output
-    if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
+      ! vs
+      tmp_store(:,:,:) = sqrt( mustore / rhostore )
+      filename = trim(prname) // 'vs'
+      call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
+      ! user output
+      if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
 
-    ! vp
-    if (AXISYM) then
-      ! vp = sqrt( (kappa + FOUR_THIRDS * mu)/rho) )
-      tmp_store(:,:,:) = sqrt( (kappastore + FOUR_THIRDS * mustore) / rhostore )
-    else
-      ! vp = sqrt( (kappa + mu)/rho) )
-      tmp_store(:,:,:) = sqrt( (kappastore + mustore) / rhostore )
-    endif
-    filename = trim(prname) // 'vp'
-    call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
-    ! user output
-    if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
+      ! vp
+      if (AXISYM) then
+        ! vp = sqrt( (kappa + FOUR_THIRDS * mu)/rho) )
+        tmp_store(:,:,:) = sqrt( (kappastore + FOUR_THIRDS * mustore) / rhostore )
+      else
+        ! vp = sqrt( (kappa + mu)/rho) )
+        tmp_store(:,:,:) = sqrt( (kappastore + mustore) / rhostore )
+      endif
+      filename = trim(prname) // 'vp'
+      call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
+      ! user output
+      if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
 
-    ! rho
-    tmp_store(:,:,:) = rhostore(:,:,:)
-    filename = trim(prname) // 'rho'
-    call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
-    ! user output
-    if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
+      ! rho
+      tmp_store(:,:,:) = rhostore(:,:,:)
+      filename = trim(prname) // 'rho'
+      call write_VTK_data_gll_dp(nspec,nglob,ibool,xstore,zstore,tmp_store,filename)
+      ! user output
+      if (myrank == 0) write(IMAIN,*) '  written file: ',trim(filename) // '.vtk'
     endif
 
     if (any_poroelastic) then
