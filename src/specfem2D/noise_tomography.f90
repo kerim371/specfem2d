@@ -408,11 +408,13 @@
     write(IMAIN,*) '  zero-time t0         = ',t0
   endif
 
-  if (noise_source_time_function_type == 0) then
-    !read in time function from file S_squared
+  select case(noise_source_time_function_type)
+  case (0)
+    ! external source time function
+    ! read in time function from file S_squared
     ! user output
     if (myrank == 0) then
-      write(IMAIN,*) '  reading noise source from file ','NOISE_TOMOGRAPHY/S_squared'
+      write(IMAIN,*) '  reading noise source from file: ','NOISE_TOMOGRAPHY/S_squared'
     endif
     open(unit=IIN,file='NOISE_TOMOGRAPHY/S_squared',status='old',iostat=ier)
     if (ier /= 0) call stop_the_code('Error opening file NOISE_TOMOGRAPHY/S_squared')
@@ -469,8 +471,8 @@
       call flush_IMAIN()
     endif
 
-  else if (noise_source_time_function_type == 1) then
-    !Ricker (second derivative of a Gaussian) time function
+  case (1)
+    ! Ricker (second derivative of a Gaussian) time function
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  Ricker (second derivative) noise source'
@@ -480,8 +482,8 @@
       noise_src(it) = - factor_noise * 2.0 * a_val * (1.0 - 2.0 * a_val * (t-t0)**2) * exp(-a_val * (t-t0)**2)
     enddo
 
-  else if (noise_source_time_function_type == 2) then
-    !first derivative of a Gaussian time function
+  case (2)
+    ! first derivative of a Gaussian time function
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  Ricker (first derivative) noise source'
@@ -491,8 +493,8 @@
       noise_src(it) = - factor_noise * (2.0 * a_val * (t-t0)) * exp(-a_val * (t-t0)**2)
     enddo
 
-  else if (noise_source_time_function_type == 3) then
-    !Gaussian time function
+  case (3)
+    ! Gaussian time function
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  Gaussian noise source'
@@ -502,8 +504,8 @@
       noise_src(it) = factor_noise * exp(-a_val * (t-t0)**2)
     enddo
 
-  else if (noise_source_time_function_type == 4) then
-    !reproduce time function from Figure 2a of Tromp et al. 2010
+  case (4)
+    ! reproduce time function from Figure 2a of Tromp et al. 2010
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  Figure 2a noise source'
@@ -514,9 +516,9 @@
                       exp(-a_val * (t-t0)**2)
     enddo
 
-  else
-    call exit_MPI(myrank,'Bad noise_source_time_function_type in compute_arrays_source_noise. Please check setting in constants.h')
-  endif
+  case default
+    call exit_MPI(myrank,'Invalid noise_source_time_function_type. Please check setting in Par_file...')
+  end select
 
   ! saves source time function
   if (PRINT_SOURCE_TIME_FUNCTION) then
@@ -529,7 +531,7 @@
     close(IOUT)
   endif
 
-  ! interpolates over GLL points
+  ! Lagrange interpolators over GLL points
   if (AXISYM) then
     if (is_on_the_axis(ispec_noise)) then
       call lagrange_any(xi_noise,NGLJ,xiglj,hxi,hpxi)
@@ -539,7 +541,6 @@
   else
     call lagrange_any(xi_noise,NGLLX,xigll,hxi,hpxi)
   endif
-
   call lagrange_any(gamma_noise,NGLLZ,zigll,hgamma,hpgamma)
 
   ! main station for noise source: located in element ispec_noise

@@ -354,6 +354,10 @@
 !    double precision :: hlagrange
 !    double precision :: xInitSource,zInitSource,xsrc,zsrc,vxSource,vzSource, &
 !                        time_val,t_used
+!    ! Lagrange interpolators at source position
+!    double precision, dimension(NGLLX) :: hxis,hpxis
+!    double precision, dimension(NGLLZ) :: hgammas,hpgammas
+!
 !    ! single source array
 !    real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ) :: sourcearray
 !
@@ -384,14 +388,10 @@
 !                             xsrc,zsrc, &
 !                             ispec_selected_source(i_source),islice_selected_source(i_source), &
 !                             NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-!                             iglob_source(i_source),.true.)
+!                             iglob_source(i_source),source_type(i_source))
 !
 !          call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
 !          call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
-!
-!          ! stores Lagrangians for source
-!          hxis_store(i_source,:) = hxis(:)
-!          hgammas_store(i_source,:) = hgammas(:)
 !
 !          sourcearray(:,:,:) = 0._CUSTOM_REAL
 !
@@ -405,7 +405,7 @@
 !              ! collocated force source
 !              do j = 1,NGLLZ
 !                do i = 1,NGLLX
-!                  hlagrange = hxis_store(i_source,i) * hgammas_store(i_source,j)
+!                  hlagrange = hxis(i) * hgammas(j)
 !                  ! source element is acoustic
 !                  if (ispec_is_acoustic(ispec)) then
 !                    ! sourcearray(1 and 2, i, j) are set to hlagrange:

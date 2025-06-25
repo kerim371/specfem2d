@@ -98,13 +98,12 @@
 
   use specfem_par, only: ispec_is_acoustic,nglob_acoustic, &
                          NSOURCES,source_type,source_time_function, &
-                         islice_selected_source,ispec_selected_source, &
-                         hxis_store,hgammas_store,ibool,kappastore,myrank,DT,t0,tshift_src, &
+                         islice_selected_source,ispec_selected_source,sourcearrays, &
+                         ibool,kappastore,myrank,DT,t0,tshift_src, &
                          coord,nspec,nglob,xigll,zigll,NPROC,xi_source, &
                          gamma_source,coorg,knods,NGNOD,npgeo,iglob_source,x_source,z_source, &
-                         vx_source,vz_source, time_stepping_scheme, &
-                         SOURCE_IS_MOVING, &
-                         hxis,hpxis,hgammas,hpgammas
+                         anglesource,vx_source,vz_source,time_stepping_scheme, &
+                         AXISYM,xiglj,is_on_the_axis,SOURCE_IS_MOVING
 
   use moving_sources_par, only: locate_source_moving
 
@@ -113,10 +112,14 @@
   real(kind=CUSTOM_REAL), dimension(nglob_acoustic),intent(inout) :: potential_dot_dot_acoustic
   integer,intent(in) :: it,i_stage
 
-  !local variables
+  ! local variables
   integer :: i_source,i,j,iglob,ispec
-  double precision :: hlagrange
+  real(kind=CUSTOM_REAL) :: stf_used
   double precision :: xsrc,zsrc,timeval,t_used
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX) :: hxis,hpxis
+  double precision, dimension(NGLLZ) :: hgammas,hpgammas
+  ! single source array
   real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ) :: sourcearray
 
   ! checks if anything to do
@@ -157,6 +160,7 @@
     enddo
   endif
 
+  ! updates source positions and re-calculates source arrays
   do i_source = 1,NSOURCES
     if (abs(source_time_function(i_source,it,i_stage)) > TINYVAL) then
       t_used = (timeval-t0-tshift_src(i_source))
@@ -165,40 +169,55 @@
       xsrc = x_source(i_source) + vx_source(i_source)*t_used
       zsrc = z_source(i_source) + vz_source(i_source)*t_used
 
-      ! collocated force source
+      ! gets source positioning
       ! TODO: this would be more efficient compled with first guess as in init_moving_sources_GPU
       !call locate_source_moving(xsrc,zsrc, &
       !                   ispec_selected_source(i_source),islice_selected_source(i_source), &
-      !                   NPROC,myrank,xi_source(i_source),gamma_source(i_source),.true.)
+      !                   NPROC,myrank,xi_source(i_source),gamma_source(i_source),..
       call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
                          xsrc,zsrc, &
                          ispec_selected_source(i_source),islice_selected_source(i_source), &
                          NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-                         iglob_source(i_source),.true.)
+                         iglob_source(i_source),source_type(i_source))
 
       ! print *,ispec_selected_source(i_source) > nspec, "xmin:", &
       !               coord(1,ibool(1,1,ispec_selected_source(i_source))), &
       !               "xmax:", coord(1,ibool(NGLLX,1,ispec_selected_source(i_source)))
 
-      ! define and store Lagrange interpolators (hxis,hpxis,hgammas,hpgammas) at all the sources
-      !if (AXISYM) then
-      !  if (is_on_the_axis(ispec_selected_source(i_source)) .and. myrank == islice_selected_source(i_source)) then
-      !    call lagrange_any(xi_source(i_source),NGLJ,xiglj,hxis,hpxis)
-      !    !do j = 1,NGLJ ! ABAB same result with that loop, this is good
-      !    !  hxis(j) = hglj(j-1,xi_source(i),xiglj,NGLJ)
-      !    !enddo
-      !  else
-      !    call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
-      !  endif
-      !else
-        call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
-      !endif
-      call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
+      if (myrank == islice_selected_source(i_source)) then
+        ! element containing source
+        ispec = ispec_selected_source(i_source)
 
-      ! stores Lagrangians for source
-      hxis_store(i_source,:) = hxis(:)
-      hgammas_store(i_source,:) = hgammas(:)
+        ! only for acoustic source elements
+        if (.not. ispec_is_acoustic(ispec)) cycle
 
+        ! Lagrange interpolators
+        if (AXISYM) then
+          if (is_on_the_axis(ispec)) then
+            call lagrange_any(xi_source(i_source),NGLJ,xiglj,hxis,hpxis)
+          else
+            call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
+          endif
+        else
+          call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
+        endif
+        call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
+
+        ! computes source arrays
+        sourcearray(:,:,:) = 0._CUSTOM_REAL
+
+        select case (source_type(i_source))
+        case (1)
+          ! collocated force source
+          call compute_arrays_source_forcesolution(ispec,hxis,hgammas,sourcearray,anglesource(i_source))
+        case (2)
+          ! moment-tensor source
+          call exit_MPI(myrank,'Cannot have moment tensor source in acoustic element')
+        end select
+
+        ! stores sourcearray for all sources
+        sourcearrays(:,:,:,i_source) = sourcearray(:,:,:)
+      endif
     endif
   enddo
 
@@ -212,6 +231,10 @@
       ispec = ispec_selected_source(i_source)
 
       if (ispec_is_acoustic(ispec)) then
+
+        ! source time function
+        stf_used = source_time_function(i_source,it,i_stage)
+
         ! collocated force
         ! beware, for acoustic medium, source is: pressure divided by Kappa of the fluid
         ! the sign is negative because pressure p = - Chi_dot_dot therefore we need
@@ -222,16 +245,10 @@
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
 
-              hlagrange = hxis_store(i_source,i) * hgammas_store(i_source,j)
-              sourcearray(1,i,j) = hlagrange
-
               potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
-                                      + source_time_function(i_source,it,i_stage) * sourcearray(1,i,j) / kappastore(i,j,ispec)
+                                                + sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
             enddo
           enddo
-          ! moment tensor
-          else if (source_type(i_source) == 2) then
-            call exit_MPI(myrank,'Cannot have moment tensor source in acoustic element')
         endif
       endif
     endif ! if this processor core carries the source and the source element is acoustic

@@ -782,7 +782,7 @@
 
   ! regularized Yoffe function defined in Appendix (A13) - (A20) of
   ! Tinti et al. (2005),
-  ! A Kinematic Source-Time Function Compatible with Earthquake Dynamics,
+  ! A kinematic source-time function compatible with earthquake dynamics,
   ! BSSA, 95 (4), 1211-1223. https://doi.org/10.1785/0120040177
 
   ! fixed parameter example:

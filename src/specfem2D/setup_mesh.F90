@@ -800,7 +800,7 @@
         enddo
       enddo
 
-      ! element done, go to next one
+      ! element done, goto next one
       cycle
     endif
 

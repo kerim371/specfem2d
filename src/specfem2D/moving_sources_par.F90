@@ -1145,10 +1145,9 @@ subroutine setup_source_interpolation_moving(xi_source, gamma_source, sourcearra
   !---- Do some checking also
   !----
 
-  use constants, only: NDIM,NGLLX,NGLLZ,ZERO,CUSTOM_REAL
+  use constants, only: NDIM,NGLLX,NGLLZ,NGLJ,ZERO,CUSTOM_REAL
 
-  use specfem_par, only: myrank, &
-    xigll, zigll, hxis, hpxis, hgammas, hpgammas
+  use specfem_par, only: myrank, xigll, zigll
 
   implicit none
 
@@ -1160,6 +1159,9 @@ subroutine setup_source_interpolation_moving(xi_source, gamma_source, sourcearra
 
   ! local parameters
   integer :: i,j
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX) :: hxis,hpxis
+  double precision, dimension(NGLLZ) :: hgammas,hpgammas
   double precision :: hlagrange
 
   ! (re)initializes (it has been done already in setup_sources_receivers.f90)
@@ -1167,10 +1169,19 @@ subroutine setup_source_interpolation_moving(xi_source, gamma_source, sourcearra
   hgammas(:) = ZERO
   hpxis(:) = ZERO
   hpgammas(:) = ZERO
+
   sourcearray(:,:,:) = 0._CUSTOM_REAL
 
-  ! Compute Lagrange interpolators for the source considered
-  call lagrange_any(xi_source,NGLLX,xigll,hxis,hpxis)
+  ! Lagrange interpolators
+  if (AXISYM) then
+    if (is_on_the_axis(ispec_source)) then
+      call lagrange_any(xi_source,NGLJ,xiglj,hxis,hpxis)
+    else
+      call lagrange_any(xi_source,NGLLX,xigll,hxis,hpxis)
+    endif
+  else
+    call lagrange_any(xi_source,NGLLX,xigll,hxis,hpxis)
+  endif
   call lagrange_any(gamma_source,NGLLZ,zigll,hgammas,hpgammas)
 
   ! computes source arrays

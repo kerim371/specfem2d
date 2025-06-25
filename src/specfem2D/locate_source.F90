@@ -39,7 +39,8 @@
                            x_source,z_source, &
                            ispec_selected_source,islice_selected_source, &
                            NPROC,myrank, &
-                           xi_source,gamma_source,coorg,knods,NGNOD,npgeo,iglob_source,is_force_source)
+                           xi_source,gamma_source,coorg,knods,NGNOD,npgeo, &
+                           iglob_source,source_type)
 
   use constants, only: NDIM,NGLLX,NGLLZ,IMAIN,HUGEVAL,TINYVAL,NUM_ITER,USE_BEST_LOCATION_FOR_SOURCE, &
     IDOMAIN_ACOUSTIC,IDOMAIN_ELASTIC,IDOMAIN_POROELASTIC,IDOMAIN_ELECTROMAGNETIC
@@ -78,7 +79,7 @@
   integer,intent(in)  :: NPROC, myrank
   double precision,intent(out) :: xi_source,gamma_source
 
-  logical,intent(in) :: is_force_source
+  integer,intent(in) :: source_type
 
   ! local parameters
   integer :: i,j,ispec,iglob,iter_loop,ix_initial_guess,iz_initial_guess,number_of_iterations
@@ -93,6 +94,14 @@
   integer :: is_proc_source
   integer, dimension(1:NPROC)  :: allgather_is_proc_source
   integer, dimension(1)  :: locate_is_proc_source
+  logical :: is_force_source
+
+  ! sets source type flag (must be either 1 == force or 2 == moment tensor
+  if (source_type == 1) then
+    is_force_source = .true.
+  else
+    is_force_source = .false.
+  endif
 
   ! user output
   if (myrank == 0) then

@@ -54,7 +54,7 @@
   if (myrank == 0) then
     write(IMAIN,*)
     write(IMAIN,*) 'Sources'
-    write(IMAIN,*) '======='
+    write(IMAIN,'(1x,7("="))')
     write(IMAIN,*)
     write(IMAIN,*) '  Total number of sources: ', NSOURCES
     write(IMAIN,*)

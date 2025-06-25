@@ -251,6 +251,9 @@ module specfem_par
   integer  :: nnodes_tangential_curve
   double precision, dimension(:,:), allocatable  :: nodes_tangential_curve
 
+  ! Lagrange interpolators at local receivers
+  real(kind=CUSTOM_REAL), dimension(:,:), allocatable :: xir_store_loc,gammar_store_loc
+
   !---------------------------------------------------------------------
   ! for SEM discretization of the model
   !---------------------------------------------------------------------
@@ -280,13 +283,6 @@ module specfem_par
 
   integer, dimension(:), allocatable :: ibegin_edge1,iend_edge1,ibegin_edge3,iend_edge3, &
                                         ibegin_edge4,iend_edge4,ibegin_edge2,iend_edge2
-
-  ! Lagrange interpolators at receivers
-  double precision, dimension(:), allocatable :: hxir,hgammar,hpxir,hpgammar
-
-  ! Lagrange interpolators at sources
-  double precision, dimension(:), allocatable :: hxis,hgammas,hpxis,hpgammas
-  double precision, dimension(:,:), allocatable :: hxis_store,hgammas_store
 
   !---------------------------------------------------------------------
   ! AXISYM parameters
@@ -683,7 +679,6 @@ module specfem_par
   integer :: nadj_rec_local
   real(kind=CUSTOM_REAL), dimension(:,:,:,:,:), allocatable :: adj_sourcearrays
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: source_adjoint
-  real(kind=CUSTOM_REAL), dimension(:,:), allocatable :: xir_store_loc,gammar_store_loc
 
   ! absorbing boundary
   logical :: anyabs
