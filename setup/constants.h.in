@@ -92,10 +92,15 @@
 ! was found by trial and error
   double precision, parameter :: SOURCE_DECAY_MIMIC_TRIANGLE = 1.628d0
 
+! This parameter determines the taper length of monochromatic source time function in seconds
+  double precision, parameter :: TAPER_MONOCHROMATIC_SOURCE = 0.d0
+
 ! Ormbsy wavelet dominant frequency
 ! (for Marmousi2 modeling, dominant frequency must be 35 Hz)
   double precision, parameter :: F_ORMSBY = 35.0
 
+! outputs source time function to file
+  logical, parameter :: PRINT_SOURCE_TIME_FUNCTION = .true.
 
 !!-----------------------------------------------------------
 !!

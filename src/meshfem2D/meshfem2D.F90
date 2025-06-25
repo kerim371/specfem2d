@@ -340,7 +340,7 @@
           nelem_on_the_axis = nzread
           allocate(ispec_of_axial_elements(nelem_on_the_axis),stat=ier)
           if (ier /= 0) call stop_the_code('Error allocating array ispec_of_axial_elements')
-
+          ispec_of_axial_elements(:) = 0
           i = 1
           do j = 1,nzread
             ispec_of_axial_elements(j) = (j-1)*nxread + (i-1) + 1
@@ -371,6 +371,9 @@
     write(IMAIN,*) '  Min and max value of X in the grid = ',minval(nodes_coords(1,:)),maxval(nodes_coords(1,:))
     write(IMAIN,*) '  Min and max value of Z in the grid = ',minval(nodes_coords(2,:)),maxval(nodes_coords(2,:))
     write(IMAIN,*)
+
+    ! check mesh elements for negative Jacobians
+    call read_mesh_check_Jacobians()
 
     ! create a Gnuplot file that displays the grid
     if (output_grid_Gnuplot .and. .not. read_external_mesh) &

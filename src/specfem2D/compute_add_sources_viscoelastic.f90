@@ -109,9 +109,9 @@
                          ibool,coord,nspec,nglob,xigll,zigll,NPROC, &
                          xi_source,gamma_source,coorg,knods,NGNOD,npgeo,iglob_source,x_source,z_source, &
                          vx_source,vz_source,DT,t0,myrank, &
-                         time_stepping_scheme,hxis_store,hgammas_store,tshift_src,source_type,ispec_is_acoustic, &
-                         hxis,hpxis,hgammas,hpgammas,anglesource,ispec_is_poroelastic,Mxx,Mxz,Mzz,gammax,gammaz,xix,xiz, &
-                         AXISYM,xiglj,is_on_the_axis,initialfield,SOURCE_IS_MOVING
+                         time_stepping_scheme,tshift_src,source_type, &
+                         anglesource,Mxx,Mxz,Mzz,gammax,gammaz,xix,xiz, &
+                         AXISYM,xiglj,is_on_the_axis,SOURCE_IS_MOVING
 
   use moving_sources_par, only: locate_source_moving
 
@@ -120,11 +120,13 @@
   real(kind=CUSTOM_REAL), dimension(NDIM,nglob_elastic) :: accel_elastic
   integer :: it, i_stage
 
-  !local variable
+  ! local variables
   integer :: i_source,i,j,iglob,ispec
   real(kind=CUSTOM_REAL) :: stf_used
-  double precision :: hlagrange
   double precision :: xsrc,zsrc,timeval,t_used
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX) :: hxis,hpxis
+  double precision, dimension(NGLLZ) :: hgammas,hpgammas
   ! single source array
   real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ) :: sourcearray
 
@@ -165,49 +167,37 @@
     enddo
   endif
 
+  ! updates source positions and re-calculates source arrays
   do i_source = 1,NSOURCES
     if (abs(source_time_function(i_source,it,i_stage)) > TINYVAL) then
       t_used = (timeval-t0-tshift_src(i_source))
+
       ! moves and re-locates sources along x and z-axis
       xsrc = x_source(i_source) + vx_source(i_source)*t_used
       zsrc = z_source(i_source) + vz_source(i_source)*t_used
-      ! collocated force source
-      if (source_type(i_source) == 1) then
-        ! TODO: this would be more efficient compled with first guess as in init_moving_sources_GPU()
-        !call locate_source_moving(xsrc,zsrc, &
-        !                   ispec_selected_source(i_source),islice_selected_source(i_source), &
-        !                   NPROC,myrank,xi_source(i_source),gamma_source(i_source),.true.)
-        call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
-                           xsrc,zsrc, &
-                           ispec_selected_source(i_source),islice_selected_source(i_source), &
-                           NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-                           iglob_source(i_source),.true.)
 
-      else if (source_type(i_source) == 2) then
-        ! moment-tensor source
-        call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
-                           xsrc,zsrc, &
-                           ispec_selected_source(i_source),islice_selected_source(i_source), &
-                           NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-                           iglob_source(i_source),.false.)
+      ! gets source positioning
+      ! TODO: this would be more efficient compled with first guess as in init_moving_sources_GPU()
+      !call locate_source_moving(xsrc,zsrc, &
+      !                   ispec_selected_source(i_source),islice_selected_source(i_source), &
+      !                   NPROC,myrank,xi_source(i_source),gamma_source(i_source),..
+      call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
+                         xsrc,zsrc, &
+                         ispec_selected_source(i_source),islice_selected_source(i_source), &
+                         NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
+                         iglob_source(i_source),source_type(i_source))
 
-      else if (.not. initialfield) then
+      if (myrank == islice_selected_source(i_source)) then
+        ! element containing source
+        ispec = ispec_selected_source(i_source)
 
-        call exit_MPI(myrank,'incorrect source type')
-
-      endif
-
-      ispec = ispec_selected_source(i_source)
-      ! source element is elastic
-      if (ispec_is_elastic(ispec)) then
+        ! only for elastic source elements
+        if (.not. ispec_is_elastic(ispec)) cycle
 
         ! Lagrange interpolators
         if (AXISYM) then
           if (is_on_the_axis(ispec)) then
             call lagrange_any(xi_source(i_source),NGLJ,xiglj,hxis,hpxis)
-            !do j = 1,NGLJ ! ABAB same result with that loop, this is good
-            !  hxis(j) = hglj(j-1,xi_source(i_source),xiglj,NGLJ)
-            !enddo
           else
             call lagrange_any(xi_source(i_source),NGLLX,xigll,hxis,hpxis)
           endif
@@ -216,79 +206,34 @@
         endif
         call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
 
+        ! debug user output
         if (mod(it,10000) == 0) then
-            !  write(IMAIN,*) "myrank:",myrank
-            ! user output
-            if (myrank == islice_selected_source(i_source)) then
-              iglob = ibool(2,2,ispec_selected_source(i_source))
-              !write(IMAIN,*) 'xcoord: ',coord(1,iglob)
-              write(IMAIN,*) 'Problem... it??: ',it,'xcoord: ',coord(1,iglob)," iglob",iglob
-              !'source carried by proc',myrank,"  source x:",x_source(i_source)," ispec:",ispec_selected_source(i_source)
-
-              !call flush_IMAIN()
-            endif
-
+          !  write(IMAIN,*) "myrank:",myrank
+          ! user output
+          if (myrank == islice_selected_source(i_source)) then
+            iglob = ibool(2,2,ispec_selected_source(i_source))
+            !write(IMAIN,*) 'xcoord: ',coord(1,iglob)
+            write(IMAIN,*) 'Problem... it??: ',it,'xcoord: ',coord(1,iglob)," iglob",iglob
+            !'source carried by proc',myrank,"  source x:",x_source(i_source)," ispec:",ispec_selected_source(i_source)
+            !call flush_IMAIN()
+          endif
         endif
 
-        ! stores Lagrangians for source
-        hxis_store(i_source,:) = hxis(:)
-        hgammas_store(i_source,:) = hgammas(:)
-
+        ! computes source arrays
         sourcearray(:,:,:) = 0._CUSTOM_REAL
 
-        ! computes source arrays
         select case (source_type(i_source))
         case (1)
           ! collocated force source
-          do j = 1,NGLLZ
-            do i = 1,NGLLX
-              hlagrange = hxis_store(i_source,i) * hgammas_store(i_source,j)
-
-              ! source element is acoustic
-              if (ispec_is_acoustic(ispec)) then
-                sourcearray(:,i,j) = real(hlagrange,kind=CUSTOM_REAL)
-              endif
-
-              ! source element is elastic
-              if (ispec_is_elastic(ispec)) then
-                if (P_SV) then
-                  ! P_SV case
-                  sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-                  sourcearray(2,i,j) = real(cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-                else
-                  ! SH case (membrane)
-                  sourcearray(:,i,j) = real(hlagrange,kind=CUSTOM_REAL)
-                endif
-              endif
-
-              ! source element is poroelastic
-              if (ispec_is_poroelastic(ispec)) then
-                sourcearray(1,i,j) = real(- sin(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-                sourcearray(2,i,j) = real(cos(anglesource(i_source)) * hlagrange,kind=CUSTOM_REAL)
-              endif
-
-            enddo
-          enddo
-
+          call compute_arrays_source_forcesolution(ispec,hxis,hgammas,sourcearray,anglesource(i_source))
         case (2)
           ! moment-tensor source
-          call compute_arrays_source(ispec,xi_source(i_source),gamma_source(i_source),sourcearray, &
-                                     Mxx(i_source),Mzz(i_source),Mxz(i_source),xix,xiz,gammax,gammaz,xigll,zigll,nspec)
-          ! checks source
-          if (ispec_is_acoustic(ispec)) then
-            call exit_MPI(myrank,'cannot have moment tensor source in acoustic element')
-          endif
-
-          ! checks wave type
-          if (ispec_is_elastic(ispec)) then
-            if (.not. P_SV ) call exit_MPI(myrank,'cannot have moment tensor source in SH (membrane) waves calculation')
-          endif
-
+          call compute_arrays_source_cmt(ispec,hxis,hgammas,hpxis,hpgammas,sourcearray, &
+                                         Mxx(i_source),Mzz(i_source),Mxz(i_source),xix,xiz,gammax,gammaz,nspec)
         end select
 
         ! stores sourcearray for all sources
         sourcearrays(:,:,:,i_source) = sourcearray(:,:,:)
-
       endif
     endif
   enddo
@@ -360,9 +305,9 @@
   !local variables
   integer :: irec_local,i,j,iglob,ispec
   integer :: it_tmp
-  real(kind=CUSTOM_REAL) :: stfx,stfz
+  real(kind=CUSTOM_REAL) :: hlagrange
 
-  ! time step index
+  ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
 
   do irec_local = 1,nrecloc
@@ -378,11 +323,10 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
-            stfz = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,2)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_elastic(1,iglob) = accel_elastic(1,iglob) + stfx
-            accel_elastic(2,iglob) = accel_elastic(2,iglob) + stfz
+            accel_elastic(1,iglob) = accel_elastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
+            accel_elastic(2,iglob) = accel_elastic(2,iglob) + source_adjoint(irec_local,it_tmp,2) * hlagrange
           enddo
         enddo
       else
@@ -391,9 +335,9 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_elastic(1,iglob) = accel_elastic(1,iglob) + stfx
+            accel_elastic(1,iglob) = accel_elastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
           enddo
         enddo
       endif

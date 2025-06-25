@@ -118,6 +118,7 @@
   logical :: show_station_output
 
   character(len=MAX_STRING_LEN) :: stations_filename,path_to_add
+  character(len=MAX_STRING_LEN) :: line
 
   ! defaults to: DATA/STATIONS
   stations_filename = trim(IN_DATA_FILES)//'STATIONS'
@@ -145,11 +146,39 @@
     print *,'Error: could not open station file: ',trim(stations_filename)
     call exit_MPI(myrank,'Error opening stations file')
   endif
+
   ! reads in stations infos
   do irec = 1,nrec
+    ! reads in next line with valid station record
+    do while (ier == 0)
+      read(IIN,'(a)',iostat=ier) line
+      if (ier /= 0) then
+        print *,'Error: reading station record for station ',irec,' failed'
+        print *,'       Please check file ',trim(stations_filename)
+        call exit_MPI(myrank,'Error reading stations file')
+      endif
+
+      ! suppress white space
+      line = trim(adjustl(line))
+
+      ! skip empty/comment lines
+      if (len_trim(line) == 0) cycle
+
+      ! exit loop when we find the first line that is not a comment
+      if (line(1:1) /= '#' .and. line(1:1) /= '!') exit
+    enddo
+
     ! format: #station name #network name #x-position #z-position #elevation #burial depth
     ! example: S0001        AA            300.0       2997.7      0.0        0.0
-    read(IIN,*) station_name(irec),network_name(irec),st_xval(irec),st_zval(irec),stele,stbur
+    read(line,*,iostat=ier) station_name(irec),network_name(irec),st_xval(irec),st_zval(irec),stele,stbur
+    if (ier /= 0) then
+      print *,'Error: STATIONS file line has wrong format, should have: #station #network #x  #z  #elevation #depth'
+      print *,'       station record: ',irec
+      print *,'       line: ',trim(line)
+      print *,'       Please check file ',trim(stations_filename)
+      call exit_MPI(myrank,'stations file has wrong format')
+    endif
+
     ! check that station is not buried, burial is not implemented in current code
     if (abs(stbur) > TINYVAL) then
       print *,'Error: station ',irec,'has non-zero burial depth, please set to zero.'

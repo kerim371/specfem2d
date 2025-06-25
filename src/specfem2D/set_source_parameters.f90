@@ -39,20 +39,23 @@
 
   use specfem_par, only: myrank,NSOURCES,source_type,time_function_type, &
                          x_source,z_source,Mxx,Mzz,Mxz,f0_source,tshift_src,factor,anglesource, &
-                         t0,initialfield,USER_T0,vx_source,vz_source,SOURCE_IS_MOVING
+                         initialfield,vx_source,vz_source,SOURCE_IS_MOVING, &
+                         name_of_source_file,burst_band_width
 
   implicit none
 
   ! local parameters
   integer :: i_source
-  double precision, dimension(NSOURCES) :: t0_source
-  double precision :: min_tshift_src_original,hdur
   double precision :: M0,Mw
 
   ! note: see also routine in read_source_file.f90 which reads in source parameters
 
   ! user output
   if (myrank == 0) then
+    write(IMAIN,*)
+    write(IMAIN,*) 'Sources'
+    write(IMAIN,'(1x,7("="))')
+    write(IMAIN,*)
     write(IMAIN,*) '  Total number of sources: ', NSOURCES
     write(IMAIN,*)
     call flush_IMAIN()
@@ -63,28 +66,35 @@
 
     ! user output
     if (myrank == 0) then
-      write(IMAIN,*)
       write(IMAIN,*) '  Setting parameters for source',i_source
       write(IMAIN,*)
       call flush_IMAIN()
     endif
 
+    ! Marmousi Ormsby wavelet
     ! half-duration of the marmousi_ormsby_wavelet whose freq signature is 5-10-60-80
     ! so here we choose 35Hz as dominant frequency
     if (time_function_type(i_source) == 11) then
       ! warning
       if (f0_source(i_source) /= F_ORMSBY) then
-        print *,'warning: Marmousi Ormsby wavelet dominant frequency will be set to 35 Hz'
+        if (myrank == 0) then
+          print *
+          print *,'***'
+          print *,'*** Warning: Marmousi Ormsby wavelet dominant frequency will be set to 35 Hz'
+          print *,'***'
+          print *
+        endif
+        ! fix source frequency
         f0_source(i_source) = F_ORMSBY
       endif
     endif
 
-    ! user output for source type
+    ! user output for sources
     if (.not. initialfield) then
-      if (source_type(i_source) == 1) then
-        ! force
-        if (myrank == 0) then
-          ! user output
+      if (myrank == 0) then
+        ! source info
+        if (source_type(i_source) == 1) then
+          ! force
           if (SOURCE_IS_MOVING) then
             write(IMAIN,213) x_source(i_source),z_source(i_source),vx_source(i_source),vz_source(i_source), &
                              f0_source(i_source), tshift_src(i_source), factor(i_source),anglesource(i_source)
@@ -92,12 +102,8 @@
             write(IMAIN,212) x_source(i_source),z_source(i_source),f0_source(i_source),tshift_src(i_source), &
                              factor(i_source),anglesource(i_source)
           endif
-          write(IMAIN,*)
-        endif
-      else if (source_type(i_source) == 2) then
-        ! moment tensor
-        if (myrank == 0) then
-          ! user output
+        else if (source_type(i_source) == 2) then
+          ! moment tensor
           if (SOURCE_IS_MOVING) then
             write(IMAIN,223) x_source(i_source),z_source(i_source),vx_source(i_source),vz_source(i_source), &
                              f0_source(i_source),tshift_src(i_source), factor(i_source),Mxx(i_source), &
@@ -106,25 +112,48 @@
             write(IMAIN,222) x_source(i_source),z_source(i_source),f0_source(i_source),tshift_src(i_source), &
                              factor(i_source),Mxx(i_source),Mzz(i_source),Mxz(i_source)
           endif
-          write(IMAIN,*)
+        else
+          call exit_MPI(myrank,'Unknown source type number !')
         endif
-      else
-        call exit_MPI(myrank,'Unknown source type number !')
-      endif
-    endif
 
-    ! half-duration of source
-    hdur = 1.d0 / f0_source(i_source)
-
-    ! sets source start times, shifted by the given (non-zero) time-shift
-    if (time_function_type(i_source) == 5 .or. time_function_type(i_source) == 11) then
-      ! Heaviside or Ormsby
-      t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
-    else if (time_function_type(i_source) == 10) then
-      t0_source(i_source) = 0.0
-    else
-      t0_source(i_source) = 1.20d0 * hdur + tshift_src(i_source)
-    endif
+        ! source time function info
+        write(IMAIN,*) '    Source time function'
+        select case (time_function_type(i_source))
+        case (0)
+          write(IMAIN,*) '    Normalized Gaussian - half-duration = ',1.d0/f0_source(i_source),' s'
+        case (1)
+          write(IMAIN,*) '    Ricker wavelet (second-derivative)'
+        case (2)
+          write(IMAIN,*) '    Ricker wavelet (first-derivative)'
+        case (3)
+          write(IMAIN,*) '    Gaussian'
+        case (4)
+          write(IMAIN,*) '    Dirac'
+        case (5)
+          write(IMAIN,*) '    Heaviside'
+        case (6)
+          write(IMAIN,*) '    Ocean acoustics (type I)'
+        case (7)
+          write(IMAIN,*) '    Ocean acoustics (type II)'
+        case (8)
+          write(IMAIN,*) '    External source time function file ',trim(name_of_source_file(i_source))
+        case (9)
+          write(IMAIN,*) '    Burst wavelet - band width = ',burst_band_width(i_source)
+        case (10)
+          write(IMAIN,*) '    Sinusoidal'
+        case (11)
+          write(IMAIN,*) '    Ormsby'
+        case (12)
+          write(IMAIN,*) '    Brune - rise time = ',1.d0/f0_source(i_source),' s'
+        case (13)
+          write(IMAIN,*) '    Smoothed Brune - rise time = ',1.d0/f0_source(i_source),' s'
+        case (14)
+          write(IMAIN,*) '    Regularized Yoffe - T_acc,T_eff = ',1.d0/f0_source(i_source),',',1.d0/burst_band_width(i_source),' s'
+        end select
+        write(IMAIN,*)
+        call flush_IMAIN()
+      endif ! myrank
+    endif ! initialfield
 
     ! moment-tensor source
     ! note: (mentioned also in SEM2DPACK by J.-P. Ampuero)
@@ -170,6 +199,114 @@
     endif
 
   enddo ! do i_source= 1,NSOURCES
+
+  ! output formats
+212 format(5x,'Source Type. . . . . . . . . . . . . . = Collocated Force',/5x, &
+                  'X-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
+                  'Y-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
+                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
+                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
+
+213 format(5x,'Source Type. . . . . . . . . . . . . . = Collocated Force',/5x, &
+                  'Initial X-position (meters). . . . . . =',1pe20.10,/5x, &
+                  'Initial Y-position (meters). . . . . . =',1pe20.10,/5x, &
+                  'X-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
+                  'Z-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
+                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
+                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
+
+222 format(5x,'Source Type. . . . . . . . . . . . . . = Moment-tensor',/5x, &
+                  'X-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
+                  'Y-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
+                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
+                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mxx. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mzz. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mxz. . . . . . . . . . . . . . . . . . =',1pe20.10)
+
+223 format(5x,'Source Type. . . . . . . . . . . . . . = Moment-tensor',/5x, &
+                  'Initial X-position (meters). . . . . . =',1pe20.10,/5x, &
+                  'Initial Y-position (meters). . . . . . =',1pe20.10,/5x, &
+                  'X-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
+                  'Z-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
+                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
+                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mxx. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mzz. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
+                  'Mxz. . . . . . . . . . . . . . . . . . =',1pe20.10)
+
+
+  end subroutine set_source_parameters
+
+!
+!------------------------------------------------------------
+!
+
+  subroutine set_source_parameters_onset_time()
+
+! determines onset times
+
+  use constants, only: NGLLX,NGLLZ,NDIM,IMAIN,TINYVAL,PI,F_ORMSBY
+
+  use specfem_par, only: myrank,NSOURCES,time_function_type, &
+                         f0_source,tshift_src,initialfield, &
+                         t0,USER_T0
+
+  implicit none
+
+  ! local parameters
+  integer :: i_source
+  double precision, dimension(NSOURCES) :: t0_source
+  double precision :: min_tshift_src_original,hdur
+
+  ! note: see also routine in read_source_file.f90 which reads in source parameters
+
+  ! user output
+  if (myrank == 0) then
+    write(IMAIN,*) 'determining source onset times...'
+    call flush_IMAIN()
+  endif
+
+  ! intializes simulation start time t0
+  t0 = 0.d0
+
+  ! determine onset times
+  do i_source = 1,NSOURCES
+    ! half-duration of source
+    hdur = 1.d0 / f0_source(i_source)
+
+    ! determine start times
+    ! sets source start times, shifted by the given (non-zero) time-shift
+    select case (time_function_type(i_source))
+    case (0)
+      ! Normalized Gaussian
+      t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
+    case (1,2,3)
+      ! Ricker-type
+      t0_source(i_source) = 1.2d0 * hdur + tshift_src(i_source)
+    case (5)
+      ! Heaviside
+      t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
+    case (10)
+      ! Monochromatic/Sinusoidal
+      t0_source(i_source) = 0.d0
+    case (11)
+      ! Ormsby
+      t0_source(i_source) = 2.0d0 * hdur + tshift_src(i_source)
+    case (12,13)
+      ! Brune-type
+      t0_source(i_source) = 1.5d0 * hdur + tshift_src(i_source)
+    case default
+      ! all other
+      t0_source(i_source) = 1.2d0 * hdur + tshift_src(i_source)
+    end select
+  enddo
 
   ! initializes simulation start time
   if (NSOURCES == 1) then
@@ -223,6 +360,7 @@
 
         ! sets the given, initial time shifts
         if (time_function_type(i_source) == 5) then
+          ! Heaviside
           tshift_src(i_source) = t0_source(i_source) - 2.0d0 * hdur
         else
           tshift_src(i_source) = t0_source(i_source) - 1.20d0 * hdur
@@ -249,26 +387,32 @@
       endif
       call exit_MPI(myrank,'Error USER_T0 is set but too small')
     endif
+
   else if (USER_T0 < 0.d0) then
+    ! check for negative value
     if (myrank == 0) then
       write(IMAIN,*) 'Error: USER_T0 is negative, must be set zero or positive!'
     endif
     call exit_MPI(myrank,'Error negative USER_T0 parameter in constants.h')
   endif
 
-  ! checks onset times
-  if (.not. initialfield) then
+  ! user output
+  if (myrank == 0) then
+    write(IMAIN,*) '  simulation start time t0 = ',-t0,' s'  ! start time t0 will be subtracted, thus showing negative value
+    write(IMAIN,*)
+    call flush_IMAIN()
+  endif
 
+  ! check onset times
+  if (.not. initialfield) then
     ! loops over sources
     do i_source = 1,NSOURCES
-
       ! excludes Dirac and Heaviside sources
       if (time_function_type(i_source) /= 4 .and. time_function_type(i_source) /= 5) then
-
         ! user output
         if (myrank == 0) then
           write(IMAIN,*) '  Source: ',i_source
-          write(IMAIN,*) '    Onset time. . . . . . = ',- (t0+tshift_src(i_source))
+          write(IMAIN,*) '    Onset time. . . . . . = ',-(t0+tshift_src(i_source))
           write(IMAIN,*) '    Fundamental period. . = ',1.d0/f0_source(i_source)
           write(IMAIN,*) '    Fundamental frequency = ',f0_source(i_source)
         endif
@@ -285,50 +429,6 @@
         endif
       endif
     enddo
-
   endif
 
-
-  ! output formats
-212 format(5x,'Source Type. . . . . . . . . . . . . . = Collocated Force',/5x, &
-                  'X-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
-                  'Y-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
-                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
-                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
-
-213 format(5x,'Source Type. . . . . . . . . . . . . . = Collocated Force',/5x, &
-                  'Initial X-position (meters). . . . . . =',1pe20.10,/5x, &
-                  'Initial Y-position (meters). . . . . . =',1pe20.10,/5x, &
-                  'X-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
-                  'Z-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
-                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
-                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
-
-222 format(5x,'Source Type. . . . . . . . . . . . . . = Moment-tensor',/5x, &
-                  'X-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
-                  'Y-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
-                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
-                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mxx. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mzz. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mxz. . . . . . . . . . . . . . . . . . =',1pe20.10)
-
-223 format(5x,'Source Type. . . . . . . . . . . . . . = Moment-tensor',/5x, &
-                  'Initial X-position (meters). . . . . . =',1pe20.10,/5x, &
-                  'Initial Y-position (meters). . . . . . =',1pe20.10,/5x, &
-                  'X-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
-                  'Z-velocity (meters/second). . .  . . . =',1pe20.10,/5x, &
-                  'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
-                  'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mxx. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mzz. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Mxz. . . . . . . . . . . . . . . . . . =',1pe20.10)
-
-
-  end subroutine set_source_parameters
+  end subroutine set_source_parameters_onset_time

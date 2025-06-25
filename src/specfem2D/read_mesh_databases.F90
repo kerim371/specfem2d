@@ -979,10 +979,13 @@
       ! may have rotated elements and thus edge 1 may not correspond to the bottom,
       ! edge 2 may not correspond to the right, edge 3 may not correspond to the top,
       ! and edge 4 may not correspond to the left.
-      read(IIN) numabsread,codeabsread(1),codeabsread(2),codeabsread(3), &
-                codeabsread(4), typeabsread, ibegin_edge1(inum), iend_edge1(inum), &
-                ibegin_edge2(inum), iend_edge2(inum), ibegin_edge3(inum), &
-                iend_edge3(inum), ibegin_edge4(inum), iend_edge4(inum)
+      read(IIN) numabsread, &
+                codeabsread(1),codeabsread(2),codeabsread(3),codeabsread(4), &
+                typeabsread, &
+                ibegin_edge1(inum), iend_edge1(inum), &
+                ibegin_edge2(inum), iend_edge2(inum), &
+                ibegin_edge3(inum), iend_edge3(inum), &
+                ibegin_edge4(inum), iend_edge4(inum)
 
       if (numabsread < 1 .or. numabsread > nspec) &
         call exit_MPI(myrank,'Wrong absorbing element number')
@@ -1000,6 +1003,7 @@
       ! (since elements with two absorbing edges MUST be cited twice, each time with a different "type" code
       if (count(codeabs(:,inum) .eqv. .true.) /= 1) then
         print *,'Error for absorbing element inum = ',inum
+        print *,'      side edges: ',codeabs(:,inum),'(1 == bottom / 2 == right / 3 == top / 4 == left)'
         call stop_the_code('must have one and only one absorbing edge per absorbing line cited')
       endif
 
@@ -1233,10 +1237,13 @@
       ! may have rotated elements and thus edge 1 may not correspond to the bottom,
       ! edge 2 may not correspond to the right, edge 3 may not correspond to the top,
       ! and edge 4 may not correspond to the left.
-      read(IIN) numacforcingread,codeacforcingread(1),codeacforcingread(2),codeacforcingread(3), &
-                codeacforcingread(4), typeacforcingread, ibegin_edge1_acforcing(inum), iend_edge1_acforcing(inum), &
-                ibegin_edge2_acforcing(inum), iend_edge2_acforcing(inum), ibegin_edge3_acforcing(inum), &
-                iend_edge3_acforcing(inum), ibegin_edge4_acforcing(inum), iend_edge4_acforcing(inum)
+      read(IIN) numacforcingread, &
+                codeacforcingread(1),codeacforcingread(2),codeacforcingread(3),codeacforcingread(4), &
+                typeacforcingread, &
+                ibegin_edge1_acforcing(inum), iend_edge1_acforcing(inum), &
+                ibegin_edge2_acforcing(inum), iend_edge2_acforcing(inum), &
+                ibegin_edge3_acforcing(inum), iend_edge3_acforcing(inum), &
+                ibegin_edge4_acforcing(inum), iend_edge4_acforcing(inum)
 
       ! checks index
       if (numacforcingread < 1 .or. numacforcingread > nspec) &
@@ -1254,8 +1261,9 @@
       ! check that a single edge is defined for each element cited
       ! (since elements with two absorbing edges MUST be cited twice, each time with a different "typeacforcing()" code
       if (count(codeacforcing(:,inum) .eqv. .true.) /= 1) then
-        print *,'Error for absorbing element inum = ',inum
-        call stop_the_code('must have one and only one absorbing edge per absorbing line cited')
+        print *,'Error for acoustic forcing element inum = ',inum
+        print *,'      side edges: ',codeacforcing(:,inum),'(1 == bottom / 2 == right / 3 == top / 4 == left)'
+        call stop_the_code('must have one and only one acoustic forcing edge per line cited')
       endif
 
     enddo

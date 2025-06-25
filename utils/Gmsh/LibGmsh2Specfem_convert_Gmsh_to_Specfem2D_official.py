@@ -88,6 +88,7 @@ def OuvreGmsh(Dir,Nom,Bords):
     # Conditions on sides of the domain
     # Possible choices: Abso, Free
     Bord_abso, Bord_free = [], []  # Initialization
+    Bord_right, Bord_left, Bord_top, Bord_bottom = [], [], [], []
     PML = False
     print(Bords)
     #-------------------------------------------------------------------------

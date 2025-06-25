@@ -61,17 +61,5 @@
     enddo
   enddo
 
-  ! allocate 1-D Lagrange interpolators and derivatives
-  ! for source and receivers
-  allocate(hxir(NGLLX), &
-           hxis(NGLLX), &
-           hpxir(NGLLX), &
-           hpxis(NGLLX), &
-           hgammar(NGLLZ), &
-           hgammas(NGLLZ), &
-           hpgammar(NGLLZ), &
-           hpgammas(NGLLZ),stat=ier)
-  if (ier /= 0) call stop_the_code('error allocating arrays for interpolators')
-
   end subroutine setup_GLL_points
 

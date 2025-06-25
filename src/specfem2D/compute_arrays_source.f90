@@ -31,35 +31,32 @@
 !
 !========================================================================
 
-  subroutine compute_arrays_source(ispec_selected_source,xi_source,gamma_source,sourcearray, &
-                                   Mxx,Mzz,Mxz,xix,xiz,gammax,gammaz,xigll,zigll,nspec)
 
-  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NGLJ,NDIM,ZERO
+  subroutine compute_arrays_source_cmt(ispec_selected_source,hxis,hgammas,hpxis,hpgammas,sourcearray, &
+                                       Mxx,Mzz,Mxz,xix,xiz,gammax,gammaz,nspec)
 
-  use specfem_par, only: AXISYM,is_on_the_axis,xiglj
+! determines source array for moment-tensor sources
+
+  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NDIM,ZERO
 
   implicit none
 
   integer,intent(in) :: ispec_selected_source
   integer,intent(in) :: nspec
 
-  double precision,intent(in) :: xi_source,gamma_source
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX),intent(in) :: hxis,hpxis
+  double precision, dimension(NGLLZ),intent(in) :: hgammas,hpgammas
+
+  ! source array
+  real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ),intent(inout) :: sourcearray
+
   double precision,intent(in) :: Mxx,Mzz,Mxz
 
-  real(kind=CUSTOM_REAL), dimension(NGLLX,NGLLZ,nspec) :: xix,xiz,gammax,gammaz
+  real(kind=CUSTOM_REAL), dimension(NGLLX,NGLLZ,nspec),intent(in) :: xix,xiz,gammax,gammaz
 
-  real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ) :: sourcearray
-
+  ! local parameters
   double precision :: xixd,xizd,gammaxd,gammazd
-
-! Gauss-Lobatto-Legendre points of integration and weights
-  double precision, dimension(NGLLX) :: xigll
-  double precision, dimension(NGLLZ) :: zigll
-
-! source arrays
-  double precision, dimension(NGLLX) :: hxis,hpxis
-  double precision, dimension(NGLLZ) :: hgammas,hpgammas
-
   integer :: k,m
 
   double precision :: hlagrange
@@ -72,19 +69,7 @@
   double precision, dimension(NGLLX,NGLLZ) :: G11,G13,G31,G33
   integer :: ir,iv
 
-! compute Lagrange polynomials at the source location
-! the source does not necessarily correspond to a Gauss-Lobatto point
-  if (AXISYM) then
-    if (is_on_the_axis(ispec_selected_source)) then ! TODO verify if we have to add : .and. myrank == islice_selected_source(i)
-      call lagrange_any(xi_source,NGLJ,xiglj,hxis,hpxis)
-    else
-      call lagrange_any(xi_source,NGLLX,xigll,hxis,hpxis)
-    endif
-  else
-    call lagrange_any(xi_source,NGLLX,xigll,hxis,hpxis)
-  endif
-  call lagrange_any(gamma_source,NGLLZ,zigll,hgammas,hpgammas)
-
+  ! interpolation
   dxis_dx = ZERO
   dxis_dz = ZERO
   dgammas_dx = ZERO
@@ -92,7 +77,6 @@
 
   do m = 1,NGLLZ
     do k = 1,NGLLX
-
         xixd    = xix(k,m,ispec_selected_source)
         xizd    = xiz(k,m,ispec_selected_source)
         gammaxd = gammax(k,m,ispec_selected_source)
@@ -104,23 +88,20 @@
         dxis_dz = dxis_dz + hlagrange * xizd
         dgammas_dx = dgammas_dx + hlagrange * gammaxd
         dgammas_dz = dgammas_dz + hlagrange * gammazd
-
     enddo
   enddo
 
-! calculate source array
-  sourcearray(:,:,:) = ZERO
+  ! calculate source array
+  sourcearray(:,:,:) = 0.0_CUSTOM_REAL
 
   do m = 1,NGLLZ
     do k = 1,NGLLX
-
         dsrc_dx = (hpxis(k)*dxis_dx)*hgammas(m) + hxis(k)*(hpgammas(m)*dgammas_dx)
         dsrc_dz = (hpxis(k)*dxis_dz)*hgammas(m) + hxis(k)*(hpgammas(m)*dgammas_dz)
 
         ! formula: see notes in doc/notes_from_Youshan_Liu_The_point_moment_tensor_source_with_merged_loops_in_2D.pdf
         sourcearray(1,k,m) = sourcearray(1,k,m) + real(Mxx*dsrc_dx + Mxz*dsrc_dz,kind=CUSTOM_REAL)
         sourcearray(2,k,m) = sourcearray(2,k,m) + real(Mxz*dsrc_dx + Mzz*dsrc_dz,kind=CUSTOM_REAL)
-
     enddo
   enddo
 
@@ -157,7 +138,98 @@
     enddo
   endif
 
-  end subroutine compute_arrays_source
+  end subroutine compute_arrays_source_cmt
+
+!
+!-----------------------------------------------------------------------------------------
+!
+
+  subroutine compute_arrays_source_forcesolution(ispec_selected_source,hxis,hgammas,sourcearray,anglesource)
+
+! determines source array for point force sources
+
+  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NDIM
+
+  use specfem_par, only: ispec_is_acoustic,ispec_is_elastic,ispec_is_poroelastic,ispec_is_electromagnetic, &
+    P_SV
+
+  implicit none
+
+  integer,intent(in) :: ispec_selected_source
+
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX),intent(in) :: hxis
+  double precision, dimension(NGLLZ),intent(in) :: hgammas
+
+  ! source array
+  real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ),intent(inout) :: sourcearray
+
+  double precision,intent(in) :: anglesource
+
+  ! local parameters
+  double precision :: hlagrange
+  integer :: i,j
+
+  ! calculate source array
+  sourcearray(:,:,:) = 0.0_CUSTOM_REAL
+
+  do j = 1,NGLLZ
+    do i = 1,NGLLX
+      hlagrange = hxis(i) * hgammas(j)
+
+      ! source element is acoustic
+      if (ispec_is_acoustic(ispec_selected_source)) then
+        sourcearray(:,i,j) = hlagrange
+      endif
+
+      ! source element is elastic
+      if (ispec_is_elastic(ispec_selected_source)) then
+        if (P_SV) then
+          ! P_SV case
+!               sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
+!               sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
+!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
+!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
+!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
+!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
+!! DK DK May 2018: and more generally compared to reality
+          sourcearray(1,i,j) = + sin(anglesource) * hlagrange
+          sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+        else
+          ! SH case (membrane)
+          sourcearray(:,i,j) = hlagrange
+        endif
+      endif
+
+      ! source element is poroelastic
+      if (ispec_is_poroelastic(ispec_selected_source)) then
+!             sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
+!             sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
+!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
+!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
+!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
+!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
+!! DK DK May 2018: and more generally compared to reality
+        sourcearray(1,i,j) = + sin(anglesource) * hlagrange
+        sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+      endif
+
+      ! source element is electromagnetic
+      if (ispec_is_electromagnetic(ispec_selected_source)) then
+        if (P_SV) then
+          ! P_SV case = TM case (surface GPR)
+          sourcearray(1,i,j) = + sin(anglesource) * hlagrange
+          sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+        else
+          ! SH case (membrane) = TE (crosshole GPR)
+          sourcearray(:,i,j) = hlagrange
+        endif
+      endif
+
+    enddo
+  enddo
+
+  end subroutine compute_arrays_source_forcesolution
 
 !
 !-----------------------------------------------------------------------------------------
@@ -362,6 +434,7 @@
 
   ! allocates temporary array
   allocate(adj_src_s(NSTEP,NDIM))
+  adj_src_s(:,:) = 0.0
 
   irec_local = 0
   do irec = 1, nrec
@@ -370,8 +443,8 @@
     if (myrank == islice_selected_rec(irec)) then
       irec_local = irec_local + 1
 
-      adj_src_s(:,:) = 0.d0
-      temp(:) = 0.d0
+      adj_src_s(:,:) = 0.0
+      temp(:) = 0.0_CUSTOM_REAL
 
       if (seismotype_adj == 4 .or. seismotype_adj == 6) then
         ! pressure/potential

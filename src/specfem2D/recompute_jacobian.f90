@@ -38,7 +38,7 @@
                                                    coorg,knods,ispec,NGNOD,nspec,npgeo, &
                                                    stop_if_negative_jacobian)
 
-  use constants, only: NDIM,ZERO
+  use constants, only: NDIM,ZERO,OUTPUT_FILES
 
   implicit none
 
@@ -54,7 +54,7 @@
   logical, intent(in) :: stop_if_negative_jacobian
 
   ! local parameters
-! 2D shape functions and their derivatives at receiver
+  ! 2D shape functions and their derivatives at receiver
   double precision :: shape2D(NGNOD)
   double precision :: dershape2D(NDIM,NGNOD)
 
@@ -62,15 +62,15 @@
 
   integer :: ia,nnum
 
-! only one problematic element is output to OpenDX for now in case of elements with a negative Jacobian
+  ! only one problematic element is output to OpenDX for now in case of elements with a negative Jacobian
   integer, parameter :: ntotspecAVS_DX = 1
 
 ! recompute jacobian for any (xi,gamma) point, not necessarily a GLL point
 
-! create the 2D shape functions and then the Jacobian
+  ! create the 2D shape functions and then the Jacobian
   call define_shape_functions(shape2D,dershape2D,xi,gamma,NGNOD)
 
-! compute coordinates and jacobian matrix
+  ! compute coordinates and jacobian matrix
   x = ZERO
   z = ZERO
 
@@ -98,12 +98,12 @@
 
   jacobian = xxi*zgamma - xgamma*zxi
 
-! the Jacobian is negative, so far this means that there is an error in the mesh
-! therefore print the coordinates of the mesh points of this element
-! and also create an OpenDX file to visualize it
+  ! the Jacobian is negative, so far this means that there is an error in the mesh
+  ! therefore print the coordinates of the mesh points of this element
+  ! and also create an OpenDX file to visualize it
   if (jacobian <= ZERO .and. stop_if_negative_jacobian) then
 
-! print the coordinates of the mesh points of this element
+    ! print the coordinates of the mesh points of this element
     print *, 'ispec = ', ispec
     print *, 'NGNOD = ', NGNOD
     do ia = 1,NGNOD
@@ -113,10 +113,10 @@
       print *,'node ', ia,' x,y = ',xelm,zelm
     enddo
 
-! create an OpenDX file to visualize this element
-    open(unit=11,file='DX_first_element_with_negative_jacobian.dx',status='unknown')
+    ! create an OpenDX file to visualize this element
+    open(unit=11,file=trim(OUTPUT_FILES)//'DX_first_element_with_negative_jacobian.dx',status='unknown')
 
-! output the points (the mesh is flat therefore the third coordinate is zero)
+    ! output the points (the mesh is flat therefore the third coordinate is zero)
     write(11,*) 'object 1 class array type float rank 1 shape 3 items ',NGNOD,' data follows'
     do ia = 1,NGNOD
       nnum = knods(ia,ispec)
@@ -125,20 +125,20 @@
       write(11,*) xelm,zelm,' 0'
     enddo
 
-! output the element (use its four corners only for now)
+    ! output the element (use its four corners only for now)
     write(11,*) 'object 2 class array type int rank 1 shape 4 items ',ntotspecAVS_DX,' data follows'
-! point order in OpenDX is 1,4,2,3 *not* 1,2,3,4 as in AVS
+    ! point order in OpenDX is 1,4,2,3 *not* 1,2,3,4 as in AVS
     write(11,*) '0 3 1 2'
 
-! output element data
+    ! output element data
     write(11,*) 'attribute "element type" string "quads"'
     write(11,*) 'attribute "ref" string "positions"'
     write(11,*) 'object 3 class array type float rank 0 items ',ntotspecAVS_DX,' data follows'
 
-! output dummy data value
+    ! output dummy data value
     write(11,*) '1'
 
-! define OpenDX field
+    ! define OpenDX field
     write(11,*) 'attribute "dep" string "connections"'
     write(11,*) 'object "irregular positions irregular connections" class field'
     write(11,*) 'component "positions" value 1'
@@ -146,13 +146,13 @@
     write(11,*) 'component "data" value 3'
     write(11,*) 'end'
 
-! close OpenDX file
+    ! close OpenDX file
     close(11)
 
     call stop_the_code('negative 2D Jacobian, element saved in DX_first_element_with_negative_jacobian.dx')
   endif
 
-! invert the relation
+  ! invert the relation
   xix = zgamma / jacobian
   gammax = - zxi / jacobian
   xiz = - xgamma / jacobian

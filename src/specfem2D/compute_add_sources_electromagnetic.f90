@@ -67,24 +67,24 @@
         ! adds source term
         ! note: we use sourcearrays for both collocated forces and moment tensors
         !       (see setup in setup_source_interpolation() routine)
-       if (P_SV) then
+        if (P_SV) then
           do j = 1,NGLLZ
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
-           ! 2D: x-component uses array(1,..) and z-component (2,..)
-           accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
-           accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) - sourcearrays(2,i,j,i_source) * stf_used
+              ! 2D: x-component uses array(1,..) and z-component (2,..)
+              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
+              accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) - sourcearrays(2,i,j,i_source) * stf_used
             enddo
           enddo
-       else
+        else
           do j = 1,NGLLZ
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
-           ! 2D: y-component uses array(1,..)
-           accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
+              ! 2D: y-component uses array(1,..)
+              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
             enddo
           enddo
-       endif
+        endif
 
       endif ! source element is electromagnetic
     endif ! if this processor core carries the source
@@ -119,9 +119,9 @@
   !local variables
   integer :: irec_local,i,j,iglob,ispec
   integer :: it_tmp
-  real(kind=CUSTOM_REAL) :: stfx,stfz
+  real(kind=CUSTOM_REAL) :: hlagrange
 
-  ! time step index
+  ! time step index for adjoint source (time-reversed)
   it_tmp = NSTEP - it + 1
 
   do irec_local = 1,nrecloc
@@ -136,11 +136,10 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
-            stfz = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,2)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + stfx
-            accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) + stfz
+            accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
+            accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) + source_adjoint(irec_local,it_tmp,2) * hlagrange
           enddo
         enddo
       else
@@ -148,9 +147,9 @@
           do i = 1,NGLLX
             iglob = ibool(i,j,ispec)
 
-            stfx = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j) * source_adjoint(irec_local,it_tmp,1)
+            hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
-            accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + stfx
+            accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
           enddo
         enddo
       endif

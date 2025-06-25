@@ -726,6 +726,7 @@
 #endif
 
   allocate(acoustic_surface_tmp(4,nelmnts_surface))
+  acoustic_surface_tmp(:,:) = 0
 
   do i = 1, nelmnts_surface
 #ifdef USE_BINARY_FOR_EXTERNAL_MESH_DATABASE
@@ -751,6 +752,7 @@
 
   allocate(acoustic_surface(4,nelem_acoustic_surface),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating acoustic_surface array')
+  acoustic_surface(:,:) = 0
 
   nelem_acoustic_surface = 0
   do i = 1, nelmnts_surface
@@ -818,6 +820,7 @@
 #endif
 
   allocate(abs_surface(5,nelemabs))
+  abs_surface(:,:) = 0
 
   do i = 1, nelemabs
 #ifdef USE_BINARY_FOR_EXTERNAL_MESH_DATABASE
@@ -840,6 +843,10 @@
     endif
 
     if (abs_surface(5,i) < 1 .or. abs_surface(5,i) > 4) then
+      print *,'Error: absorbing element type must be between 1 (IBOTTOM) and 4 (ILEFT)'
+      print *,'       file ',trim(filename)
+      print *,'       line        = ',i
+      print *,'       abs_surface = ',abs_surface(:,i)
       call stop_the_code('absorbing element type must be between 1 (IBOTTOM) and 4 (ILEFT)')
     endif
 
@@ -909,6 +916,7 @@
 #endif
 
   allocate(acforcing_surface(5,nelemacforcing))
+  acforcing_surface(:,:) = 0
 
   do i = 1, nelemacforcing
 #ifdef USE_BINARY_FOR_EXTERNAL_MESH_DATABASE
@@ -933,7 +941,11 @@
     endif
 
     if (acforcing_surface(5,i) < 1 .or. acforcing_surface(5,i) > 4) then
-      call stop_the_code('absorbing element type must be between 1 (IBOTTOM) and 4 (ILEFT)')
+      print *,'Error: acoustic forcing element type must be between 1 (IBOTTOM) and 4 (ILEFT)'
+      print *,'       file ',trim(filename)
+      print *,'       line              = ',i
+      print *,'       acforcing_surface = ',acforcing_surface(:,i)
+      call stop_the_code('acoustic forcing element type must be between 1 (IBOTTOM) and 4 (ILEFT)')
     endif
 
   enddo
@@ -1006,11 +1018,14 @@
 
   allocate(ispec_of_axial_elements(nelem_on_the_axis),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating array ispec_of_axial_elements')
+  ispec_of_axial_elements(:) = 0
 
   ! needed for rotation
   allocate(inode1_axial_elements(nelem_on_the_axis), &
            inode2_axial_elements(nelem_on_the_axis),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating array inode**_axial_elements')
+  inode1_axial_elements(:) = 0
+  inode2_axial_elements(:) = 0
 
   do i = 1, nelem_on_the_axis ! Dump is always 2 (old convention from absorbing surfaces)
 #ifdef USE_BINARY_FOR_EXTERNAL_MESH_DATABASE
@@ -1088,6 +1103,7 @@
 
   allocate(nodes_tangential_curve(2,nnodes_tangential_curve),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating tangential array')
+  nodes_tangential_curve(:,:) = 0.d0
 
   do i = 1, nnodes_tangential_curve
     read(IIN,*) nodes_tangential_curve(1,i), nodes_tangential_curve(2,i)

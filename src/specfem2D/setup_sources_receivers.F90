@@ -82,7 +82,7 @@
                          coord,ibool,nglob,nspec,nelem_acoustic_surface,acoustic_surface, &
                          ispec_is_elastic,ispec_is_poroelastic,ispec_is_electromagnetic, &
                          x_source,z_source,vx_source,vz_source,ispec_selected_source, &
-                         xi_source,gamma_source,sourcearrays, &
+                         xi_source,gamma_source, &
                          islice_selected_source,iglob_source, &
                          xigll,zigll,npgeo, NPROC,coorg,knods,NGNOD, &
                          SOURCE_IS_MOVING,NSTEP,DT,t0,tshift_src
@@ -99,13 +99,6 @@
   integer :: i,ier
   logical :: not_in_mesh_domain
 
-  ! user output
-  if (myrank == 0) then
-    write(IMAIN,*)
-    write(IMAIN,*) 'sources:'
-    call flush_IMAIN()
-  endif
-
   ! safety check
   ! note: in principle, the number of sources could be zero for noise simulations.
   !       however, we want to make sure to have one defined at least, even if not really needed.
@@ -113,6 +106,9 @@
 
   ! sets source parameters
   call set_source_parameters()
+
+  ! determines onset times
+  call set_source_parameters_onset_time()
 
   ! checks that no source target is outside the mesh
   ! determines mesh dimensions
@@ -151,7 +147,8 @@
           if (z_source(i) < zmin) call stop_the_code('Error: at least one source has z < zmin of the mesh')
           if (z_source(i) > zmax) call stop_the_code('Error: at least one source has z > zmax of the mesh')
         endif
-      else  ! SOURCE_IS_MOVING
+      else
+        ! SOURCE_IS_MOVING
         ! This is not perfect (it assumes the mesh is rectangular) but doing otherwise would be overkill
         max_time = (NSTEP-1)*DT - t0 - minval(tshift_src)
         final_source_x = x_source(i) + vx_source(i)*max_time
@@ -179,8 +176,7 @@
   ! source elements
   allocate(ispec_selected_source(NSOURCES), &
            iglob_source(NSOURCES), &
-           islice_selected_source(NSOURCES), &
-           sourcearrays(NDIM,NGLLX,NGLLZ,NSOURCES),stat=ier)
+           islice_selected_source(NSOURCES),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating ispec source arrays')
 
   ! source locations
@@ -193,8 +189,6 @@
   ispec_selected_source(:) = 0
   iglob_source(:) = 0
 
-  sourcearrays(:,:,:,:) = 0._CUSTOM_REAL
-
   ! locates sources
   do i_source = 1,NSOURCES
     ! user output
@@ -203,63 +197,64 @@
       call flush_IMAIN()
     endif
 
-    if (source_type(i_source) == 1) then
-      ! collocated force source
-      call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
-                         x_source(i_source),z_source(i_source), &
-                         ispec_selected_source(i_source),islice_selected_source(i_source), &
-                         NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-                         iglob_source(i_source),.true.) ! flag .true. indicates force source
+    ! double-checks source type for simulations w/out initialfield
+    if (.not. initialfield) then
+      if (source_type(i_source) /= 1 .and. source_type(i_source) /= 2) then
+        print *,'Error: source has invalid source type ',source_type(i_source)
+        print *,'       must be either 1 (force) or 2 (moment tensor)'
+        call exit_MPI(myrank,'incorrect source type')
+      endif
+    endif
 
-      ! check
+    ! gets source positioning
+    ! note: iglob_source is not really needed for moment-tensor sources, but left as argument since it's already allocated
+    !       and might help for future routines...
+    call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
+                       x_source(i_source),z_source(i_source), &
+                       ispec_selected_source(i_source),islice_selected_source(i_source), &
+                       NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
+                       iglob_source(i_source),source_type(i_source))
+
+    ! checks force source positions for acoustic domains
+    if (source_type(i_source) == 1) then
+      ! only slice which holds source
       if (myrank == islice_selected_source(i_source)) then
         ! checks that acoustic source is not exactly on the free surface because pressure is zero there
         do ispec_acoustic_surface = 1,nelem_acoustic_surface
           ispec = acoustic_surface(1,ispec_acoustic_surface)
-          ixmin = acoustic_surface(2,ispec_acoustic_surface)
-          ixmax = acoustic_surface(3,ispec_acoustic_surface)
-          izmin = acoustic_surface(4,ispec_acoustic_surface)
-          izmax = acoustic_surface(5,ispec_acoustic_surface)
-          if (.not. ispec_is_elastic(ispec) .and. .not. ispec_is_poroelastic(ispec) .and. &
-            .not. ispec_is_electromagnetic(ispec) .and. ispec == ispec_selected_source(i_source)) then
-            if ((izmin == 1 .and. izmax == 1 .and. ixmin == 1 .and. ixmax == NGLLX .and. &
-                gamma_source(i_source) < -0.99d0) .or. &
-                (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == NGLLX .and. &
-                gamma_source(i_source) > 0.99d0) .or. &
-                (izmin == 1 .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == 1 .and. &
-                xi_source(i_source) < -0.99d0) .or. &
-                (izmin == 1 .and. izmax == NGLLZ .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
-                xi_source(i_source) > 0.99d0) .or. &
-                (izmin == 1 .and. izmax == 1 .and. ixmin == 1 .and. ixmax == 1 .and. &
-                gamma_source(i_source) < -0.99d0 .and. xi_source(i_source) < -0.99d0) .or. &
-                (izmin == 1 .and. izmax == 1 .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
-                gamma_source(i_source) < -0.99d0 .and. xi_source(i_source) > 0.99d0) .or. &
-                (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == 1 .and. &
-                gamma_source(i_source) > 0.99d0 .and. xi_source(i_source) < -0.99d0) .or. &
-                (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
-                gamma_source(i_source) > 0.99d0 .and. xi_source(i_source) > 0.99d0)) then
-              call exit_MPI(myrank,'an acoustic source cannot be located exactly '// &
-                            'on the free surface because pressure is zero there')
+          ! checks if source element
+          if (ispec == ispec_selected_source(i_source)) then
+            if (.not. ispec_is_elastic(ispec) .and. &
+                .not. ispec_is_poroelastic(ispec) .and. &
+                .not. ispec_is_electromagnetic(ispec)) then
+              ! acoustic element
+              ixmin = acoustic_surface(2,ispec_acoustic_surface)
+              ixmax = acoustic_surface(3,ispec_acoustic_surface)
+              izmin = acoustic_surface(4,ispec_acoustic_surface)
+              izmax = acoustic_surface(5,ispec_acoustic_surface)
+              if ((izmin == 1 .and. izmax == 1 .and. ixmin == 1 .and. ixmax == NGLLX .and. &
+                  gamma_source(i_source) < -0.99d0) .or. &
+                  (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == NGLLX .and. &
+                  gamma_source(i_source) > 0.99d0) .or. &
+                  (izmin == 1 .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == 1 .and. &
+                  xi_source(i_source) < -0.99d0) .or. &
+                  (izmin == 1 .and. izmax == NGLLZ .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
+                  xi_source(i_source) > 0.99d0) .or. &
+                  (izmin == 1 .and. izmax == 1 .and. ixmin == 1 .and. ixmax == 1 .and. &
+                  gamma_source(i_source) < -0.99d0 .and. xi_source(i_source) < -0.99d0) .or. &
+                  (izmin == 1 .and. izmax == 1 .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
+                  gamma_source(i_source) < -0.99d0 .and. xi_source(i_source) > 0.99d0) .or. &
+                  (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == 1 .and. ixmax == 1 .and. &
+                  gamma_source(i_source) > 0.99d0 .and. xi_source(i_source) < -0.99d0) .or. &
+                  (izmin == NGLLZ .and. izmax == NGLLZ .and. ixmin == NGLLX .and. ixmax == NGLLX .and. &
+                  gamma_source(i_source) > 0.99d0 .and. xi_source(i_source) > 0.99d0)) then
+                call exit_MPI(myrank,'an acoustic source cannot be located exactly '// &
+                              'on the free surface because pressure is zero there')
+              endif
             endif
           endif
         enddo
-
       endif
-
-    else if (source_type(i_source) == 2) then
-      ! moment-tensor source
-      ! note: iglob_source is not really needed for moment-tensor sources, but left as argument since it's already allocated
-      !       and might help for future routines...
-      call locate_source(ibool,coord,nspec,nglob,xigll,zigll, &
-                         x_source(i_source),z_source(i_source), &
-                         ispec_selected_source(i_source),islice_selected_source(i_source), &
-                         NPROC,myrank,xi_source(i_source),gamma_source(i_source),coorg,knods,NGNOD,npgeo, &
-                         iglob_source(i_source),.false.) ! flag .false. indicates moment-tensor source
-
-    else if (.not. initialfield) then
-
-      call exit_MPI(myrank,'incorrect source type')
-
     endif
 
   enddo ! do i_source= 1,NSOURCES
@@ -343,7 +338,7 @@
   integer :: ier
   integer :: irec,irec_local
 
-  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add,dummystring
+  character(len=MAX_STRING_LEN) :: stations_filename,path_to_add
 
   ! user output
   call synchronize_all()
@@ -365,14 +360,7 @@
   endif
 
   ! get number of stations from receiver file
-  open(unit=IIN,file=trim(stations_filename),status='old',action='read',iostat=ier)
-  if (ier /= 0) call exit_MPI(myrank,'No file '//trim(stations_filename)//', exit')
-  nrec = 0
-  do while(ier == 0)
-    read(IIN,"(a)",iostat=ier) dummystring
-    if (ier == 0) nrec = nrec + 1
-  enddo
-  close(IIN)
+  call get_number_of_station_records(stations_filename,nrec)
 
   if (myrank == 0) then
     write(IMAIN,*)
@@ -930,30 +918,27 @@
 
   use specfem_par, only: myrank,nspec,NSOURCES,initialfield,source_type,anglesource,P_SV, &
     sourcearrays,Mxx,Mxz,Mzz, &
-    ispec_is_acoustic,ispec_is_elastic,ispec_is_poroelastic,ispec_is_electromagnetic, &
+    ispec_is_acoustic,ispec_is_elastic,ispec_is_electromagnetic, &
     ispec_selected_source,islice_selected_source, &
     xi_source,gamma_source, &
     xix,xiz,gammax,gammaz,xigll,zigll, &
-    hxis_store,hgammas_store,hxis,hpxis,hgammas,hpgammas, &
     AXISYM,is_on_the_axis,xiglj
 
   implicit none
 
   ! local parameters
-  integer :: i_source,ispec,i,j,ier
-  double precision :: hlagrange
+  integer :: i_source,ispec,ier
+  ! Lagrange interpolators at source position
+  double precision, dimension(NGLLX) :: hxis,hpxis
+  double precision, dimension(NGLLZ) :: hgammas,hpgammas
   ! single source array
   real(kind=CUSTOM_REAL), dimension(NDIM,NGLLX,NGLLZ) :: sourcearray
 
-  ! allocates Lagrange interpolators for sources
-  allocate(hxis_store(NSOURCES,NGLLX), &
-           hgammas_store(NSOURCES,NGLLZ),stat=ier)
+  ! allocates source arrays
+  allocate(sourcearrays(NDIM,NGLLX,NGLLZ,NSOURCES),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating source h**_store arrays')
 
   ! initializes
-  hxis_store(:,:) = ZERO
-  hgammas_store(:,:) = ZERO
-
   sourcearrays(:,:,:,:) = 0._CUSTOM_REAL
 
   ! check if anything left to do
@@ -990,90 +975,28 @@
       endif
       call lagrange_any(gamma_source(i_source),NGLLZ,zigll,hgammas,hpgammas)
 
-      ! stores Lagrangians for source
-      hxis_store(i_source,:) = hxis(:)
-      hgammas_store(i_source,:) = hgammas(:)
-
+      ! computes source arrays
       sourcearray(:,:,:) = 0._CUSTOM_REAL
 
-      ! computes source arrays
       select case (source_type(i_source))
       case (1)
         ! collocated force source
-        do j = 1,NGLLZ
-          do i = 1,NGLLX
-            hlagrange = hxis_store(i_source,i) * hgammas_store(i_source,j)
-
-            ! source element is acoustic
-            if (ispec_is_acoustic(ispec)) then
-              sourcearray(:,i,j) = hlagrange
-            endif
-
-            ! source element is elastic
-            if (ispec_is_elastic(ispec)) then
-              if (P_SV) then
-                ! P_SV case
-!               sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
-!               sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
-!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
-!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
-!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
-!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
-!! DK DK May 2018: and more generally compared to reality
-                sourcearray(1,i,j) = + sin(anglesource(i_source)) * hlagrange
-                sourcearray(2,i,j) = - cos(anglesource(i_source)) * hlagrange
-              else
-                ! SH case (membrane)
-                sourcearray(:,i,j) = hlagrange
-              endif
-            endif
-
-            ! source element is poroelastic
-            if (ispec_is_poroelastic(ispec)) then
-!             sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
-!             sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
-!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
-!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
-!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
-!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
-!! DK DK May 2018: and more generally compared to reality
-              sourcearray(1,i,j) = + sin(anglesource(i_source)) * hlagrange
-              sourcearray(2,i,j) = - cos(anglesource(i_source)) * hlagrange
-            endif
-
-            ! source element is electromagnetic
-            if (ispec_is_electromagnetic(ispec)) then
-              if (P_SV) then
-                ! P_SV case = TM case (surface GPR)
-                sourcearray(1,i,j) = + sin(anglesource(i_source)) * hlagrange
-                sourcearray(2,i,j) = - cos(anglesource(i_source)) * hlagrange
-              else
-                ! SH case (membrane) = TE (crosshole GPR)
-                sourcearray(:,i,j) = hlagrange
-              endif
-            endif
-
-          enddo
-        enddo
-
+        call compute_arrays_source_forcesolution(ispec,hxis,hgammas,sourcearray,anglesource(i_source))
       case (2)
         ! moment-tensor source
-        call compute_arrays_source(ispec,xi_source(i_source),gamma_source(i_source),sourcearray, &
-                                   Mxx(i_source),Mzz(i_source),Mxz(i_source),xix,xiz,gammax,gammaz,xigll,zigll,nspec)
+        call compute_arrays_source_cmt(ispec,hxis,hgammas,hpxis,hpgammas,sourcearray, &
+                                       Mxx(i_source),Mzz(i_source),Mxz(i_source),xix,xiz,gammax,gammaz,nspec)
         ! checks source
         if (ispec_is_acoustic(ispec)) then
           call exit_MPI(myrank,'cannot have moment tensor source in acoustic element')
         endif
-
         ! checks wave type
         if (ispec_is_elastic(ispec)) then
           if (.not. P_SV ) call exit_MPI(myrank,'cannot have moment tensor source in SH (membrane) waves calculation')
         endif
-
         if (ispec_is_electromagnetic(ispec)) then
           if (.not. P_SV ) call exit_MPI(myrank,'cannot have moment tensor source in SH (membrane) waves calculation')
         endif
-
       end select
 
       ! stores sourcearray for all sources
@@ -1098,13 +1021,16 @@
   use specfem_par, only: myrank,nrec,nrecloc, &
     ispec_selected_rec,islice_selected_rec, &
     xigll,zigll, &
-    xi_receiver,gamma_receiver,hxir,hpxir,hgammar,hpgammar, &
+    xi_receiver,gamma_receiver, &
     AXISYM,is_on_the_axis,xiglj,xir_store_loc,gammar_store_loc
 
   implicit none
 
   ! local parameters
   integer :: irec,irec_local,ier
+  ! Lagrange interpolants at the receiver
+  double precision, dimension(NGLLX) :: hxir,hpxir
+  double precision, dimension(NGLLZ) :: hgammar,hpgammar
 
   ! allocate Lagrange interpolants for receivers
   allocate(xir_store_loc(nrecloc,NGLLX), &
@@ -1113,7 +1039,10 @@
 
   ! define and store Lagrange interpolants at all the receivers
   irec_local = 0
+
   do irec = 1,nrec
+
+    ! Lagrange interpolators
     if (AXISYM) then
       if (is_on_the_axis(ispec_selected_rec(irec)) .and. myrank == islice_selected_rec(irec)) then
         call lagrange_any(xi_receiver(irec),NGLJ,xiglj,hxir,hpxir)

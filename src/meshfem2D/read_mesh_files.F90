@@ -339,7 +339,151 @@
 
   end subroutine read_mesh_nodes_coords_from_interfaces
 
+!
+!---------------------------------------------------------------------------------------
+!
 
+  subroutine read_mesh_check_Jacobians()
+
+  use constants, only: IMAIN,myrank,GAUSSALPHA,GAUSSBETA,NGLLX,NGLLZ,NGLJ,NDIM
+  use part_unstruct_par, only: nodes_coords,nnodes,elmnts,nelmnts,ispec_of_axial_elements,nelem_on_the_axis
+  use shared_parameters, only: NGNOD,AXISYM
+  implicit none
+  integer :: i,j,ielm
+  logical :: found_a_negative_jacobian,elem_has_negative_jacobian
+
+  double precision :: jacobianl
+  double precision :: xi,gamma
+
+  ! GLL points
+  double precision, dimension(NGLLX) :: xigll,wxgll_dble
+  double precision, dimension(NGLLZ) :: zigll,wzgll_dble
+  ! GLJ point
+  double precision, dimension(NGLJ) :: xiglj,wxglj
+  double precision, parameter :: alphaGLJ = 0.d0,betaGLJ = 1.d0
+
+  ! 2D shape functions and their derivatives at receiver
+  double precision :: shape2D(NGNOD)
+  double precision :: dershape2D(NDIM,NGNOD)
+
+  double precision :: xxi,zxi,xgamma,zgamma,xelm,zelm
+  integer :: ia,nnum
+  integer :: num_invalid
+
+  ! user output
+  if (myrank == 0) then
+    print *,'checking mesh elements for invalid Jacobians...'
+    print *,'  number of elements: ',nelmnts
+    print *,'  NGNOD             : ',NGNOD
+    print *,'  AXISYM            : ',AXISYM
+  endif
+
+  ! set up coordinates of the Gauss-Lobatto-Legendre points
+  call zwgljd(xigll,wxgll_dble,NGLLX,GAUSSALPHA,GAUSSBETA)
+  call zwgljd(zigll,wzgll_dble,NGLLZ,GAUSSALPHA,GAUSSBETA)
+
+  ! set up coordinates of the Gauss-Lobatto-Jacobi points
+  if (AXISYM) then
+    call zwgljd(xiglj,wxglj,NGLJ,alphaGLJ,betaGLJ)
+  endif
+
+  ! sets the coordinates of the points of the global grid
+  found_a_negative_jacobian = .false.
+  num_invalid = 0
+
+  do ielm = 1,nelmnts
+    elem_has_negative_jacobian = .false.
+
+    ! loops over GLL points
+    do j = 1,NGLLZ
+      do i = 1,NGLLX
+        if (AXISYM .and. nelem_on_the_axis > 0) then
+          ! check if element in list of axial elements
+          if (any(ispec_of_axial_elements(:) == ielm)) then
+            xi = xiglj(i)
+          else
+            xi = xigll(i)
+          endif
+        else
+          xi = xigll(i)
+        endif
+        gamma = zigll(j)
+
+        ! create the 2D shape functions
+        call define_shape_functions(shape2D,dershape2D,xi,gamma,NGNOD)
+
+        ! compute jacobian
+        xxi = 0.d0
+        zxi = 0.d0
+        xgamma = 0.d0
+        zgamma = 0.d0
+        do ia = 1,NGNOD
+          !nnum = knods(ia,ispec)
+          !xelm = coorg(1,nnum)
+          !zelm = coorg(2,nnum)
+
+          ! gets node location
+          nnum = elmnts((ielm-1)*NGNOD + (ia-1)) + 1
+
+          ! checks index
+          if (nnum < 1 .or. nnum > nnodes) then
+            print *,'Error: invalid node index ',nnum,'for element ',ielm,'point ',ia
+            print *,'       nnodes = ',nnodes
+            print *,'       elmnts = ',elmnts((ielm-1)*NGNOD:(ielm-1)*NGNOD+(NGNOD-1))
+            call stop_the_code('Invalid node index')
+          endif
+
+          xelm = nodes_coords(1,nnum)
+          zelm = nodes_coords(2,nnum)
+
+          xxi = xxi + dershape2D(1,ia)*xelm
+          zxi = zxi + dershape2D(1,ia)*zelm
+          xgamma = xgamma + dershape2D(2,ia)*xelm
+          zgamma = zgamma + dershape2D(2,ia)*zelm
+        enddo
+
+        ! Jacobian
+        jacobianl = xxi * zgamma - xgamma * zxi
+
+        ! checks jacobian
+        if (jacobianl <= 0.d0) elem_has_negative_jacobian = .true.
+      enddo
+    enddo
+
+    ! checks element flag
+    if (elem_has_negative_jacobian) then
+      ! sets flag
+      found_a_negative_jacobian = .true.
+      num_invalid = num_invalid + 1
+      ! output info
+      print *,'Negative Jacobian: element ',ielm,' has Jacobian ',jacobianl
+      print *,'                   coordinates: '
+      do ia = 1,NGNOD
+        nnum = elmnts((ielm-1)*NGNOD + (ia-1)) + 1
+        xelm = nodes_coords(1,nnum)
+        zelm = nodes_coords(2,nnum)
+        print *,'                     node ', ia,'index',nnum,' x,y = ',xelm,zelm
+      enddo
+      print *
+    endif
+  enddo
+
+  ! user output
+  if (myrank == 0) then
+    if (found_a_negative_jacobian) then
+      print *,'  found ',num_invalid,'element(s) with negative Jacobian(s)'
+    else
+      print *,'  all elements have valid Jacobians'
+    endif
+    print *
+  endif
+
+  ! safety stop for invalid mesh? solver will also check and output DX file for info...
+  !if (found_a_negative_jacobian) then
+  !  call stop_the_code('Invalid mesh: contains elements with negative Jacobian(s). Please check mesh setup...')
+  !endif
+
+  end subroutine read_mesh_check_Jacobians
 
 
 
