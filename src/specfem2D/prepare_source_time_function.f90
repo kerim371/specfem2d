@@ -326,7 +326,8 @@
 
           case (14)
             ! Regularized Yoffe
-            ! Frequency parameter -> tauR == 1/f0 (Yoffe rise time), burst band width -> tauS == 1/bbw (Triangular rise time)
+            ! Frequency parameter        -> T_acc == 1/f0  (acceleration duration)
+            ! burst band width parameter -> T_eff == 1/bbw (effective duration)
             stf = comp_source_time_function_Yoffe(t_used,f0,burst_band_width(isource))
 
           case default

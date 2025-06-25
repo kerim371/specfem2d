@@ -777,7 +777,8 @@
   double precision, intent(in) :: t,f0,burst_band_width
 
   ! local variables
-  double precision :: tauR,tauS,K_val,stf_val
+  double precision :: T_acc,T_eff,tauR,tauS
+  double precision :: K_val,stf_val
 
   ! regularized Yoffe function defined in Appendix (A13) - (A20) of
   ! Tinti et al. (2005),
@@ -795,11 +796,15 @@
 
   ! to avoid adding new parameter lines to the DATA/SOURCE files,
   ! here, we re-interprete the source parameters for
-  !   frequency        -> tauR == 1/f0   as Yoffe rise-time
+  !   frequency        -> T_acc == 1/f0   as slip acceleration duration
   ! and
-  !   burst_band_width -> tauS == 1/bbw  as Triangular function rise-time
-  tauR = 1.d0 / f0
-  tauS = 1.d0 / burst_band_width
+  !   burst_band_width -> T_eff == 1/bbw  as effective final duration
+  T_acc = 1.d0 / f0
+  T_eff = 1.d0 / burst_band_width
+
+  ! computes related rise times
+  tauS = T_acc / 1.27d0              ! uses factor 1.27 from paper
+  tauR = T_eff - 2.d0 * tauS         ! Yoffe rise time
 
   ! imposes tauS >= 0.0
   if (tauS < 0.d0) tauS = 0.d0
@@ -889,12 +894,16 @@ contains
 
   double precision function C4()
     implicit none
-    ! using correction as in SeisSol implementation:
+    ! applies correction from:
+    !   Bizzarri (2012),
+    !   Analytical representation of the fault slip velocity from spontaneous dynamic earthquake models,
+    !   JGR, 117, doi:10.1029/2011JB009097
+    ! see C4 in eq (3).
     ! 2 typos fixed in the second term compared with Tinti et al. 2005, using
     !   .. - tauR * (tauR - t + 2.d0 * tauS) ..
     ! instead of original formula in (A18)
     !   .. - tauR * (tauR + t - 2.d0 * tauS) ..
-    ! see SeisSol implementation:
+    ! this is the same correction as in SeisSol implementation:
     !   https://github.com/SeisSol/SeisSol/blob/master/src/Numerical/RegularizedYoffe.h
     C4 = (-tauS + 0.5d0 * t + 0.25d0 * tauR) * sqrt((t - 2.d0 * tauS) * (tauR - t + 2.d0 * tauS)) &
          - tauR * (tauR - t + 2.d0 * tauS) * asin(sqrt((t - 2.d0 * tauS) / tauR)) &
