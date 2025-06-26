@@ -102,12 +102,17 @@
     if (myrank == islice_selected_source(isource)) then
       !  If the source is not an elastic force or an acoustic pressure
       if (source_type(isource) /= 1) then
-        call exit_MPI(myrank,'Axisymmetry : just elastic force or acoustic pressure sources has been tested so far)')
+        print *,'Error: Source ',isource,' has invalid source type ',source_type(isource),' for AXISYM case!'
+        print *,'       Force/Pressure sources only (type == 1) for AXISYM simulations are implemented for now.'
+        print *,'       Please modify the source type in DATA/SOURCE accordingly...'
+        print *
+        call exit_MPI(myrank,'Axisymmetry : just elastic force or acoustic pressure sources has been tested so far')
       endif
       !   If the source is on an axial element
       if (is_on_the_axis(ispec_selected_source(isource))) then
         !  ... or if the source is (at r=0) on an elastic axial element.
         if (ispec_is_elastic(ispec_selected_source(isource))) then
+          ! note: anglesource has been converted to radians after reading in from SOURCE file
           if (((anglesource(isource) > TINYVAL) .and. (anglesource(isource) < PI) ) &    ! ... and has a radial component.
             .or. ( (anglesource(isource) > PI) .and. (anglesource(isource) < TWO*PI))) then
             print *, '***** WARNING *****'

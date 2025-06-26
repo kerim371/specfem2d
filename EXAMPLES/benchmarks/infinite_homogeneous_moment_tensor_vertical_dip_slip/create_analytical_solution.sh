@@ -28,7 +28,7 @@ echo "component: $comp"
 sed -i "s:^displacement_direction_index = .*:displacement_direction_index = $comp:" compute_line_source_solution_from_point_source_solution_for_moment_tensor_in_3D.f90
 
 echo "  compiling ..."
-$f90 $flags -o xcompute_solution  compute_line_source_solution_from_point_source_solution_for_moment_tensor_in_3D.f90 
+$f90 $flags -o xcompute_solution  compute_line_source_solution_from_point_source_solution_for_moment_tensor_in_3D.f90
 
 # checks exit code
 if [[ $? -ne 0 ]]; then exit 1; fi
@@ -45,7 +45,7 @@ mv -v source_time_function.dat REF_ANALYTICAL/
 if [ "$comp" == "1" ]; then
   mv -v x_displacement.dat REF_ANALYTICAL/x_displacement.dat
 elif [ "$comp" == "2" ]; then
-  mv -v x_displacement.dat REF_ANALYTICAL/y_displacement.dat 
+  mv -v x_displacement.dat REF_ANALYTICAL/y_displacement.dat
 elif [ "$comp" == "3" ]; then
   mv -v x_displacement.dat REF_ANALYTICAL/z_displacement.dat
 fi

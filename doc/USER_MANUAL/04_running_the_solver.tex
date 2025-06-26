@@ -188,7 +188,8 @@ The time shift parameter would simply apply
 an overall time shift to the synthetics (according to the time shift of the first source), something that can be done
 in the post-processing. This time shift parameter can be non-zero when using multiple sources.
 
-\item[{\texttt{anglesource}}] angle of the source (for a force only); for a plane wave, this is the incidence angle. For moment tensor sources this parameter is unused.
+\item[{\texttt{anglesource}}] angle of the source (for a force only) given in degrees, measured clockwise from the vertical;
+for a plane wave, this is the incidence angle. For moment tensor sources this parameter is unused.
 
 \item[{\texttt{Mxx}},{\texttt{Mzz}},{\texttt{Mxz}}] Moment tensor components (valid only for moment tensor sources, \texttt{source\_type = 2}).
 Note that the units for the components of a moment tensor source are different in SPECFEM2D and in SPECFEM3D:

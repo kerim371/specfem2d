@@ -97,10 +97,11 @@
           ! force
           if (SOURCE_IS_MOVING) then
             write(IMAIN,213) x_source(i_source),z_source(i_source),vx_source(i_source),vz_source(i_source), &
-                             f0_source(i_source), tshift_src(i_source), factor(i_source),anglesource(i_source)
+                             f0_source(i_source), tshift_src(i_source), &
+                             factor(i_source),anglesource(i_source) * 180.d0 / PI
           else
             write(IMAIN,212) x_source(i_source),z_source(i_source),f0_source(i_source),tshift_src(i_source), &
-                             factor(i_source),anglesource(i_source)
+                             factor(i_source),anglesource(i_source) * 180.d0 / PI
           endif
         else if (source_type(i_source) == 2) then
           ! moment tensor
@@ -115,6 +116,7 @@
         else
           call exit_MPI(myrank,'Unknown source type number !')
         endif
+        write(IMAIN,*)
 
         ! source time function info
         write(IMAIN,*) '    Source time function'
@@ -207,7 +209,7 @@
                   'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
                   'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
                   'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
+                  'Angle from vertical direction (deg). . =',1pe20.10)
 
 213 format(5x,'Source Type. . . . . . . . . . . . . . = Collocated Force',/5x, &
                   'Initial X-position (meters). . . . . . =',1pe20.10,/5x, &
@@ -217,7 +219,7 @@
                   'Fundamental frequency (Hz) . . . . . . =',1pe20.10,/5x, &
                   'Time delay (s) . . . . . . . . . . . . =',1pe20.10,/5x, &
                   'Multiplying factor . . . . . . . . . . =',1pe20.10,/5x, &
-                  'Angle from vertical direction (deg). . =',1pe20.10,/5x)
+                  'Angle from vertical direction (deg). . =',1pe20.10)
 
 222 format(5x,'Source Type. . . . . . . . . . . . . . = Moment-tensor',/5x, &
                   'X-position (meters). . . . . . . . . . =',1pe20.10,/5x, &
@@ -240,7 +242,6 @@
                   'Mxx. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
                   'Mzz. . . . . . . . . . . . . . . . . . =',1pe20.10,/5x, &
                   'Mxz. . . . . . . . . . . . . . . . . . =',1pe20.10)
-
 
   end subroutine set_source_parameters
 

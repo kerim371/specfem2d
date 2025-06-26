@@ -359,11 +359,11 @@
   !         ..
   ! loop over all the sources
   do isource = 1,NSOURCES
-    ! The following lines could be needed to set absolute amplitudes.
-    !
-    ! use specfem_par, only: rho_vpstore,rhostore,ispec_selected_source
-    ! double precision :: rho, cp
-    ! logical :: already_done = .false. need to be introduced
+    ! AXISYM - The following lines could be needed to set absolute amplitudes
+    !   use specfem_par, only: rho_vpstore,rhostore,ispec_selected_source
+    !   double precision :: rho, cp
+    !   logical :: already_done = .false. need to be introduced
+    !   ..
     !    if (myrank == islice_selected_source(isource)) then
     !      if (AXISYM) then
     !        if (.not. already_done) then

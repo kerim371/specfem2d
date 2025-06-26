@@ -271,7 +271,7 @@
       case (1)
         ! force
         write(IMAIN,*) '  Force source:'
-        write(IMAIN,*) '  Angle of the source (deg) = ',anglesource(i_source)
+        write(IMAIN,*) '  Angle of the source (deg) = ',anglesource(i_source) * 180.d0 / PI
       case (2)
         ! moment tensor
         write(IMAIN,*) '  Moment tensor source:'
@@ -284,11 +284,11 @@
       case (4)
         ! plane P wave without converted/refracted phases
         write(IMAIN,*) '  Plane P-wave source without converted/refracted phases:'
-        write(IMAIN,*) '  Angle of the incident wave (deg) = ',anglesource(i_source)
+        write(IMAIN,*) '  Angle of the incident wave (deg) = ',anglesource(i_source) * 180.d0 / PI
       case (5)
         ! plane S wave without converted/refracted phases
         write(IMAIN,*) '  Plane S-wave source without converted/refracted phases:'
-        write(IMAIN,*) '  Angle of the incident wave (deg) = ',anglesource(i_source)
+        write(IMAIN,*) '  Angle of the incident wave (deg) = ',anglesource(i_source) * 180.d0 / PI
       case (6)
         ! initial mode displacement
         write(IMAIN,*) '  Initial mode displacement for initialfield'
