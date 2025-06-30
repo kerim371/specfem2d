@@ -387,7 +387,7 @@
 
   use specfem_par, only: NSTEP,NSOURCES,source_time_function,time_function_type,factor, &
     tshift_src,t0,DT,time_stepping_scheme, &
-    myrank,islice_selected_source
+    myrank,islice_selected_source,NOISE_TOMOGRAPHY
 
   implicit none
 
@@ -397,6 +397,9 @@
   integer :: it,ier
   integer :: isource,i_stage
   character(len=MAX_STRING_LEN) :: plot_file
+
+  ! only plot for non-noise simulations
+  if (NOISE_TOMOGRAPHY > 0) return
 
   ! user output
   if (myrank == 0) then
@@ -472,6 +475,9 @@
         ! and the scaled value that uses the amplification factor as given in the SOURCE file.
         ! note that the array source_time_function(..) has been scaled when calling this print routine.
         ! thus, to print out the original value, we divide by the amplification factor.
+
+        ! to avoid division by zero
+        if (factor(isource) == 0.d0) cycle
 
         ! format: #time #used_STF #initial_source_function_value
         write(55,*) t_used, stf_used, stf_used / factor(isource)
