@@ -14,7 +14,7 @@ echo
 cd $currentdir
 
 rm -f change_simulation_type.pl
-ln -s ../../../utils/change_simulation_type.pl
+ln -s ../../../utils/scripts/change_simulation_type.pl
 
 ##
 ## 1. forward simulation
@@ -108,7 +108,10 @@ cp DATA/*SOURCE* DATA/*STATIONS* OUTPUT_FILES
 
 # GMT plotting
 #rm -f plot_wavefield.pl
-#ln -s ../../utils/Visualization/plot_wavefield.pl
+#ln -s ../../../utils/Visualization/plot_wavefield.pl
+#cat OUTPUT_FILES/proc000*_rhop_alpha_beta_kernel.dat > tmp.dat
+#mv -v OUTPUT_FILES/proc000000_rhop_alpha_beta_kernel.dat OUTPUT_FILES/proc000000_rhop_alpha_beta_kernel.dat.org
+#mv -v tmp.dat OUTPUT_FILES/proc000000_rhop_alpha_beta_kernel.dat
 #./plot_wavefield.pl 400/3000/400 400/2800/800 0/480/0/480 120/20/120/20 -8/-8/-8 1/1/1 -48.0/0.06 0/1/0/0/0 2.0/1/0 1/0/1/120 Tape2007_kernel onerec_homo
 
 # matplotlib plotting

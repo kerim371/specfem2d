@@ -37,8 +37,8 @@
 
   implicit none
 
-  double precision :: angle
-  double precision :: n1_x, n2_x, n3_x, n4_x, n1_z, n2_z, n3_z, n4_z
+  double precision,intent(inout) :: angle
+  double precision,intent(in) :: n1_x, n2_x, n3_x, n4_x, n1_z, n2_z, n3_z, n4_z
 
   double precision  :: theta1, theta2, theta3
   double precision  :: costheta1, costheta2, costheta3

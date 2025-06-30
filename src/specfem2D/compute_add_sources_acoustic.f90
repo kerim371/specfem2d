@@ -62,8 +62,11 @@
         ! source time function
         stf_used = source_time_function(i_source,it,i_stage)
 
+        ! note: for acoustic medium, the source is a pressure source and gets divided by Kappa of the fluid.
+        !       the sign is negative because pressure p = - Chi_dot_dot therefore we need
+        !       to add minus the source to Chi_dot_dot to get plus the source in pressure
+
         ! collocated force
-        ! beware, for an acoustic medium, the source is pressure divided by Kappa of the fluid
         if (source_type(i_source) == 1) then
           ! forward wavefield
           do j = 1,NGLLZ
@@ -71,7 +74,7 @@
               iglob = ibool(i,j,ispec)
 
               potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
-                                                + sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
+                                                - sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
             enddo
           enddo
 
@@ -235,10 +238,11 @@
         ! source time function
         stf_used = source_time_function(i_source,it,i_stage)
 
+        ! note: for acoustic medium, the source is a pressure source and gets divided by Kappa of the fluid.
+        !       the sign is negative because pressure p = - Chi_dot_dot therefore we need
+        !       to add minus the source to Chi_dot_dot to get plus the source in pressure
+
         ! collocated force
-        ! beware, for acoustic medium, source is: pressure divided by Kappa of the fluid
-        ! the sign is negative because pressure p = - Chi_dot_dot therefore we need
-        ! to add minus the source to Chi_dot_dot to get plus the source in pressure
         if (source_type(i_source) == 1) then
           ! forward wavefield
           do j = 1,NGLLZ
@@ -246,7 +250,7 @@
               iglob = ibool(i,j,ispec)
 
               potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) &
-                                                + sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
+                                                - sourcearrays(1,i,j,i_source) * stf_used / kappastore(i,j,ispec)
             enddo
           enddo
         endif

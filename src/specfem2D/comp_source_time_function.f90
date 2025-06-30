@@ -120,6 +120,10 @@
   double precision :: a
 
   ! Gaussian wavelet i.e. second integral of a Ricker wavelet
+  ! note: The Gaussian here is defined as the second integral of the Ricker wavelet defined below by
+  !       routine comp_source_time_function_d2Gaussian(t,f0).
+  !       Integrating that Ricker function twice will lead to a minus sign in front of the exponential term here.
+  !       Thus, the Gaussian will be inverted, going from zero to
   a = PI**2 * f0**2
   comp_source_time_function_Gaussian = - exp(-a * t**2) / (2.d0 * a)
 
@@ -138,7 +142,7 @@
   double precision, intent(in) :: t,f0
   double precision :: a
 
-  ! first integral of a Ricker wavelet
+  ! first integral of a Ricker wavelet (or equivalent first derivative of a Gaussian)
   a = PI**2 * f0**2
   comp_source_time_function_dGaussian = t * exp(-a * t**2)
 

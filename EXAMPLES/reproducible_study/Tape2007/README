@@ -49,3 +49,16 @@ You can also try the second example for a single receiver setup, with a homogene
   ./run_this_example_onerec.sh
 
 ---------------------------
+
+Note about the source time function:
+
+  In Tape2007, the source time function is given in eq. (31) with factors ts = t0 = 48.0 s, alpha = 2 tau0/tau with tau0 = 2.628 s and tau = 20.0 s.
+  That source time function relates to SPECFEM2D's time function type 2 (first derivative of a Gaussian) with a frequency
+    f0 = alpha / PI = (2 * tau0/tau) / PI
+       = (2 * 2.628/20.0) / PI
+       ~ 0.0836
+  and a scaling factor
+    factor = (- 2 alpha**3 / sqrt(PI))
+           ~ -0.02048
+  For this example, the setup is simplified and we set f0 = 0.084 and the amplification factor = -1.0 * 10**10 in the SOURCE file.
+

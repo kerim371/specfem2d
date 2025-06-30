@@ -15,7 +15,7 @@ TO RUN:
    > make all
 
 3. run mesher and solver for forward wavefield:
-   > cd EXAMPLES/Tape2007_kernel/
+   > cd EXAMPLES/reproducible_study/Tape2007_kernel/
    > ./run_this_example.sh
 
 4. compute adjoint source:

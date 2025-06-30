@@ -1408,7 +1408,7 @@
       write(IMAIN,*) '    with number of anisotropic elements         = ',nspec_anisotropic_all
     endif
     write(IMAIN,*) '  total number of poroelastic elements     = ',nspec_poroelastic_all
-    write(IMAIN,*) '  total number of electromagnetic elements     = ',nspec_electromagnetic_all
+    write(IMAIN,*) '  total number of electromagnetic elements = ',nspec_electromagnetic_all
   endif
 
   nspec_in_domains = nspec_acoustic_all + nspec_elastic_all + nspec_poroelastic_all + nspec_electromagnetic_all

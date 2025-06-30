@@ -198,28 +198,43 @@
   real(kind=CUSTOM_REAL), dimension(nglob),intent(inout) :: mask_noise
 
   ! local parameters
-  integer ier,use_external_noise_distribution
+  integer :: ier,use_external_noise_distribution
   character(len=MAX_STRING_LEN) :: fname
+  logical :: file_exists
+
+  ! initializes flag
+  use_external_noise_distribution = 0
 
   ! check if external noise distribution should be used
   fname = trim(OUTPUT_FILES)//'/..//NOISE_TOMOGRAPHY/use_external_noise_distribution'
+
+  inquire(file=trim(fname),exist=file_exists)
+  if (.not. file_exists) then
+    if (myrank == 0) then
+      write(IMAIN,*) '  file '//trim(fname)//' not found'
+      write(IMAIN,*) '  using noise distribution pre-defined in noise_tomography.f90'
+    endif
+    ! all done
+    return
+  endif
+
+  ! opens optional file for reading flag
   open(unit=IIN,file=trim(fname),status='old',action='read',iostat=ier)
   if (ier /= 0) then
-    if (myrank == 0) then
-      write(IMAIN,*) '  file '//trim(fname)//' not found, using noise distribution defined in noise_tomography.f90'
-    endif
+    if (myrank == 0) write(IMAIN,*) '  could not open file '//trim(fname)
     ! finish subroutine
     return
   else
     read(IIN,*) use_external_noise_distribution
     close(IIN)
-    if (use_external_noise_distribution == 0) then
-      if (myrank == 0) then
-        write(IMAIN,*) '  using noise distribution defined in noise_tomography.f90'
-      endif
-      ! finish subroutine
-      return
+  endif
+
+  if (use_external_noise_distribution == 0) then
+    if (myrank == 0) then
+      write(IMAIN,*) '  using noise distribution pre-defined in noise_tomography.f90'
     endif
+    ! finish subroutine
+    return
   endif
 
   ! read noise distribution
@@ -393,7 +408,8 @@
   real(kind=CUSTOM_REAL), dimension(NSTEP) :: noise_src
 
   ! parameters for Gaussian/Ricker type source time functions
-  real(kind=CUSTOM_REAL),parameter :: a_val = 0.6_CUSTOM_REAL, factor_noise = 1.e3_CUSTOM_REAL
+  real(kind=CUSTOM_REAL),parameter :: A_CONST        = 0.6_CUSTOM_REAL   ! Gaussian decay rate factor
+  real(kind=CUSTOM_REAL),parameter :: FACTOR_NOISE = 1.e3_CUSTOM_REAL  ! source amplification
 
   ! initializes
   noise_src(:) = 0._CUSTOM_REAL
@@ -471,16 +487,24 @@
       call flush_IMAIN()
     endif
 
+  ! note: the source time functions here below use slightly different formulations than the ones used in
+  !       file `comp_source_time_function.f90` for CMT/point forces.
+  !       Also, the Gaussian (decay) factor A and amplification factor are fixed here.
+  !       We'll use the same sign convention though as for the CMT/point source time functions.
+  !       That is, the Ricker is defined positive, the Gaussian function has a minus sign.
   case (1)
     ! Ricker (second derivative of a Gaussian) time function
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  Ricker (second derivative) noise source'
     endif
+    ! second-derivate of the Gaussian defined below
     do it = 1,NSTEP
-      t = it * DT
-      noise_src(it) = - factor_noise * 2.0 * a_val * (1.0 - 2.0 * a_val * (t-t0)**2) * exp(-a_val * (t-t0)**2)
+      t = it * DT - t0
+      noise_src(it) = 2.0 * A_CONST * (1.0 - 2.0 * A_CONST * t**2) * exp(-A_CONST * t**2)
     enddo
+    ! adds amplification factor
+    noise_src(:) = FACTOR_NOISE * noise_src(:)
 
   case (2)
     ! first derivative of a Gaussian time function
@@ -488,10 +512,13 @@
     if (myrank == 0) then
       write(IMAIN,*) '  Ricker (first derivative) noise source'
     endif
+    ! first-derivative of the Gaussian defined below
     do it = 1,NSTEP
-      t = it * DT
-      noise_src(it) = - factor_noise * (2.0 * a_val * (t-t0)) * exp(-a_val * (t-t0)**2)
+      t = it * DT - t0
+      noise_src(it) = 2.0 * A_CONST * t * exp(-A_CONST * t**2)
     enddo
+    ! adds amplification factor
+    noise_src(:) = FACTOR_NOISE * noise_src(:)
 
   case (3)
     ! Gaussian time function
@@ -500,9 +527,11 @@
       write(IMAIN,*) '  Gaussian noise source'
     endif
     do it = 1,NSTEP
-      t = it * DT
-      noise_src(it) = factor_noise * exp(-a_val * (t-t0)**2)
+      t = it * DT - t0
+      noise_src(it) = - exp(-A_CONST * t**2)
     enddo
+    ! adds amplification factor
+    noise_src(:) = FACTOR_NOISE * noise_src(:)
 
   case (4)
     ! reproduce time function from Figure 2a of Tromp et al. 2010
@@ -510,11 +539,13 @@
     if (myrank == 0) then
       write(IMAIN,*) '  Figure 2a noise source'
     endif
+    ! second-derivative of the Ricker, compares to comp_source_time_function_d4Gaussian(t,f0)
     do it = 1,NSTEP
-      t = it * DT
-      noise_src(it) = factor_noise * 4.0 * a_val**2 * (3.0 - 12.0 * a_val * (t-t0)**2 + 4.0 * a_val**2 * (t-t0)**4) * &
-                      exp(-a_val * (t-t0)**2)
+      t = it * DT - t0
+      noise_src(it) = - 4.0 * A_CONST**2 * (3.0 - 12.0 * A_CONST * t**2 + 4.0 * A_CONST**2 * t**4) * exp(-A_CONST * t**2)
     enddo
+    ! adds amplification factor
+    noise_src(:) = FACTOR_NOISE * noise_src(:)
 
   case default
     call exit_MPI(myrank,'Invalid noise_source_time_function_type. Please check setting in Par_file...')
@@ -525,8 +556,8 @@
     open(IOUT,file=trim(OUTPUT_FILES)//'plot_source_time_function_noise.txt',status='unknown',iostat=ier)
     if (ier /= 0) call stop_the_code('Error opening noise source time function text-file')
     do it = 1,NSTEP
-      t = it * DT
-      write(IOUT,*) (t-t0),noise_src(it)
+      t = it * DT - t0
+      write(IOUT,*) t,noise_src(it)
     enddo
     close(IOUT)
   endif
@@ -590,13 +621,15 @@
     return
   endif
 
+  ! adds elastic source term
   if (P_SV) then
     ! P-SV calculation
     do j = 1,NGLLZ
       do i = 1,NGLLX
         iglob = ibool(i,j,ispec_noise)
+        ! angle measured clockwise from vertical direction
         accel_elastic(1,iglob) = accel_elastic(1,iglob) + sin(angle_noise)*noise_sourcearray(1,i,j,it)
-        accel_elastic(2,iglob) = accel_elastic(2,iglob) - cos(angle_noise)*noise_sourcearray(2,i,j,it)
+        accel_elastic(2,iglob) = accel_elastic(2,iglob) + cos(angle_noise)*noise_sourcearray(2,i,j,it)
       enddo
     enddo
   else
@@ -604,7 +637,7 @@
     do j = 1,NGLLZ
       do i = 1,NGLLX
         iglob = ibool(i,j,ispec_noise)
-        accel_elastic(1,iglob) = accel_elastic(1,iglob) - noise_sourcearray(1,i,j,it)
+        accel_elastic(1,iglob) = accel_elastic(1,iglob) + noise_sourcearray(1,i,j,it)
       enddo
     enddo
   endif

@@ -59,10 +59,12 @@ __global__ void compute_add_sources_acoustic_kernel(realw* potential_dot_dot_aco
     if (ispec_is_acoustic[ispec]) {
       iglob = d_ibool[INDEX3_PADDED(NGLLX,NGLLX,i,j,ispec)] - 1;
 
-      kappal = kappastore[INDEX3(NGLLX,NGLLX,i,j,ispec)];
-      stf = source_time_function[INDEX2(nsources_local,isource,it)] / kappal;
+      // note: for acoustic medium, the source is assumed to be a pressure source.
+      //       this means, we need to divided by Kappa and the sign is negative because pressure p = - Chi_dot_dot
 
-      accel = sourcearrays[INDEX4(NDIM,NGLLX,NGLLX, 0,i,j,isource)] * stf;
+      kappal = kappastore[INDEX3(NGLLX,NGLLX,i,j,ispec)];
+      stf = source_time_function[INDEX2(nsources_local,isource,it)];
+      accel = - sourcearrays[INDEX4(NDIM,NGLLX,NGLLX, 0,i,j,isource)] * stf / kappal;
 
       atomicAdd(&potential_dot_dot_acoustic[iglob], accel);
     }

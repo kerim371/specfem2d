@@ -45,3 +45,18 @@ TO RUN:
    The seismogram (AA.S0001.BXY.semd) will be similar to those in Tromp2005, Figure 2b, but with an 8-second time shift due to the difference in origin time convention.
 
 ---------------------------
+
+Note about the source time function:
+
+  In Tromp2005, the source time function is given in eq. (95) with factors t0 = 8.0 s, alpha = 2 tau0/tau with tau0 = 2.628 s and tau = 4.0 s.
+  That source time function relates to SPECFEM2D's time function type 2 (first derivative of a Gaussian) with a frequency
+    f0 = alpha / PI = (2 * tau0/tau) / PI
+       = (2 * 2.628/4.0) / PI
+       ~ 0.418259
+  and a scaling factor
+    factor = (- 2 alpha**3 / PI)
+           = (- 2 * 1.314**3 / PI)
+           ~ -1.4443
+  For this example, the setup is simplified and we set f0 = 0.42 and the amplification factor = -0.75 * 10**10 in the SOURCE file.
+  For the P-SV case, the force source acts along the x-direction and thus the anglesource is set to 90.0 to point in positive x-direction.
+

@@ -236,7 +236,7 @@ print CSH "echo \"##################################\"\n";
 print CSH "echo\n";
 
 if($gmt5==1){
-  print CSH "gmtset MAP_FRAME_TYPE plain PS_MEDIA letter PROJ_LENGTH_UNIT inch FORMAT_GEO_MAP D MAP_TICK_LENGTH_PRIMARY $tick  PS_CHAR_ENCODING Standard+ COLOR_NAN $cgray\n";
+  print CSH "gmt gmtset MAP_FRAME_TYPE plain PS_MEDIA letter PROJ_LENGTH_UNIT inch FORMAT_GEO_MAP D MAP_TICK_LENGTH_PRIMARY $tick  PS_CHAR_ENCODING Standard+ COLOR_NAN $cgray\n";
 }else{
   # older gmt
   print CSH "gmtset BASEMAP_TYPE plain PAPER_MEDIA letter MEASURE_UNIT inch PLOT_DEGREE_FORMAT D TICK_LENGTH $tick LABEL_FONT_SIZE $fsize2 ANOT_FONT_SIZE $fsize2  HEADER_FONT $fontno ANOT_FONT $fontno LABEL_FONT $fontno HEADER_FONT_SIZE $fsize1 CHAR_ENCODING Standard+ COLOR_NAN $cgray\n";
@@ -260,7 +260,7 @@ for ($k = 0; $k < $numw; $k++ ){
   $Ts[$k] = sprintf("-T%3.3f/%3.3f/%3.3f",-$ss[$k]*1.05,$ss[$k]*1.05,$ds[$k]);
   print "color range Ts = $Ts[$k]\n";
 
-  print CSH "makecpt -C$colorbar $Ts[$k] -D > color_${k}.cpt\n";
+  print CSH "gmt makecpt -C$colorbar $Ts[$k] -D > color_${k}.cpt\n";
 }
 
 # colorbar
@@ -291,13 +291,14 @@ if ($itype != 0) {
 
   $name = "wavefield_${tlab}_${ttag}";
   $psfile  = "$name.ps";
+  $pdffile = "$name.pdf";
   $jpgfile = "$name.jpg";
 
   print CSH "echo\n";
   print CSH "echo \"postscript file = $psfile\";echo\n";
   print CSH "echo\n";
   # clean
-  print CSH "rm -f $psfile\n\n";
+  print CSH "rm -f $psfile $pdffile $jpgfile\n\n";
 
   #$numf = 1;
 
@@ -395,10 +396,10 @@ if ($itype != 0) {
      #}       # temp
 
      if ($i == $imin && $k==1) {
-       print CSH "psbasemap $J $R $B $BG -K -V $orient $origin > $psfile\n";
+       print CSH "gmt psbasemap $J $R $B $BG -K -V $orient $origin > $psfile\n";
      }        # START
      else {
-       print CSH "psbasemap $J $R $B $BG -K -O -V $shift >> $psfile\n";
+       print CSH "gmt psbasemap $J $R $B $BG -K -O -V $shift >> $psfile\n";
      }
 
      # PLOT THE FORWARD WAVEFIELD
@@ -406,17 +407,17 @@ if ($itype != 0) {
        if ($igrd==1) {
           #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f > dfile\n";
           #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f | nearneighbor -G$grdfile $R $interp\n";
-          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f | xyz2grd -G$grdfile $R $interp\n";
-          print CSH "grdimage $grdfile -C$cfile $J -K -O -V -Q >> $psfile\n";
+          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f | gmt xyz2grd -G$grdfile $R $interp\n";
+          print CSH "gmt grdimage $grdfile -C$cfile $J -K -O -V -Q >> $psfile\n";
        } else {
-          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f | psxy $R $J $minfo -C$cfile -K -O -V >> $psfile\n";
+          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $nm}' $snapshot_f | gmt psxy $R $J $minfo -C$cfile -K -O -V >> $psfile\n";
        }
 
        # mask points above topography
        if ($imask==1) {
           #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' $snapshot_f > maskpts\n";
           printf CSH "grep NaN $snapshot_f > maskpts\n";
-          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' maskpts | psxy $R $J $minfo -C$cfile -K -O -V >> $psfile\n";
+          print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' maskpts | gmt psxy $R $J $minfo -C$cfile -K -O -V >> $psfile\n";
        }
      }
 
@@ -429,7 +430,7 @@ if ($itype != 0) {
        die("check if bfile $bfile exist or not\n");
       }
       #print CSH "awk '{print \$1/1000,\$2/1000}' $bfile | psxy $J $R -W1.5p -m -K -O -V >> $psfile\n";
-      print CSH "awk '{print \$1,\$2}' $bfile | psxy $J $R -W1p -m -K -O -V >> $psfile\n";
+      print CSH "awk '{print \$1,\$2}' $bfile | gmt psxy $J $R -W1p -m -K -O -V >> $psfile\n";
      }
 
      # plot seismicity
@@ -438,11 +439,11 @@ if ($itype != 0) {
         if (not -f $bfile) {
           die("check if bfile $bfile exist or not\n");
         }
-        print CSH "awk '{print \$1,\$2}' $bfile | psxy $J $R -Sc3p -G0 -K -O -V >> $psfile\n";
+        print CSH "awk '{print \$1,\$2}' $bfile | gmt psxy $J $R -Sc3p -G0 -K -O -V >> $psfile\n";
      }
 
-     if ($i == $imin) {print CSH "psscale -C$cfile $Dscale $BscaleS -K -O -V >> $psfile \n";}
-     print CSH "psbasemap $J $R $B -K -O -V >> $psfile\n";
+     if ($i == $imin) {print CSH "gmt psscale -C$cfile $Dscale $BscaleS -K -O -V >> $psfile \n";}
+     print CSH "gmt psbasemap $J $R $B -K -O -V >> $psfile\n";
 
      # label the figures
      if (0==1) {
@@ -453,19 +454,19 @@ if ($itype != 0) {
             print CSH "pstext $J $R -K -O -V >>$psfile<<EOF\n -1 0.75 14 0 $fontno CM ice\nEOF\n";
             print CSH "pstext $J $R -K -O -V >>$psfile<<EOF\n 1.0 0.75 14 0 $fontno CM water\nEOF\n";
           }
-          print CSH "psxy -W1p $J $R -K -O -V >>$psfile<<EOF\n1.0 0.6\n 0.7 -0.1\nEOF\n";
-          print CSH "psxy -W1p $J $R -K -O -V >>$psfile<<EOF\n-1.0 0.6\n -0.7 -0.05\nEOF\n";
+          print CSH "gmt psxy -W1p $J $R -K -O -V >>$psfile<<EOF\n1.0 0.6\n 0.7 -0.1\nEOF\n";
+          print CSH "gmt psxy -W1p $J $R -K -O -V >>$psfile<<EOF\n-1.0 0.6\n -0.7 -0.05\nEOF\n";
        }
      }
 
      # plot stations and labels
      if($iplotrec==1) {
         #print CSH "awk '{print \$3/1000,\$4/1000}' $recfile2 | psxy $J $R -K -O -V $rec2 >> $psfile\n";
-        print CSH "awk '{print \$3/1000,\$4/1000}' $recfile | psxy $J $R -K -O -V $rec >> $psfile\n";
+        print CSH "awk '{print \$3/1000,\$4/1000}' $recfile | gmt psxy $J $R -K -O -V $rec >> $psfile\n";
         #if($i==$imin && $iplotreclab==1) {print CSH "awk '{print \$3/1000,\$4/1000,8,0,$fontno,\"CM\",\"S\"\$7}' $recfile | pstext $textrec $J $R -K -O -V >> $psfile\n";}
-        if($i==$imin && $iplotreclab==1 && $k==1) {print CSH "awk '{print \$3/1000,\$4/1000,8,0,$fontno,\"CM\",\$1}' $recfile | pstext $textrec $J $R -K -O -V >> $psfile\n";}
+        if($i==$imin && $iplotreclab==1 && $k==1) {print CSH "awk '{print \$3/1000,\$4/1000,8,0,$fontno,\"CM\",\$1}' $recfile | gmt pstext $textrec $J $R -K -O -V >> $psfile\n";}
      }
-     print CSH "psxy $J $R -K -O -V $src >> $psfile<<EOF\n $srcx $srcz\nEOF\n";
+     print CSH "gmt psxy $J $R -K -O -V $src >> $psfile<<EOF\n $srcx $srcz\nEOF\n";
 
      # plot the time of the snapshot (for some reason, it won't work inside the B command)
      #$xtext = $xmin-0.3*$xran;
@@ -532,7 +533,7 @@ if ($itype != 0) {
     if($ipsv==1) {$tlab0 = "PSV"} else {$tlab0 = "SH"}
     $title = "$tlab0 wavefield -- $tlab";
     if($gmt5==1){
-      print CSH "pstext -N $J $R $Utag -K -O -V $shift -F+f+a+j >>$psfile<<EOF\n $xmin $zmax $fsize0,$fontno 0 LM $title\nEOF\n";
+      print CSH "gmt pstext -N $J $R $Utag -K -O -V $shift -F+f+a+j >>$psfile<<EOF\n $xmin $zmax $fsize0,$fontno 0 LM $title\nEOF\n";
     }else{
       print CSH "pstext -N $J $R $Utag -K -O -V $shift >>$psfile<<EOF\n $xmin $zmax $fsize0 0 $fontno LM $title\nEOF\n";  # LM or CM
     }
@@ -570,6 +571,7 @@ if ($itype != 0) {
 
   $name = "kernel_${tlab}_${ttag}";
   $psfile  = "$name.ps";
+  $pdffile = "$name.pdf";
   $jpgfile = "$name.jpg";
 
   print CSH "echo\n";
@@ -577,7 +579,7 @@ if ($itype != 0) {
   print CSH "echo \"postscript file = $psfile\";echo\n";
   print CSH "echo\n";
   # clean
-  print CSH "rm -f $psfile\n\n";
+  print CSH "rm -f $psfile $pdffile $jpgfile\n\n";
 
   if($gmt5==1){
     $BscaleS = sprintf("-B%2.2e+l\"%s (x, z, t), 10\@+%2.2i\@+  m\@+-2\@+\" -BS",$bs[0],"K",$pwr[0]);
@@ -619,9 +621,9 @@ if ($itype != 0) {
 
     # START
     if ($k == $kmin) {
-      print CSH "psbasemap $J $R $B -K -V $orient $origin > $psfile\n";
+      print CSH "gmt psbasemap $J $R $B -K -V $orient $origin > $psfile\n";
     } else {
-      print CSH "psbasemap $J $R $B -K -O -V $dY >> $psfile\n";
+      print CSH "gmt psbasemap $J $R $B -K -O -V $dY >> $psfile\n";
     }
 
     print CSH "echo;echo \"norm = $norm[$k]\"\n";
@@ -632,12 +634,12 @@ if ($itype != 0) {
         print CSH "echo;echo \"plotting by grdimage\";echo;\n";
         #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile > dfile\n";
         #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile | nearneighbor -G$grdfile $R $interp\n";
-        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile | xyz2grd -G$grdfile $R $interp\n";
-        print CSH "grdinfo $grdfile\n";
-        print CSH "grdimage $grdfile -Ccolor_${k}.cpt $J -K -O -V -Q >> $psfile\n";
+        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile | gmt xyz2grd -G$grdfile $R $interp\n";
+        print CSH "gmt grdinfo $grdfile\n";
+        print CSH "gmt grdimage $grdfile -Ccolor_${k}.cpt $J -K -O -V -Q >> $psfile\n";
       } else {
         print CSH "echo;echo \"plotting by psxy\";\n";
-        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile | psxy $R $J $minfo -Ccolor_${k}.cpt -K -O -V >> $psfile\n";
+        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2) / $norm[$k]}' $kfile | gmt psxy $R $J $minfo -Ccolor_${k}.cpt -K -O -V >> $psfile\n";
       }
 
       # mask points above topography
@@ -645,7 +647,7 @@ if ($itype != 0) {
         print CSH "echo;echo \"using mask\";\n";
         #print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' $kfile > maskpts\n";
         printf CSH "grep NaN $kfile > maskpts\n";
-        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' maskpts | psxy $R $J $minfo -Ccolor_${k}.cpt -K -O -V >> $psfile\n";
+        print CSH "awk '{print \$1/1000,\$2/1000,\$($comp+2)}' maskpts | gmt psxy $R $J $minfo -Ccolor_${k}.cpt -K -O -V >> $psfile\n";
       }
     }
 
@@ -659,13 +661,13 @@ if ($itype != 0) {
         die("check if bfile $bfile exist or not\n");
       }
       #print CSH "awk '{print \$1/1000,\$2/1000}' $bfile | psxy $J $R -W1.5p -m -K -O -V >> $psfile\n";
-      print CSH "awk '{print \$1,\$2}' $bfile | psxy $J $R -W1p -m -K -O -V >> $psfile\n";
+      print CSH "awk '{print \$1,\$2}' $bfile | gmt psxy $J $R -W1p -m -K -O -V >> $psfile\n";
     }
 
     #print CSH "pscoast $J $R $B -W1p -Na/1p -Dh -K -O -V >> $psfile\n";
     #print CSH "awk '{print \$2,\$1}' INPUT/oms_shelf |psxy $J $R $Wshelf -K -O -V >> $psfile\n";
     if ($k == $kmin) {
-      print CSH "psscale -Ccolor_${k}.cpt $Dscale $BscaleS -K -O -V >> $psfile \n";
+      print CSH "gmt psscale -Ccolor_${k}.cpt $Dscale $BscaleS -K -O -V >> $psfile \n";
     }
     #print CSH "awk '{print \$3/1000,\$4/1000}' $recfile | psxy $J $R -K -O -V $rec >> $psfile\n";
     #print CSH "psxy -N $J $R -K -O -V $src >> $psfile<<EOF\n $srcx $srcz\nEOF\n";
@@ -692,7 +694,7 @@ if ($itype != 0) {
     $textinfo = "-G255"; #"-G0 -W255 -C2p -N";
     print "\ntitle plotting at $xtx, $ztx info: $textinfo $titles[$k]\n";
     if($gmt5==1){
-      print CSH "pstext $textinfo $J $R -K -O -V -F+f+a+j >>$psfile<<EOF\n $xtx $ztx 16,$fontno 0 RT $titles[$k]\nEOF\n";
+      print CSH "gmt pstext $textinfo $J $R -K -O -V -F+f+a+j >>$psfile<<EOF\n $xtx $ztx 16,$fontno 0 RT $titles[$k]\nEOF\n";
     }else{
       # older gmt
       print CSH "pstext $textinfo $J $R -K -O -V >>$psfile<<EOF\n $xtx $ztx 16 0 $fontno RT $titles[$k]\nEOF\n";
@@ -712,7 +714,7 @@ if ($itype != 0) {
     if ($ipsv==1) {$tlab0 = "PSV";} else {$tlab0 = "SH";}
     $title = "$tlab0 kernel -- $tlab";
     if($gmt5==1){
-      print CSH "pstext -N $J $R $Utag -K -O -V $shift -F+f+a+j >>$psfile<<EOF\n $xmin $zmax $fsize0,$fontno 0 LM $title\nEOF\n";
+      print CSH "gmt pstext -N $J $R $Utag -K -O -V $shift -F+f+a+j >>$psfile<<EOF\n $xmin $zmax $fsize0,$fontno 0 LM $title\nEOF\n";
     }else{
       # older gmt
       print CSH "pstext -N $J $R $Utag -K -O -V $shift >>$psfile<<EOF\n $xmin $zmax $fsize0 0 $fontno LM $title\nEOF\n";
@@ -725,14 +727,32 @@ if ($itype != 0) {
 #-------------------------
 # FINISH
 #print CSH "pstext $J -R0/1/0/1 -O -V >>$psfile<<EOF\n 10 10 $fsize0 0 $fontno CM junk \nEOF\n";
-print CSH "psxy $J -R0/1/0/1 -O -V >>$psfile<<EOF\nEOF\n\n";
+print CSH "gmt psxy $J -R0/1/0/1 -O -V >>$psfile<<EOF\nEOF\n\n";
 # cleanup
 print CSH "rm -f temp.grd color_0.cpt color_1.cpt color_2.cpt\n";
 # user output
 print CSH "\necho\necho \"see output psfile: $psfile\"\necho\n";
 
-# converts (using ImageMagick command)
-#print CSH "convert $psfile $jpgfile\n";
+# convert ps to pdf
+# check if ps2pdf command is available
+my $ps2pdf = `which ps2pdf 2>/dev/null`;
+chomp($ps2pdf);
+if (!defined $ps2pdf || $ps2pdf eq '') {
+  print "ps2pdf command not found. Please install Ghostscript to convert ps-file to pdf-file.\n";
+}else{
+  print CSH "echo \"converting to pdf...\"\n";
+  print CSH "ps2pdf $psfile $pdffile\n";
+}
+# converts ps to jpg (using ImageMagick command)
+my $magick = `which magick 2>/dev/null`;
+chomp($magick);
+if (!defined $magick || $magick eq '') {
+    print "magick command (ImageMagick) not found. Please install ImageMagick to convert ps-file to jpg-file.\n";
+}else{
+  print CSH "echo \"converting to jpg...\"\n";
+  print CSH "magick -density 300 -quality 90 $psfile $jpgfile\n";
+}
+
 close (CSH);
 
 # executes script

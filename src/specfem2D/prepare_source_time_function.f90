@@ -221,8 +221,6 @@
               ! Ricker (second derivative of a Gaussian) source time function
               stf = comp_source_time_function_Ricker(t_used,f0)
             endif
-            ! sign change
-            stf = - stf
 
           case (2)
             ! first derivative of a Gaussian
@@ -233,8 +231,6 @@
               ! First derivative of a Gaussian source time function
               stf = comp_source_time_function_dGaussian(t_used,f0)
             endif
-            ! sign change
-            stf = - stf
 
           case (3,4)
             ! Gaussian/Dirac type
@@ -245,8 +241,6 @@
               ! Gaussian or Dirac (we use a very thin Gaussian instead) source time function
               stf = comp_source_time_function_Gaussian(t_used,f0)
             endif
-            ! sign change
-            stf = - stf
 
           case (5)
             ! Heaviside source time function (we use a very thin error function instead)
@@ -267,8 +261,6 @@
             hdur_gauss = hdur / SOURCE_DECAY_MIMIC_TRIANGLE
             ! quasi-Heaviside
             stf = comp_source_time_function_heaviside_hdur(t_used,hdur_gauss)
-            ! sign change
-            stf = - stf
 
           case (6)
             ! ocean acoustics type I
@@ -297,8 +289,6 @@
               ! Burst source time function
               stf = comp_source_time_function_burst(t_used,f0,burst_band_width(isource))
             endif
-            ! sign change
-            stf = - stf
 
           case (10)
             ! Monochromatic/Sinus source time function
@@ -346,9 +336,6 @@
     enddo
   enddo
 
-  ! prints source time function to file
-  if (PRINT_SOURCE_TIME_FUNCTION) call print_stf_file()
-
   ! source amplification
   ! amplifies source time function (STF) by a factor
   ! note: the amplification factor will amplify the source time function values.
@@ -359,11 +346,11 @@
   !         ..
   ! loop over all the sources
   do isource = 1,NSOURCES
-    ! The following lines could be needed to set absolute amplitudes.
-    !
-    ! use specfem_par, only: rho_vpstore,rhostore,ispec_selected_source
-    ! double precision :: rho, cp
-    ! logical :: already_done = .false. need to be introduced
+    ! AXISYM - The following lines could be needed to set absolute amplitudes
+    !   use specfem_par, only: rho_vpstore,rhostore,ispec_selected_source
+    !   double precision :: rho, cp
+    !   logical :: already_done = .false. need to be introduced
+    !   ..
     !    if (myrank == islice_selected_source(isource)) then
     !      if (AXISYM) then
     !        if (.not. already_done) then
@@ -381,6 +368,9 @@
     source_time_function(isource,:,:) = factor(isource) * source_time_function(isource,:,:)
   enddo
 
+  ! prints source time function to file
+  if (PRINT_SOURCE_TIME_FUNCTION) call print_stf_file()
+
   ! synchronizes all processes
   call synchronize_all()
 
@@ -395,9 +385,9 @@
   use constants, only: CUSTOM_REAL,IMAIN,OUTPUT_FILES,MAX_STRING_LEN, &
     C_LDDRK,C_RK4,ALPHA_SYMPLECTIC
 
-  use specfem_par, only: NSTEP,NSOURCES,source_time_function, &
+  use specfem_par, only: NSTEP,NSOURCES,source_time_function,time_function_type,factor, &
     tshift_src,t0,DT,time_stepping_scheme, &
-    myrank,islice_selected_source
+    myrank,islice_selected_source,NOISE_TOMOGRAPHY
 
   implicit none
 
@@ -407,6 +397,9 @@
   integer :: it,ier
   integer :: isource,i_stage
   character(len=MAX_STRING_LEN) :: plot_file
+
+  ! only plot for non-noise simulations
+  if (NOISE_TOMOGRAPHY > 0) return
 
   ! user output
   if (myrank == 0) then
@@ -431,7 +424,17 @@
       ! opens source time file for output
       open(unit=55,file=trim(OUTPUT_FILES)//trim(plot_file),status='unknown',iostat=ier)
       if (ier /= 0) call stop_the_code('Error opening source time function text-file')
+      ! header
+      write(55,'("# source time function")')
+      write(55,'("# time function type  : ",i0)') time_function_type(isource)
+      write(55,'("# amplification factor: ",es12.5)') factor(isource)
+      write(55,'("# DT                  : ",es12.5)') DT
+      write(55,'("# t0                  : ",es12.5)') t0
+      write(55,'("# time shift          : ",es12.5)') tshift_src(isource)
+      write(55,'("# format")')
+      write(55,'("#time  #used_STF  #initial_source_function_value")')
 
+      ! source function time values
       do it = 1,NSTEP
 
         ! compute current time
@@ -463,11 +466,21 @@
           call exit_MPI(myrank,'Error invalid time stepping scheme chosen, please check...')
         end select
 
+        ! note: earliest start time of the simulation is: (it-1)*DT - t0 - tshift_src(isource)
         t_used = real(timeval - t0 - tshift_src(isource),kind=CUSTOM_REAL)
+
         stf_used = source_time_function(isource,it,i_stage)
 
-        ! note: earliest start time of the simulation is: (it-1)*DT - t0 - tshift_src(isource)
-        write(55,*) t_used,stf_used
+        ! we'll output both, the initial value given by the source time function (comp_source_time_function**)
+        ! and the scaled value that uses the amplification factor as given in the SOURCE file.
+        ! note that the array source_time_function(..) has been scaled when calling this print routine.
+        ! thus, to print out the original value, we divide by the amplification factor.
+
+        ! to avoid division by zero
+        if (factor(isource) == 0.d0) cycle
+
+        ! format: #time #used_STF #initial_source_function_value
+        write(55,*) t_used, stf_used, stf_used / factor(isource)
 
       enddo
 
