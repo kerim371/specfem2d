@@ -186,15 +186,8 @@
       if (ispec_is_elastic(ispec_selected_source)) then
         if (P_SV) then
           ! P_SV case
-!               sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
-!               sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
-!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
-!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
-!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
-!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
-!! DK DK May 2018: and more generally compared to reality
-          sourcearray(1,i,j) = + sin(anglesource) * hlagrange
-          sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+          sourcearray(1,i,j) = sin(anglesource) * hlagrange  ! angle measured clockwise from vertical direction
+          sourcearray(2,i,j) = cos(anglesource) * hlagrange
         else
           ! SH case (membrane)
           sourcearray(:,i,j) = hlagrange
@@ -203,23 +196,22 @@
 
       ! source element is poroelastic
       if (ispec_is_poroelastic(ispec_selected_source)) then
-!             sourcearray(1,i,j) = - sin(anglesource(i_source)) * hlagrange
-!             sourcearray(2,i,j) =   cos(anglesource(i_source)) * hlagrange
-!! DK DK May 2018: the sign of the source was inverted compared to the analytical solution for a simple elastic benchmark
-!! DK DK May 2018: with a force source (the example that is in EXAMPLES/check_absolute_amplitude_of_force_source_seismograms),
-!! DK DK May 2018: which means that the sign was not right here. I changed it. Please do NOT revert that change,
-!! DK DK May 2018: otherwise the code will give inverted seismograms compared to analytical solutions for benchmarks,
-!! DK DK May 2018: and more generally compared to reality
-        sourcearray(1,i,j) = + sin(anglesource) * hlagrange
-        sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+        if (P_SV) then
+          ! P_SV case
+          sourcearray(1,i,j) = sin(anglesource) * hlagrange  ! angle measured clockwise from vertical direction
+          sourcearray(2,i,j) = cos(anglesource) * hlagrange
+        else
+          ! SH case
+          sourcearray(:,i,j) = hlagrange
+        endif
       endif
 
       ! source element is electromagnetic
       if (ispec_is_electromagnetic(ispec_selected_source)) then
         if (P_SV) then
           ! P_SV case = TM case (surface GPR)
-          sourcearray(1,i,j) = + sin(anglesource) * hlagrange
-          sourcearray(2,i,j) = - cos(anglesource) * hlagrange
+          sourcearray(1,i,j) = sin(anglesource) * hlagrange  ! angle measured clockwise from vertical direction
+          sourcearray(2,i,j) = cos(anglesource) * hlagrange
         else
           ! SH case (membrane) = TE (crosshole GPR)
           sourcearray(:,i,j) = hlagrange
