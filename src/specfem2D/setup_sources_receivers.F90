@@ -914,7 +914,7 @@
 
   subroutine setup_source_interpolation()
 
-  use constants, only: NDIM,NGLLX,NGLLZ,NGLJ,ZERO,CUSTOM_REAL,IMAIN
+  use constants, only: NDIM,NGLLX,NGLLZ,NGLJ,ZERO,PI,CUSTOM_REAL,IMAIN
 
   use specfem_par, only: myrank,nspec,NSOURCES,initialfield,source_type,anglesource,P_SV, &
     sourcearrays,Mxx,Mxz,Mzz, &
@@ -999,6 +999,16 @@
         endif
       end select
 
+      ! adding Axisymmetric source factor for monopole sources
+      ! note: to match the 3D solution, we need to multiply the source by a factor 1/(2 PI).
+      !       this is in agreement to Nissen-Meyer et al. (2007),
+      !       A two-dimensional spectral-element method for computing spherical-earth seismograms – I. Moment-tensor source,
+      !       GJI, doi: 10.1111/j.1365-246X.2006.03121.x
+      !       given by their equations (5) and (24) for monopole (force) sources.
+      if (AXISYM) then
+        sourcearray(:,:,:) = 1.d0 / (2.d0 * PI) * sourcearray(:,:,:)
+      endif
+
       ! stores sourcearray for all sources
       sourcearrays(:,:,:,i_source) = sourcearray(:,:,:)
     endif
@@ -1027,7 +1037,7 @@
   implicit none
 
   ! local parameters
-  integer :: irec,irec_local,ier
+  integer :: irec,irec_local,ispec,ier
   ! Lagrange interpolants at the receiver
   double precision, dimension(NGLLX) :: hxir,hpxir
   double precision, dimension(NGLLZ) :: hgammar,hpgammar
@@ -1041,32 +1051,32 @@
   irec_local = 0
 
   do irec = 1,nrec
-
-    ! Lagrange interpolators
-    if (AXISYM) then
-      if (is_on_the_axis(ispec_selected_rec(irec)) .and. myrank == islice_selected_rec(irec)) then
-        call lagrange_any(xi_receiver(irec),NGLJ,xiglj,hxir,hpxir)
-        !do j = 1,NGLJ ! ABAB Exactly same result with that loop. This is good
-        !  hxir2(j) = hglj(j-1,xi_receiver(irec),xiglj,NGLJ)
-        !  print *,hxir(j),' = ',hxir2(j)
-        !enddo
+    if (myrank == islice_selected_rec(irec)) then
+      ispec = ispec_selected_rec(irec)
+      ! Lagrange interpolators
+      if (AXISYM) then
+        if (is_on_the_axis(ispec)) then
+          call lagrange_any(xi_receiver(irec),NGLJ,xiglj,hxir,hpxir)
+          !do j = 1,NGLJ ! ABAB Exactly same result with that loop. This is good
+          !  hxir2(j) = hglj(j-1,xi_receiver(irec),xiglj,NGLJ)
+          !  print *,hxir(j),' = ',hxir2(j)
+          !enddo
+        else
+          call lagrange_any(xi_receiver(irec),NGLLX,xigll,hxir,hpxir)
+        endif
       else
         call lagrange_any(xi_receiver(irec),NGLLX,xigll,hxir,hpxir)
+        !do j = 1,NGLLX !do j = 1,NGLJ ! ABAB Exactly same result with that loop. This is good
+        !  hxir2(j) = hgll(j-1,xi_receiver(irec),xigll,NGLLX)
+        !  print *,hxir(j),' = ',hxir2(j)
+        !enddo
+        ! Defined:
+        !  double precision, dimension(NGLL) :: hxir2
+        !  double precision, external :: hglj,hgll
       endif
-    else
-      call lagrange_any(xi_receiver(irec),NGLLX,xigll,hxir,hpxir)
-      !do j = 1,NGLLX !do j = 1,NGLJ ! ABAB Exactly same result with that loop. This is good
-      !  hxir2(j) = hgll(j-1,xi_receiver(irec),xigll,NGLLX)
-      !  print *,hxir(j),' = ',hxir2(j)
-      !enddo
-      ! Defined:
-      !  double precision, dimension(NGLL) :: hxir2
-      !  double precision, external :: hglj,hgll
-    endif
-    call lagrange_any(gamma_receiver(irec),NGLLZ,zigll,hgammar,hpgammar)
+      call lagrange_any(gamma_receiver(irec),NGLLZ,zigll,hgammar,hpgammar)
 
-    ! local receivers in this slice
-    if (myrank == islice_selected_rec(irec)) then
+      ! local receivers in this slice
       irec_local = irec_local + 1
       xir_store_loc(irec_local,:) = hxir(:)
       gammar_store_loc(irec_local,:) = hgammar(:)
