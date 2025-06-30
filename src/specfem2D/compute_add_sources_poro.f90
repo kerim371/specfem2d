@@ -157,6 +157,9 @@
 
           hlagrange = xir_store_loc(irec_local,i) * gammar_store_loc(irec_local,j)
 
+          ! adjoint source is in the solid phase only since this is the only measurement
+          ! available
+
           ! solid contribution
           accels_poroelastic(1,iglob) = accels_poroelastic(1,iglob) + source_adjoint(irec_local,it_tmp,1) * hlagrange
           accels_poroelastic(2,iglob) = accels_poroelastic(2,iglob) + source_adjoint(irec_local,it_tmp,2) * hlagrange

@@ -149,7 +149,7 @@
       write(IMAIN,*)
       write(IMAIN,*)  'selected source_type = ',initial_field_type
       if (initial_field_type /= 3 .and. initial_field_type /= 6) &
-        write(IMAIN,*)  '         anglesource = ',initial_field_angle
+        write(IMAIN,*)  '         anglesource = ',initial_field_angle * 180.d0/PI,' (deg)'
       write(IMAIN,*)
     else if (any_acoustic) then
       write(IMAIN,*)  'acoustic simulation, choosing a default initial field'
@@ -157,12 +157,12 @@
     ! plane wave type
     select case(initial_field_type)
     case (1,4)
-      write(IMAIN,*) 'initial P wave of', initial_field_angle*180.d0/pi, 'degrees introduced.'
+      write(IMAIN,*) 'initial P wave of', initial_field_angle * 180.d0/PI, 'degrees introduced.'
     case (2,5)
       if (P_SV) then
-        write(IMAIN,*) 'initial SV wave of', initial_field_angle*180.d0/pi, ' degrees introduced.'
+        write(IMAIN,*) 'initial SV wave of', initial_field_angle * 180.d0/PI, ' degrees introduced.'
       else
-        write(IMAIN,*) 'initial SH wave of', initial_field_angle*180.d0/pi, ' degrees introduced.'
+        write(IMAIN,*) 'initial SH wave of', initial_field_angle * 180.d0/PI, ' degrees introduced.'
       endif
     case (3)
       write(IMAIN,*) 'Rayleigh wave introduced.'
@@ -175,7 +175,7 @@
     end select
     if (initial_field_type /= 6) then
       write(IMAIN,*)
-      write(IMAIN,*) 'angle source          = ',initial_field_angle
+      write(IMAIN,*) 'angle source          = ',initial_field_angle * 180.d0/PI,'(deg)'
     endif
     write(IMAIN,*)
     call flush_IMAIN()
@@ -189,7 +189,7 @@
   ! anglesource has been converted from degrees to radians before
   if (initial_field_type /= 6) then
     anglesource_abs = abs(initial_field_angle)
-    if (anglesource_abs > pi/2.d0 .and. initial_field_type /= 3) &
+    if (anglesource_abs > PI/2.d0 .and. initial_field_type /= 3) &
       call exit_MPI(myrank,"incorrect anglesource: must have 0 <= anglesource < 90")
   endif
 
@@ -238,7 +238,7 @@
     endif
 
     if (myrank == 0) then
-      write(IMAIN,*) 'reflected convert plane wave angle: ', anglesource_refl*180.d0/pi
+      write(IMAIN,*) 'reflected convert plane wave angle: ', anglesource_refl * 180.d0/PI,'(deg)'
     endif
 
     ! from Table 5.1 p141 in Aki & Richards (1980)
@@ -280,11 +280,11 @@
       endif
 
       if (myrank == 0) then
-        write(IMAIN,*) 'reflected convert plane wave angle: ', anglesource_refl*180.d0/pi
+        write(IMAIN,*) 'reflected convert plane wave angle: ', anglesource_refl * 180.d0/PI,'(deg)'
       endif
 
     ! SV45 degree incident plane wave is a particular case
-    else if (anglesource_abs > pi/4.d0-1.0d-11 .and. anglesource_abs < pi/4.d0+1.0d-11) then
+    else if (anglesource_abs > PI/4.d0 - 1.0d-11 .and. anglesource_abs < PI/4.d0 + 1.0d-11) then
       anglesource_refl = 0.d0
       SS = -1.0d0
       SP = 0.d0
@@ -590,7 +590,7 @@
   ! user output
   if (myrank == 0) then
     if (source_type(1) /= 3 ) &
-      write(IMAIN,*) 'You are beyond the critical angle (>',asin(c_inc/c_refl)*180d0/pi,')'
+      write(IMAIN,*) 'You are beyond the critical angle (>',asin(c_inc/c_refl) * 180.d0/PI,')'
 
     write(IMAIN,*)  '*************'
     write(IMAIN,*)  'We have to compute the initial field in the frequency domain'
