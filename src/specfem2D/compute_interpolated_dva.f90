@@ -58,7 +58,7 @@
   do j = 1,NGLLZ
     do i = 1,NGLLX
       iglob = ibool(i,j,ispec)
-      hlagrange = xir_store_loc(irecloc,i)*gammar_store_loc(irecloc,j)
+      hlagrange = xir_store_loc(irecloc,i) * gammar_store_loc(irecloc,j)
 
       ! displacement/velocity/acceleration/pressure value (depending on seismotype_l)
       select case (seismotype_l)

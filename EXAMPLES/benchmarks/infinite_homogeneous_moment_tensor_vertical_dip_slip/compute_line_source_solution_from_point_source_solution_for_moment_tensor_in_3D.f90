@@ -77,7 +77,7 @@ moment_tensor(3,1) = 1.0d0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!
 !Ricker wavelet source
-Amplitude = -1.d8
+Amplitude = 1.d8
 dominant_frequency = 10.0d0
 ts_stf = - 1.d0/dominant_frequency * 2.d0
 te_stf = 1.d0/dominant_frequency * 5.0 + ts_stf

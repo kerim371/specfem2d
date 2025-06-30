@@ -43,14 +43,14 @@ f0                              = 42.            # dominant source frequency (Hz
 tshift                          = 0.0            # time shift when multi sources (if one source, must be zero)
 ## Force source
 # angle of the source (for a force only); for a plane wave, this is the incidence angle; for moment tensor sources this is unused
-anglesource                     = 270.0
+anglesource                     = 90.0
 ## Moment tensor
 # The components of a moment tensor source must be given in N.m, not in dyne.cm as in the DATA/CMTSOLUTION source file of the 3D version of the code.
 Mxx                             = 1.             # Mxx component (for a moment tensor source only)
 Mzz                             = -1.            # Mzz component (for a moment tensor source only)
 Mxz                             = 0.             # Mxz component (for a moment tensor source only)
 ## Amplification (factor to amplify source time function)
-factor                          = 0.75d10        # amplification factor
+factor                          = -0.75d10       # amplification factor
 ## Moving source parameters
 vx                              = 0.0            # Horizontal source velocity (m/s)
 vz                              = 0.0            # Vertical source velocity (m/s)
