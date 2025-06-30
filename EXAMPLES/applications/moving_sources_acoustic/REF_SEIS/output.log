@@ -1,4 +1,4 @@
-running example: Mon Jun 29 15:39:10 CEST 2020
+running example: Mon Jun 30 16:41:03 CEST 2025
 
    setting up example...
 
@@ -10,18 +10,21 @@ running mesher on 4 processors...
  *** Specfem 2-D Mesher - MPI version       ***
  **********************************************
 
- Running Git version of the code corresponding to undefined in the case of old tar ball builds
- dating undefined in the case of old tar ball builds
+ Running Git version of the code corresponding to unknown
+ dating unknown
 
  Reading the parameter file...
 
  Title of the simulation: Example of simulation with moving sources
 
-
  Receiver lines:
    Nb of line sets =            1
 
- Materials:
+ Parameter file successfully read
+
+
+ Mesh from internal meshing:
+   Materials:
    Nb of solid, fluid or porous materials =            1
 
  --------
@@ -30,9 +33,6 @@ running mesher on 4 processors...
  Qkappa, Qmu =    9999.0000000000000        9999.0000000000000
  Material is fluid
  --------
-
-
- Mesh from internal meshing:
 
  Reading interface data from file: ./DATA/./interfaces
  Reading            2  points for interface            1
@@ -61,10 +61,7 @@ running mesher on 4 processors...
  Qmu    =    9999.00000
  ------
 
- Parameter file successfully read
-
-
- Mesh from internal meshing:
+ creating mesh from internal meshing:
    Total number of spectral elements         =        27000
 
  PML mesh elements:
@@ -77,30 +74,42 @@ running mesher on 4 processors...
  Reading in SOURCE file...
 
  Source           1
+   Moving source:
    Initial position xs, zs =   -800.00000000000000       -100.01000000000001
-   Velocities vx, vz =    400.00000000000000       -100.00000000000000
+   Velocities       vx, vz =    400.00000000000000       -100.00000000000000
 
-   Source type (1=force, 2=moment tensor):            1
+   Source type:            1
+   (1=force, 2=moment tensor)
+
    Force source:
    Angle of the source (deg) =    0.0000000000000000
 
-   Time function type (1=Ricker, 2=First derivative, 3=Gaussian, 4=Dirac, 5=Heaviside, 6,7=ocean type, 8=Read from file, 9=burst, 10=Sinusoidal, 11=Ormsby):          10
+   Time function type:          10
+   ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
+     5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
+    10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Sinusoidal source time function:
-   Frequency, delay =    30.000000000000000        0.0000000000000000
-   Multiplying factor  =    100000.00000000000
+   Frequency, delay   =    30.000000000000000        0.0000000000000000
+   Multiplying factor =    100000.00000000000
 
  Source           2
+   Moving source:
    Initial position xs, zs =    800.00000000000000       -100.01000000000001
-   Velocities vx, vz =   -400.00000000000000       -100.00000000000000
+   Velocities       vx, vz =   -400.00000000000000       -100.00000000000000
 
-   Source type (1=force, 2=moment tensor):            1
+   Source type:            1
+   (1=force, 2=moment tensor)
+
    Force source:
    Angle of the source (deg) =    0.0000000000000000
 
-   Time function type (1=Ricker, 2=First derivative, 3=Gaussian, 4=Dirac, 5=Heaviside, 6,7=ocean type, 8=Read from file, 9=burst, 10=Sinusoidal, 11=Ormsby):          10
+   Time function type:          10
+   ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
+     5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
+    10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Sinusoidal source time function:
-   Frequency, delay =    30.000000000000000        0.0000000000000000
-   Multiplying factor  =    100000.00000000000
+   Frequency, delay   =    30.000000000000000        0.0000000000000000
+   Multiplying factor =    100000.00000000000
 
  all sources are okay
 
@@ -122,12 +131,17 @@ running mesher on 4 processors...
    Min and max value of X in the grid =   -1000.0000000000000        1000.0000000000000
    Min and max value of Z in the grid =   -750.00000000000011        0.0000000000000000
 
+ checking mesh elements for invalid Jacobians...
+   number of elements:        27000
+   NGNOD             :            4
+   AXISYM            :  F
+   all elements have valid Jacobians
+
  Mesh partitioning:
    decomposing mesh using NPROC =            4
 
  Graph construction:
    graph adjacency done
-
 
  ************ Computing elements load ************
  Number of elastic elements :           0
@@ -137,11 +151,11 @@ running mesher on 4 processors...
  Number of elastic PML elements :           0
  Number of acoustic PML elements :        2184
  Number of viscoelastic PML elements :           0
- Number of viscoacoustic PML elements :       32767
+ Number of viscoacoustic PML elements :           0
  *************************************************
 
 
- Partitioning method: SCOTCH
+ Partitioning type: SCOTCH
 
  Coupled interfaces:
  nedges_coupled (acoustic/elastic)     =            0
@@ -204,8 +218,8 @@ running solver on 4 processors...
  **** Specfem 2-D Solver - MPI version     ****
  **********************************************
 
- Running Git version of the code corresponding to undefined in the case of old tar ball builds
- dating undefined in the case of old tar ball builds
+ Running Git version of the code corresponding to unknown
+ dating unknown
 
  There are            4  MPI processes
  Processes are numbered from 0 to            3
@@ -226,36 +240,50 @@ running solver on 4 processors...
 
  Title of the simulation: Example of simulation with moving sources
 
+ Receiver lines:
+   Nb of line sets =            1
 
  Parameter file successfully read
 
  Reading in SOURCE file...
 
  Source           1
+   Moving source:
    Initial position xs, zs =   -800.00000000000000       -100.01000000000001
-   Velocities vx, vz =    400.00000000000000       -100.00000000000000
+   Velocities       vx, vz =    400.00000000000000       -100.00000000000000
 
-   Source type (1=force, 2=moment tensor):            1
+   Source type:            1
+   (1=force, 2=moment tensor)
+
    Force source:
    Angle of the source (deg) =    0.0000000000000000
 
-   Time function type (1=Ricker, 2=First derivative, 3=Gaussian, 4=Dirac, 5=Heaviside, 6,7=ocean type, 8=Read from file, 9=burst, 10=Sinusoidal, 11=Ormsby):          10
+   Time function type:          10
+   ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
+     5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
+    10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Sinusoidal source time function:
-   Frequency, delay =    30.000000000000000        0.0000000000000000
-   Multiplying factor  =    100000.00000000000
+   Frequency, delay   =    30.000000000000000        0.0000000000000000
+   Multiplying factor =    100000.00000000000
 
  Source           2
+   Moving source:
    Initial position xs, zs =    800.00000000000000       -100.01000000000001
-   Velocities vx, vz =   -400.00000000000000       -100.00000000000000
+   Velocities       vx, vz =   -400.00000000000000       -100.00000000000000
 
-   Source type (1=force, 2=moment tensor):            1
+   Source type:            1
+   (1=force, 2=moment tensor)
+
    Force source:
    Angle of the source (deg) =    0.0000000000000000
 
-   Time function type (1=Ricker, 2=First derivative, 3=Gaussian, 4=Dirac, 5=Heaviside, 6,7=ocean type, 8=Read from file, 9=burst, 10=Sinusoidal, 11=Ormsby):          10
+   Time function type:          10
+   ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
+     5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
+    10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Sinusoidal source time function:
-   Frequency, delay =    30.000000000000000        0.0000000000000000
-   Multiplying factor  =    100000.00000000000
+   Frequency, delay   =    30.000000000000000        0.0000000000000000
+   Multiplying factor =    100000.00000000000
 
  all sources are okay
 
@@ -269,7 +297,7 @@ running solver on 4 processors...
  Example of simulation with moving sources
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 29 - 06 - 2020                                 T i m e  : 15:39:11
+ D a t e : 30 - 06 - 2025                                 T i m e  : 16:41:04
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
@@ -277,14 +305,14 @@ running solver on 4 processors...
  C o n t r o l
  =============
 
-     Number of spectral element control nodes. . .(npgeo) =    8076
+     Number of spectral element control nodes. . .(npgeo) =   27676
      Number of space dimensions. . . . . . . . . . (NDIM) =       2
 
 
  C o n t r o l
  =============
 
-     Display frequency . . . .(NSTEP_BETWEEN_OUTPUT_INFO) =   1000
+     Display frequency . . . (NTSTEP_BETWEEN_OUTPUT_INFO) =   1000
      Color display . . . . . . . . . . . . . . . (colors) =      1
       == 0     black and white display
       == 1     color display
@@ -330,14 +358,14 @@ running solver on 4 processors...
      Total simulation duration . . . . . (ttot) =   3.000000E+00
 
 
- reading mesh databases...
-
+ reading mesh databases:
+ reading nodal coordinates...
 
  -- Spectral Elements --
 
 
      Number of spectral elements . . . . . . . . .  (nspec) =  27000
-     Number of control nodes per element . . . . . (ngnod) =      4
+     Number of control nodes per element . . . . . (NGNOD) =      4
      Number of points in X-direction . . . . . . . (NGLLX) =      5
      Number of points in Y-direction . . . . . . . (NGLLZ) =      5
      Number of points per element. . . . . . (NGLLX*NGLLZ) =     25
@@ -345,6 +373,9 @@ running solver on 4 processors...
      Number of element material sets . . . . . . . (numat) =      1
      Number of acoustic forcing elements (nelem_acforcing) =      0
      Number of acoustic free surf (nelem_acoustic_surface) =      0
+
+ reading attenuation setup...
+ reading material properties..
 
 
  M a t e r i a l   s e t s :   2 D  (p o r o) e l a s t i c i t y
@@ -363,17 +394,40 @@ running solver on 4 processors...
      QKappa_attenuation. . . . . . . .(QKappa) = 9.99900000E+03
      Qmu_attenuation. . . . . . . . . . .(Qmu) = 9.99900000E+03
 
+ reading interfaces informations...
+   number of interfaces         =            2
 
  reading absorbing boundary...
-   number of absorbing elements =          156
+   Total number of absorbing elements =          740
 
-   any absorbing boundary flag  =  T
-   PML boundary flag            =  T
-   Stacey boundary flag         =  F
+   any absorbing boundary flag        =  T
+   PML boundary flag                  =  T
+   Stacey boundary flag               =  F
 
 
  Absorbing boundaries:
    using PML boundary conditions
+
+ reading acoustic forcing...
+   acoustic forcing                             =  F
+   number of acoustic forcing boundary elements =            0
+
+ reading free surface information...
+   number of acoustic free surface boundary elements =            0
+
+ reading coupling surfaces...
+   number of fluid-solid edges  =            0
+   number of fluid-poro  edges  =            0
+   number of solid-poro  edges  =            0
+
+ reading tangential curves...
+   number of tangential curve nodes =            0
+
+ reading axial elements...
+   number of axial elements     =            0
+
+ done reading mesh databases
+
 
  Setting up mesh
 
@@ -403,12 +457,24 @@ running solver on 4 processors...
    Xmin,Xmax of the whole mesh =   -1000.0000000000000        1000.0000000000000
    Zmin,Zmax of the whole mesh =   -750.00000000000023        0.0000000000000000
 
+ Material properties:
+   MODEL                   : default
+   nspec                   :        27000
+   external velocity model :  F
 
- setup material arrays
+   setting up material arrays
+   fluid:
+     rho : min/max =    1000.00000     /   1000.00000
+     vp  : min/max =    1499.99988     /   1499.99988
+
+   all material arrays done
+
+
  Domains:
    total number of acoustic elements        =        27000
    total number of elastic elements         =            0
    total number of poroelastic elements     =            0
+   total number of electromagnetic elements =            0
 
  Setting up MPI communication arrays
 
@@ -421,10 +487,11 @@ running solver on 4 processors...
    total number of global points assembled by acoustic MPI interfaces:        2422
    interfaces okay
 
-   master process:
+   main process:
    number of MPI interfaces in acoustic domain    =            2
    number of MPI interfaces in elastic domain     =            0
    number of MPI interfaces in poroelastic domain =            0
+   number of MPI interfaces in electromagnetic domain =            0
 
    number of outer elements  =          202
    number of inner elements  =         7694
@@ -443,9 +510,10 @@ running solver on 4 processors...
 
  All mesh setup done successfully
 
- sources:
-   Total number of sources:            2
+ Sources
+ =======
 
+   Total number of sources:            2
 
    Setting parameters for source           1
 
@@ -459,7 +527,8 @@ running solver on 4 processors...
      Multiplying factor . . . . . . . . . . =    1.0000000000E+05
      Angle from vertical direction (deg). . =    0.0000000000E+00
 
-
+     Source time function
+     Sinusoidal
 
    Setting parameters for source           2
 
@@ -473,6 +542,11 @@ running solver on 4 processors...
      Multiplying factor . . . . . . . . . . =    1.0000000000E+05
      Angle from vertical direction (deg). . =    0.0000000000E+00
 
+     Source time function
+     Sinusoidal
+
+ determining source onset times...
+   simulation start time t0 =   -0.0000000000000000       s
 
    Source:            1
      Onset time. . . . . . =   -0.0000000000000000
@@ -505,19 +579,21 @@ running solver on 4 processors...
              original x:   -300.000000
              original z:   -110.000000
  Closest estimate found:    0.00000000      m away
-  in element         6752
   in rank            0
-  at xi,gamma coordinates =    1.5777218104420236E-029 -0.33333333333332860
+  in element         6752
+  in acoustic domain
+  at xi,gamma coordinates =    6.3108872417680944E-030 -0.33333333333332860
  Distance from source:    500.099792      m
 
 
  Station #            2     AA      S0002
              original x:   -214.285721
              original z:   -110.000000
- Closest estimate found:    0.00000000      m away
-  in element         6764
+ Closest estimate found:    2.84217094E-14  m away
   in rank            0
-  at xi,gamma coordinates =  -0.85714286100001025      -0.33333333333333243
+  in element         6764
+  in acoustic domain
+  at xi,gamma coordinates =  -0.85714286100001758      -0.33333333333333237
  Distance from source:    585.799500      m
 
 
@@ -525,49 +601,54 @@ running solver on 4 processors...
              original x:   -128.571426
              original z:   -110.000000
  Closest estimate found:    0.00000000      m away
-  in element         6775
   in rank            0
-  at xi,gamma coordinates =   0.28571427800001553      -0.33333333333332860
+  in element         6775
+  in acoustic domain
+  at xi,gamma coordinates =   0.28571427800001570      -0.33333333333332915
  Distance from source:    671.502869      m
 
 
  Station #            4     AA      S0004
              original x:   -42.8571434
              original z:   -110.000000
- Closest estimate found:    0.00000000      m away
-  in element         6787
+ Closest estimate found:    7.10542736E-15  m away
   in rank            0
-  at xi,gamma coordinates =  -0.57142858299999599      -0.33333333333332860
+  in element         6787
+  in acoustic domain
+  at xi,gamma coordinates =  -0.57142858299999588      -0.33333333333332449
  Distance from source:    757.208740      m
 
 
  Station #            5     AA      S0005
              original x:    42.8571434
              original z:   -110.000000
- Closest estimate found:    7.10542736E-15  m away
-  in element         6638
+ Closest estimate found:    0.00000000      m away
   in rank            2
-  at xi,gamma coordinates =   0.57142858300002852      -0.33333333333333243
+  in element         6638
+  in acoustic domain
+  at xi,gamma coordinates =   0.57142858300002464      -0.33333333333332127
  Distance from source:    842.916321      m
 
 
  Station #            6     AA      S0006
              original x:    128.571426
              original z:   -110.000000
- Closest estimate found:    0.00000000      m away
-  in element         6650
+ Closest estimate found:    1.42108547E-14  m away
   in rank            2
-  at xi,gamma coordinates =  -0.28571427799998556      -0.33333333333332860
+  in element         6650
+  in acoustic domain
+  at xi,gamma coordinates =  -0.28571427799998533      -0.33333333333332560
  Distance from source:    928.625183      m
 
 
  Station #            7     AA      S0007
              original x:    214.285721
              original z:   -110.000000
- Closest estimate found:    5.68434189E-14  m away
-  in element         6661
+ Closest estimate found:    0.00000000      m away
   in rank            2
-  at xi,gamma coordinates =   0.85714286099999948      -0.33333333333333626
+  in element         6661
+  in acoustic domain
+  at xi,gamma coordinates =   0.85714286099999959      -0.33333333333332854
  Distance from source:    1014.33490      m
 
 
@@ -575,50 +656,31 @@ running solver on 4 processors...
              original x:    300.000000
              original z:   -110.000000
  Closest estimate found:    0.00000000      m away
-  in element         6673
   in rank            2
-  at xi,gamma coordinates =   -1.5777218104420236E-029 -0.33333333333332860
+  in element         6673
+  in acoustic domain
+  at xi,gamma coordinates =   -3.1554436208840472E-029 -0.33333333333333592
  Distance from source:    1100.04541      m
 
+ maximum error in location of all the receivers:    2.84217094E-14  m
 
  end of receiver detection
 
  found a total of            8  receivers, this is okay
 
 
- preparing timerun...
+ Preparing timerun:
 
+ Movie simulation:
+   color images         - JPEG image type:           10
+   number of steps between outputs       :         1000
 
- Preparing array allocations
-   arrays for acoustic domains
-   wavefield initialization
-   done initialization
-
- Preparing PML
-   rotate PML activated   : F
-   backward reconstruction: F
-   total number of PML spectral elements:         2184
-
-   defining PML coefficients:
-     using mesh dimension : xmin/xmax =   -1000.00000     /   1000.00000
-                            zmin/zmax =   -750.000000     /   0.00000000
-     thickness PML: left   =    22.2222214
-                    right  =    22.2222214
-                    bottom =    22.5000000
-                    top    =    22.5000000
-     maximum dominant frequency (sources):    40.9090919      (includes Doppler shift)
-     PML coefficients all set
-
-
- Attenuation:
-   viscoelastic  attenuation: F
-   viscoacoustic attenuation: F
-
- Preparing mass matrices
-   initializing mass matrices
-   inverting mass matrices
-
- Preparing image coloring
+ Preparing image coloring: jpeg
+   allocating color image arrays
+   locating all the pixels of color images
+   total number of image pixels =       463980
+   done locating all the pixels of color images
+   coloring image background based on velocity
 
  Checking mesh and stability
 
@@ -646,57 +708,47 @@ running solver on 4 processors...
  *** Maximum suggested time step                 =    4.2635349295311358E-004
  *** Maximum suggested (Ricker) source frequency =    63.999999999999034
 
- *** for DT :    2.5000000000000001E-004
+ *** for DT :    2.50000012E-04
  *** Max CFL stability condition of the time scheme based on P wave velocity (must be below about 0.50 or so) =   0.29318394727857044
 
- ----
- Number of points per wavelength:
- ----
-   Source            2
-   maximum dominant source frequency =    75.000000000000000      Hz
+ mesh resolution output files:
+   written file: ./OUTPUT_FILES/mesh00000_res_minimum_period.vtk
+   written file: ./OUTPUT_FILES/mesh00000_res_dt_suggested.vtk
 
-   Nb pts / lambdaP_fmax min =    10.6666670
-   Nb pts / lambdaP_fmax max =    10.6666670
+ Preparing timerun constants
 
-   purely fluid regions
-
- -----------------------------------------
-
- histogram of min number of points per P wavelength in fluid regions:
-
- there are        27000  elements out of        27000  in fluid regions
-   (i.e.,    100.000000     % of the total)
-
- (too small = poor resolution of calculations -
-  too big = wasting memory and CPU time)
- (threshold value is around 4.5 points per S wavelength
-  in elastic regions and 5.5 per P wavelength in fluid regions):
-
-   10.5600004      -    10.5706663               0     0.00000000      %
-   10.5706663      -    10.5813332               0     0.00000000      %
-   10.5813332      -    10.5920000               0     0.00000000      %
-   10.5920000      -    10.6026669               0     0.00000000      %
-   10.6026669      -    10.6133337               0     0.00000000      %
-   10.6133337      -    10.6239996               0     0.00000000      %
-   10.6239996      -    10.6346664               0     0.00000000      %
-   10.6346664      -    10.6453333               0     0.00000000      %
-   10.6453333      -    10.6560001               0     0.00000000      %
-   10.6560001      -    10.6666670           25380     94.0000000      %
-   10.6666670      -    10.6773329            1620     6.00000000      %
-   10.6773329      -    10.6879997               0     0.00000000      %
-   10.6879997      -    10.6986666               0     0.00000000      %
-   10.6986666      -    10.7093334               0     0.00000000      %
-   10.7093334      -    10.7200003               0     0.00000000      %
-   10.7200003      -    10.7306671               0     0.00000000      %
-   10.7306671      -    10.7413330               0     0.00000000      %
-   10.7413330      -    10.7519999               0     0.00000000      %
-   10.7519999      -    10.7626667               0     0.00000000      %
-   10.7626667      -    10.7733335               0     0.00000000      %
-
- total percentage =    100.00000000000000       %
+ Preparing array allocations
+   arrays for acoustic domains
+   done initialization
 
 
- total number of elements in fluid and solid regions =        27000
+ Preparing PML
+   rotate PML activated   : F
+   backward reconstruction: F
+   total number of PML spectral elements:         2184
+
+   number of points on acoustic abs in this slice =          626
+   number of points on  elastic abs in this slice =            0
+
+   defining PML coefficients:
+     using mesh dimension : xmin/xmax =   -1000.00000     /   1000.00000
+                            zmin/zmax =   -750.000000     /   0.00000000
+     thickness PML: left   =    22.2222214
+                    right  =    22.2222214
+                    bottom =    22.5000000
+                    top    =    22.5000000
+     maximum dominant frequency (sources):    40.9090919      (includes Doppler shift)
+     PML coefficients all set
+
+ Attenuation:
+   viscoelastic  attenuation:  F (shear & bulk attenuation in elastic domains)
+   viscoacoustic attenuation:  F (bulk attenuation in acoustic domains)
+   poro-fluid    attenuation:  F (viscous attenuation in poroelastic domains)
+   permittivity  attenuation:  F (for electromagnetic materials)
+
+ Preparing mass matrices
+   initializing mass matrices
+   inverting mass matrices
 
 
  Preparing source time function
@@ -707,15 +759,22 @@ running solver on 4 processors...
    number of time steps:        12000
    number of sources   :            2
 
+   saving the source time function in a text file...
 
- Preparing image coloring
-   allocating color image arrays
-   locating all the pixels of color images
-   total number of image pixels =       463980
-   done locating all the pixels of color images
-   coloring image background based on vp
+ preparing optimized arrays
+   fused array done
 
- done, preparation successful
+ Elapsed time for preparing timerun in seconds =   0.15914000000000003
+
+ ************
+  time loop
+ ************
+               scheme:         Newmark
+
+            time step:    2.50000012E-04  s
+ number of time steps:        12000
+ total simulated time:    3.00000000      seconds
+ start time:  -0.00000000      seconds
 
 
  =========================================
@@ -726,31 +785,33 @@ running solver on 4 processors...
  Starting time iteration loop ...
 
 
- Your are using moving source capabilities. Please cite:
+ ****************************************************************************************
+ Your are using acoustic moving source capabilities. Please cite:
  Bottero (2018) Full-wave numerical simulation of T-waves and of moving acoustic sources
  PhD thesis
  https://tel.archives-ouvertes.fr/tel-01893011
+ ****************************************************************************************
 
  Note: subroutine compute_add_sources_acoustic_moving_sources can be greatly
  optimized. See what is done in init_moving_sources (in moving_sources_par.f90).
  This is easy to do and would probably greatly improve the computational time
 
 
-
  ******************************************************************
-Time step number       5   t =    0.0010 s out of   12000
+ Time step #       5 out of   12000
  ******************************************************************
+ Time:    0.0010 s
  We have done    3.33361104E-02 % of the total
  Max absolute value of scalar field in fluid (acoustic) =    11.2900238
- Elapsed time in seconds =    4.6999931335449219E-002
+ Elapsed time in seconds =    1.3999938964843750E-002
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
- Mean elapsed time per time step in seconds =    9.3999862670898441E-003
+ Mean elapsed time per time step in seconds =    2.7999877929687500E-003
  Time steps remaining =        11995
- Estimated remaining time in seconds =    112.75283527374268
- Estimated remaining time in hh:mm:ss =      0 h 01 m 52 s
- Estimated total run time in seconds =    112.79983520507812
- Estimated total run time in hh:mm:ss =      0 h 01 m 52 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    33.585853576660156
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 33 s
+ Estimated total run time in seconds =    33.599853515625000
+ Estimated total run time in hh:mm:ss =      0 h 00 m 33 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step            5
  drawing scalar image of the forward wavefield pressure...
@@ -759,271 +820,289 @@ Time step number       5   t =    0.0010 s out of   12000
 
 
  ******************************************************************
-Time step number    1000   t =    0.2497 s out of   12000
+ Time step #    1000 out of   12000
  ******************************************************************
+ Time:    0.2497 s
  We have done    8.32569408     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    462.662872
- Elapsed time in seconds =    8.3090000152587891
- Elapsed time in hh:mm:ss =      0 h 00 m 08 s
- Mean elapsed time per time step in seconds =    8.3090000152587894E-003
+ Max absolute value of scalar field in fluid (acoustic) =    462.656006
+ Elapsed time in seconds =    2.6639997959136963
+ Elapsed time in hh:mm:ss =      0 h 00 m 02 s
+ Mean elapsed time per time step in seconds =    2.6639997959136963E-003
  Time steps remaining =        11000
- Estimated remaining time in seconds =    91.399000167846680
- Estimated remaining time in hh:mm:ss =      0 h 01 m 31 s
- Estimated total run time in seconds =    99.708000183105469
- Estimated total run time in hh:mm:ss =      0 h 01 m 39 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    29.303997755050659
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 29 s
+ Estimated total run time in seconds =    31.967997550964355
+ Estimated total run time in hh:mm:ss =      0 h 00 m 31 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         1000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    439.89465332031250
+ Color image maximum amplitude =    439.88897705078125
  Color image created
 
 
  ******************************************************************
-Time step number    2000   t =    0.4998 s out of   12000
+ Time step #    2000 out of   12000
  ******************************************************************
+ Time:    0.4998 s
  We have done    16.6597214     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    507.778015
- Elapsed time in seconds =    16.868000030517578
- Elapsed time in hh:mm:ss =      0 h 00 m 16 s
- Mean elapsed time per time step in seconds =    8.4340000152587895E-003
+ Max absolute value of scalar field in fluid (acoustic) =    507.448730
+ Elapsed time in seconds =    5.3589999675750732
+ Elapsed time in hh:mm:ss =      0 h 00 m 05 s
+ Mean elapsed time per time step in seconds =    2.6794999837875368E-003
  Time steps remaining =        10000
- Estimated remaining time in seconds =    84.340000152587891
- Estimated remaining time in hh:mm:ss =      0 h 01 m 24 s
- Estimated total run time in seconds =    101.20800018310547
- Estimated total run time in hh:mm:ss =      0 h 01 m 41 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    26.794999837875366
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 26 s
+ Estimated total run time in seconds =    32.153999805450439
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         2000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    441.14642333984375
+ Color image maximum amplitude =    440.66629028320312
  Color image created
 
 
  ******************************************************************
-Time step number    3000   t =    0.7498 s out of   12000
+ Time step #    3000 out of   12000
  ******************************************************************
+ Time:    0.7498 s
  We have done    24.9937496     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    458.079102
- Elapsed time in seconds =    25.565999984741211
- Elapsed time in hh:mm:ss =      0 h 00 m 25 s
- Mean elapsed time per time step in seconds =    8.5219999949137371E-003
+ Max absolute value of scalar field in fluid (acoustic) =    458.067657
+ Elapsed time in seconds =    8.0439999103546143
+ Elapsed time in hh:mm:ss =      0 h 00 m 08 s
+ Mean elapsed time per time step in seconds =    2.6813333034515379E-003
  Time steps remaining =         9000
- Estimated remaining time in seconds =    76.697999954223633
- Estimated remaining time in hh:mm:ss =      0 h 01 m 16 s
- Estimated total run time in seconds =    102.26399993896484
- Estimated total run time in hh:mm:ss =      0 h 01 m 42 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    24.131999731063843
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 24 s
+ Estimated total run time in seconds =    32.175999641418457
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         3000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    435.42831420898438
+ Color image maximum amplitude =    435.39678955078125
  Color image created
 
 
  ******************************************************************
-Time step number    4000   t =    0.9998 s out of   12000
+ Time step #    4000 out of   12000
  ******************************************************************
+ Time:    0.9998 s
  We have done    33.3277779     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    477.308594
- Elapsed time in seconds =    34.453999996185303
- Elapsed time in hh:mm:ss =      0 h 00 m 34 s
- Mean elapsed time per time step in seconds =    8.6134999990463250E-003
+ Max absolute value of scalar field in fluid (acoustic) =    477.836853
+ Elapsed time in seconds =    10.721999883651733
+ Elapsed time in hh:mm:ss =      0 h 00 m 10 s
+ Mean elapsed time per time step in seconds =    2.6804999709129332E-003
  Time steps remaining =         8000
- Estimated remaining time in seconds =    68.907999992370605
- Estimated remaining time in hh:mm:ss =      0 h 01 m 08 s
- Estimated total run time in seconds =    103.36199998855591
- Estimated total run time in hh:mm:ss =      0 h 01 m 43 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    21.443999767303467
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 21 s
+ Estimated total run time in seconds =    32.165999650955200
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         4000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    447.55395507812500
+ Color image maximum amplitude =    447.88619995117188
  Color image created
 
 
  ******************************************************************
-Time step number    5000   t =    1.2497 s out of   12000
+ Time step #    5000 out of   12000
  ******************************************************************
+ Time:    1.2497 s
  We have done    41.6618042     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    465.234039
- Elapsed time in seconds =    44.256999969482422
- Elapsed time in hh:mm:ss =      0 h 00 m 44 s
- Mean elapsed time per time step in seconds =    8.8513999938964836E-003
+ Max absolute value of scalar field in fluid (acoustic) =    465.214111
+ Elapsed time in seconds =    13.406999826431274
+ Elapsed time in hh:mm:ss =      0 h 00 m 13 s
+ Mean elapsed time per time step in seconds =    2.6813999652862547E-003
  Time steps remaining =         7000
- Estimated remaining time in seconds =    61.959799957275386
- Estimated remaining time in hh:mm:ss =      0 h 01 m 01 s
- Estimated total run time in seconds =    106.21679992675780
- Estimated total run time in hh:mm:ss =      0 h 01 m 46 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    18.769799757003781
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 18 s
+ Estimated total run time in seconds =    32.176799583435056
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         5000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    442.24539184570312
+ Color image maximum amplitude =    442.29745483398438
  Color image created
 
 
  ******************************************************************
-Time step number    6000   t =    1.4998 s out of   12000
+ Time step #    6000 out of   12000
  ******************************************************************
+ Time:    1.4998 s
  We have done    49.9958344     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    497.330017
- Elapsed time in seconds =    53.334000110626221
- Elapsed time in hh:mm:ss =      0 h 00 m 53 s
- Mean elapsed time per time step in seconds =    8.8890000184377038E-003
+ Max absolute value of scalar field in fluid (acoustic) =    497.836792
+ Elapsed time in seconds =    16.101999998092651
+ Elapsed time in hh:mm:ss =      0 h 00 m 16 s
+ Mean elapsed time per time step in seconds =    2.6836666663487751E-003
  Time steps remaining =         6000
- Estimated remaining time in seconds =    53.334000110626221
- Estimated remaining time in hh:mm:ss =      0 h 00 m 53 s
- Estimated total run time in seconds =    106.66800022125244
- Estimated total run time in hh:mm:ss =      0 h 01 m 46 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    16.101999998092651
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 16 s
+ Estimated total run time in seconds =    32.203999996185303
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         6000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    455.38070678710938
+ Color image maximum amplitude =    455.28277587890625
  Color image created
 
 
  ******************************************************************
-Time step number    7000   t =    1.7498 s out of   12000
+ Time step #    7000 out of   12000
  ******************************************************************
+ Time:    1.7498 s
  We have done    58.3298607     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    418.410065
- Elapsed time in seconds =    62.542999982833862
- Elapsed time in hh:mm:ss =      0 h 01 m 02 s
- Mean elapsed time per time step in seconds =    8.9347142832619797E-003
+ Max absolute value of scalar field in fluid (acoustic) =    418.385620
+ Elapsed time in seconds =    18.786999940872192
+ Elapsed time in hh:mm:ss =      0 h 00 m 18 s
+ Mean elapsed time per time step in seconds =    2.6838571344103132E-003
  Time steps remaining =         5000
- Estimated remaining time in seconds =    44.673571416309898
- Estimated remaining time in hh:mm:ss =      0 h 00 m 44 s
- Estimated total run time in seconds =    107.21657139914376
- Estimated total run time in hh:mm:ss =      0 h 01 m 47 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    13.419285672051565
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 13 s
+ Estimated total run time in seconds =    32.206285612923757
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         7000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    414.95404052734375
+ Color image maximum amplitude =    414.99218750000000
  Color image created
 
 
  ******************************************************************
-Time step number    8000   t =    1.9998 s out of   12000
+ Time step #    8000 out of   12000
  ******************************************************************
+ Time:    1.9998 s
  We have done    66.6638870     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    1021.04926
- Elapsed time in seconds =    71.605999946594238
- Elapsed time in hh:mm:ss =      0 h 01 m 11 s
- Mean elapsed time per time step in seconds =    8.9507499933242796E-003
+ Max absolute value of scalar field in fluid (acoustic) =    1019.81628
+ Elapsed time in seconds =    21.478999853134155
+ Elapsed time in hh:mm:ss =      0 h 00 m 21 s
+ Mean elapsed time per time step in seconds =    2.6848749816417695E-003
  Time steps remaining =         4000
- Estimated remaining time in seconds =    35.802999973297119
- Estimated remaining time in hh:mm:ss =      0 h 00 m 35 s
- Estimated total run time in seconds =    107.40899991989136
- Estimated total run time in hh:mm:ss =      0 h 01 m 47 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    10.739499926567078
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 10 s
+ Estimated total run time in seconds =    32.218499779701233
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         8000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    869.01818847656250
+ Color image maximum amplitude =    868.44158935546875
  Color image created
 
 
  ******************************************************************
-Time step number    9000   t =    2.2498 s out of   12000
+ Time step #    9000 out of   12000
  ******************************************************************
+ Time:    2.2498 s
  We have done    74.9979172     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    516.319275
- Elapsed time in seconds =    80.717999935150146
- Elapsed time in hh:mm:ss =      0 h 01 m 20 s
- Mean elapsed time per time step in seconds =    8.9686666594611282E-003
+ Max absolute value of scalar field in fluid (acoustic) =    516.301819
+ Elapsed time in seconds =    24.164999961853027
+ Elapsed time in hh:mm:ss =      0 h 00 m 24 s
+ Mean elapsed time per time step in seconds =    2.6849999957614477E-003
  Time steps remaining =         3000
- Estimated remaining time in seconds =    26.905999978383385
- Estimated remaining time in hh:mm:ss =      0 h 00 m 26 s
- Estimated total run time in seconds =    107.62399991353354
- Estimated total run time in hh:mm:ss =      0 h 01 m 47 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    8.0549999872843436
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 08 s
+ Estimated total run time in seconds =    32.219999949137375
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step         9000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    493.69204711914062
+ Color image maximum amplitude =    493.70285034179688
  Color image created
 
 
  ******************************************************************
-Time step number   10000   t =    2.4998 s out of   12000
+ Time step #   10000 out of   12000
  ******************************************************************
+ Time:    2.4998 s
  We have done    83.3319473     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    485.472137
- Elapsed time in seconds =    90.450000047683716
- Elapsed time in hh:mm:ss =      0 h 01 m 30 s
- Mean elapsed time per time step in seconds =    9.0450000047683724E-003
+ Max absolute value of scalar field in fluid (acoustic) =    485.727081
+ Elapsed time in seconds =    26.855999946594238
+ Elapsed time in hh:mm:ss =      0 h 00 m 26 s
+ Mean elapsed time per time step in seconds =    2.6855999946594237E-003
  Time steps remaining =         2000
- Estimated remaining time in seconds =    18.090000009536745
- Estimated remaining time in hh:mm:ss =      0 h 00 m 18 s
- Estimated total run time in seconds =    108.54000005722045
- Estimated total run time in hh:mm:ss =      0 h 01 m 48 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    5.3711999893188471
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 05 s
+ Estimated total run time in seconds =    32.227199935913085
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step        10000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    448.23983764648438
+ Color image maximum amplitude =    448.09719848632812
  Color image created
 
 
  ******************************************************************
-Time step number   11000   t =    2.7498 s out of   12000
+ Time step #   11000 out of   12000
  ******************************************************************
+ Time:    2.7498 s
  We have done    91.6659698     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    452.120483
- Elapsed time in seconds =    100.20099997520447
- Elapsed time in hh:mm:ss =      0 h 01 m 40 s
- Mean elapsed time per time step in seconds =    9.1091818159276788E-003
+ Max absolute value of scalar field in fluid (acoustic) =    452.295532
+ Elapsed time in seconds =    29.546999931335449
+ Elapsed time in hh:mm:ss =      0 h 00 m 29 s
+ Mean elapsed time per time step in seconds =    2.6860909028486772E-003
  Time steps remaining =         1000
- Estimated remaining time in seconds =    9.1091818159276787
- Estimated remaining time in hh:mm:ss =      0 h 00 m 09 s
- Estimated total run time in seconds =    109.31018179113215
- Estimated total run time in hh:mm:ss =      0 h 01 m 49 s
- The run will finish approximately on: Mon Jun 29, 2020 15:41
+ Estimated remaining time in seconds =    2.6860909028486772
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
+ Estimated total run time in seconds =    32.233090834184125
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
+ The run will finish approximately on: Mon Jun 30, 2025 16:42
 
  Creating color image of size         1110  x          440  for time step        11000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    419.84100341796875
+ Color image maximum amplitude =    419.93554687500000
  Color image created
 
 
  ******************************************************************
-Time step number   12000   t =    2.9998 s out of   12000
+ Time step #   12000 out of   12000
  ******************************************************************
+ Time:    2.9998 s
  We have done    100.000000     % of the total
- Max absolute value of scalar field in fluid (acoustic) =    442.075012
- Elapsed time in seconds =    109.63299989700317
- Elapsed time in hh:mm:ss =      0 h 01 m 49 s
- Mean elapsed time per time step in seconds =    9.1360833247502646E-003
+ Max absolute value of scalar field in fluid (acoustic) =    441.413483
+ Elapsed time in seconds =    32.227999925613403
+ Elapsed time in hh:mm:ss =      0 h 00 m 32 s
+ Mean elapsed time per time step in seconds =    2.6856666604677835E-003
  Time steps remaining =            0
  Estimated remaining time in seconds =    0.0000000000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    109.63299989700317
- Estimated total run time in hh:mm:ss =      0 h 01 m 49 s
+ Estimated total run time in seconds =    32.227999925613403
+ Estimated total run time in hh:mm:ss =      0 h 00 m 32 s
 
 
- Total number of time steps written:        12000
- Writing the seismograms by master proc alone took   0.242578000      seconds
+ Total number of time steps done:        12000
+ Writing the seismograms by main proc alone took   0.102160998      seconds
 
  Creating color image of size         1110  x          440  for time step        12000
  drawing scalar image of the forward wavefield pressure...
- Color image maximum amplitude =    413.54995727539062
+ Color image maximum amplitude =    413.13449096679688
  Color image created
 
 
- Total duration of the time loop in seconds =    109.939056      s
+ Time loop finished. Timing info:
+ Total duration of the time loop in seconds  =    32.3486214      s
+ Total duration of the time loop in hh:mm:ss =      0 h 00 m 32 s
+
  Total number of time steps =        12000
- Average duration of a time step of the time loop =    9.16158780E-03  s
- Total number of spectral elements in the mesh =         7896
-     of which         7426  are regular elements
-     and          470  are PML elements.
- Average duration of the calculation per spectral element =    1.16028218E-06  s
+ Average duration of a time step of the time loop =    2.69571855E-03  s
+
+ Total number of spectral elements in the mesh =        27000
+     of which        24816  are regular elements
+     and         2184  are PML elements.
+ Average duration of the calculation per spectral element =    9.98414293E-08  s
 
 
- Total duration of the timeloop in seconds, measured using
- date and time of the system :    109.939003      s
+ Total duration of the timeloop measured using date and time of the system
+     in seconds     =    32.3520012      s
+     in in hh:mm:ss =      0 h 00 m 32 s
+
 
 
  -------------------------------------------------------------------------------
@@ -1034,11 +1113,11 @@ Time step number   12000   t =    2.9998 s out of   12000
  Example of simulation with moving sources
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 29 - 06 - 2020                                 T i m e  : 15:41:01
+ D a t e : 30 - 06 - 2025                                 T i m e  : 16:41:36
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
 see results in directory: OUTPUT_FILES/
 
 done
-Mon Jun 29 15:41:02 CEST 2020
+Mon Jun 30 16:41:36 CEST 2025

@@ -20,7 +20,7 @@ running mesher...
  Receiver lines:
    Nb of line sets =            1
 
- Parameter file successfully read 
+ Parameter file successfully read
 
 
  Mesh from internal meshing:
@@ -29,8 +29,8 @@ running mesher...
 
  --------
  Material #           1  isotropic
- rho,cp,cs   =    2200.0000000000000        3200.0000000000000        1847.5000000000000     
- Qkappa, Qmu =    20.000000000000000        10.000000000000000     
+ rho,cp,cs   =    2200.0000000000000        3200.0000000000000        1847.5000000000000
+ Qkappa, Qmu =    20.000000000000000        10.000000000000000
  Material is solid
  --------
 
@@ -53,12 +53,12 @@ running mesher...
  IZ from            1  to           50
  Material #            1  isotropic
  Material is solid
- vp     =    3200.00000    
- vs     =    1847.50000    
- rho    =    2200.00000    
- Poisson's ratio =   0.250008464    
- QKappa =    20.0000000    
- Qmu    =    10.0000000    
+ vp     =    3200.00000
+ vs     =    1847.50000
+ rho    =    2200.00000
+ Poisson's ratio =   0.250008464
+ QKappa =    20.0000000
+ Qmu    =    10.0000000
  ------
 
  creating mesh from internal meshing:
@@ -74,23 +74,23 @@ running mesher...
  Reading in SOURCE file...
 
  Source           1
-   Position xs, zs =    1000.0000000000000       -1000.0000000000000     
+   Position xs, zs =    1000.0000000000000       -1000.0000000000000
 
    Source type:            2
    (1=force, 2=moment tensor)
 
    Moment tensor source:
-   Mxx of the source =    0.0000000000000000     
-   Mzz of the source =    0.0000000000000000     
-   Mxz of the source =    1.0000000000000000     
+   Mxx of the source =    0.0000000000000000
+   Mzz of the source =    0.0000000000000000
+   Mxz of the source =    1.0000000000000000
 
    Time function type:           1
    ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
      5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Ricker wavelet (second-derivative):
-   Frequency, delay   =    10.000000000000000        0.0000000000000000     
-   Multiplying factor =    100000000.00000000     
+   Frequency, delay   =    10.000000000000000        0.0000000000000000
+   Multiplying factor =    100000000.00000000
 
  all sources are okay
 
@@ -108,9 +108,9 @@ running mesher...
    number of elements with absorbing boundaries =          200
 
 
- Mesh dimensions: 
-   Min and max value of X in the grid =    0.0000000000000000        2000.0000000000000     
-   Min and max value of Z in the grid =   -2000.0000000000000        0.0000000000000000     
+ Mesh dimensions:
+   Min and max value of X in the grid =    0.0000000000000000        2000.0000000000000
+   Min and max value of Z in the grid =   -2000.0000000000000        0.0000000000000000
 
  checking mesh elements for invalid Jacobians...
    number of elements:         2500
@@ -157,7 +157,7 @@ running mesher...
 
  Target positions (x,z) of the            1  receivers
 
- Receiver            1  =    1500.0000000000000       -500.00000000000000     
+ Receiver            1  =    1500.0000000000000       -500.00000000000000
 
  This will be a serial simulation
 
@@ -194,28 +194,28 @@ running solver...
  Receiver lines:
    Nb of line sets =            1
 
- Parameter file successfully read 
+ Parameter file successfully read
 
  Reading in SOURCE file...
 
  Source           1
-   Position xs, zs =    1000.0000000000000       -1000.0000000000000     
+   Position xs, zs =    1000.0000000000000       -1000.0000000000000
 
    Source type:            2
    (1=force, 2=moment tensor)
 
    Moment tensor source:
-   Mxx of the source =    0.0000000000000000     
-   Mzz of the source =    0.0000000000000000     
-   Mxz of the source =    1.0000000000000000     
+   Mxx of the source =    0.0000000000000000
+   Mzz of the source =    0.0000000000000000
+   Mxz of the source =    1.0000000000000000
 
    Time function type:           1
    ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
      5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Ricker wavelet (second-derivative):
-   Frequency, delay   =    10.000000000000000        0.0000000000000000     
-   Multiplying factor =    100000000.00000000     
+   Frequency, delay   =    10.000000000000000        0.0000000000000000
+   Multiplying factor =    100000000.00000000
 
  all sources are okay
 
@@ -223,7 +223,7 @@ running solver...
 
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- Program SPECFEM2D: 
+ Program SPECFEM2D:
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
  Test for 2D P-SV elastic
@@ -246,11 +246,11 @@ running solver...
 
      Display frequency . . . (NTSTEP_BETWEEN_OUTPUT_INFO) =    100
      Color display . . . . . . . . . . . . . . . (colors) =      1
-      == 0     black and white display              
-      == 1     color display                        
+      == 0     black and white display
+      == 1     color display
      Numbered mesh . . . . . . . . . . . . . . .(numbers) =      0
-      == 0     do not number the mesh               
-      == 1     number the mesh                      
+      == 0     do not number the mesh
+      == 1     number the mesh
 
 
  C o n t r o l
@@ -282,7 +282,7 @@ running solver...
      Subsampling of velocity model display. (subsamp_postscript) =      1
 
 
- I t e r a t i o n s 
+ I t e r a t i o n s
  ===================
 
      Number of time iterations . . . . .(NSTEP) =    1500
@@ -391,8 +391,8 @@ running solver...
    in reality they have more degrees of freedom)
 
  Mesh dimensions:
-   Xmin,Xmax of the whole mesh =    0.0000000000000000        2000.0000000000000     
-   Zmin,Zmax of the whole mesh =   -2000.0000000000000        0.0000000000000000     
+   Xmin,Xmax of the whole mesh =    0.0000000000000000        2000.0000000000000
+   Zmin,Zmax of the whole mesh =   -2000.0000000000000        0.0000000000000000
 
  Material properties:
    MODEL                   : default
@@ -401,9 +401,9 @@ running solver...
 
    setting up material arrays
    elasticitiy:
-     rho : min/max =    2200.00000     /   2200.00000    
-     vs  : min/max =    1847.50000     /   1847.50000    
-     vp  : min/max =    3200.00000     /   3200.00000    
+     rho : min/max =    2200.00000     /   2200.00000
+     vs  : min/max =    1847.50000     /   1847.50000
+     vp  : min/max =    3200.00000     /   3200.00000
 
    all material arrays done
 
@@ -461,15 +461,15 @@ running solver...
      Ricker wavelet (second-derivative)
 
      2D seismic moment M0 =    10000000.0     (dyne-cm)
-         moment magnitude =   -6.03333330    
+         moment magnitude =   -6.03333330
 
  determining source onset times...
    simulation start time t0 =  -0.12000000000000000       s
 
    Source:            1
-     Onset time. . . . . . =  -0.12000000000000000     
-     Fundamental period. . =   0.10000000000000001     
-     Fundamental frequency =    10.000000000000000     
+     Onset time. . . . . . =  -0.12000000000000000
+     Fundamental period. . =   0.10000000000000001
+     Fundamental frequency =    10.000000000000000
      The onset time is ok
 
  Source:            1
@@ -478,13 +478,13 @@ running solver...
  *******************************
 
  Moment-tensor source:
-             original x:    1000.00000    
-             original z:   -1000.00000    
+             original x:    1000.00000
+             original z:   -1000.00000
  Closest estimate found:    0.00000000      m away
   in rank            0
   in element         1225
   in elastic domain
-  at xi,gamma coordinates =    1.0000000000000000        1.0000000000000000     
+  at xi,gamma coordinates =    1.0000000000000000        1.0000000000000000
 
 
  end of moment-tensor source detection
@@ -502,14 +502,14 @@ running solver...
  reading receiver information from the ./DATA/STATIONS file
 
 
- Station #            1     AA      S0001                           
-             original x:    1500.00000    
-             original z:   -500.000000    
+ Station #            1     AA      S0001
+             original x:    1500.00000
+             original z:   -500.000000
  Closest estimate found:    0.00000000      m away
   in rank            0
   in element         1888
   in elastic domain
-  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000     
+  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000
  Distance from source:    707.106812      m
 
  maximum error in location of all the receivers:    0.00000000      m
@@ -539,9 +539,9 @@ running solver...
  Checking mesh and stability
 
  ********
- Model: P (or PI) velocity min,max =    3200.0000000000000        3200.0000000000000     
- Model: S velocity min,max         =    1847.4999717062367        1847.4999717062367     
- Model: density min,max            =    2200.0000000000000        2200.0000000000000     
+ Model: P (or PI) velocity min,max =    3200.0000000000000        3200.0000000000000
+ Model: S velocity min,max         =    1847.4999717062367        1847.4999717062367
+ Model: density min,max            =    2200.0000000000000        2200.0000000000000
  ********
 
 
@@ -549,21 +549,21 @@ running solver...
  *** Verification of simulation parameters ***
  *********************************************
 
- *** Max grid size =    40.000000000000227     
- *** Min grid size =    39.999999999999773     
- *** Max/min ratio =    1.0000000000000113     
+ *** Max grid size =    40.000000000000227
+ *** Min grid size =    39.999999999999773
+ *** Max/min ratio =    1.0000000000000113
 
- *** Minimum GLL point distance  =    6.9069265858404165     
- *** Average GLL point distance  =    9.9999999999999432     
+ *** Minimum GLL point distance  =    6.9069265858404165
+ *** Average GLL point distance  =    9.9999999999999432
 
  *** Minimum period resolved     =    2.7063599873196953E-002
  *** Maximum frequency resolved  =    36.949999434124528      Hz
 
  *** Maximum suggested time step                 =    1.0792072790375652E-003
- *** Maximum suggested (Ricker) source frequency =    14.779999773649813     
+ *** Maximum suggested (Ricker) source frequency =    14.779999773649813
 
  *** for DT :    7.99999980E-04
- *** Max CFL stability condition of the time scheme based on P wave velocity (must be below about 0.50 or so) =   0.37064242223858906     
+ *** Max CFL stability condition of the time scheme based on P wave velocity (must be below about 0.50 or so) =   0.37064242223858906
 
  ----
  Number of points per wavelength:
@@ -572,11 +572,11 @@ running solver...
    maximum dominant source frequency =    25.000000000000000      Hz
 
 
-   Nb pts / lambdaP_fmax min =    12.8000002    
-   Nb pts / lambdaP_fmax max =    12.8000002    
+   Nb pts / lambdaP_fmax min =    12.8000002
+   Nb pts / lambdaP_fmax max =    12.8000002
 
-   Nb pts / lambdaS_fmax min =    7.38999987    
-   Nb pts / lambdaS_fmax max =    7.38999987    
+   Nb pts / lambdaS_fmax min =    7.38999987
+   Nb pts / lambdaS_fmax max =    7.38999987
 
  -----------------------------------------
 
@@ -649,13 +649,13 @@ running solver...
    number of points on  elastic abs in this slice =          800
 
    defining PML coefficients:
-     using mesh dimension : xmin/xmax =    0.00000000     /   2000.00000    
-                            zmin/zmax =   -2000.00000     /   0.00000000    
-     thickness PML: left   =    120.000000    
-                    right  =    120.000000    
-                    bottom =    120.000000    
-                    top    =    120.000000    
-     maximum dominant frequency (sources):    10.0000000    
+     using mesh dimension : xmin/xmax =    0.00000000     /   2000.00000
+                            zmin/zmax =   -2000.00000     /   0.00000000
+     thickness PML: left   =    120.000000
+                    right  =    120.000000
+                    bottom =    120.000000
+                    top    =    120.000000
+     maximum dominant frequency (sources):    10.0000000
      PML coefficients all set
 
  Attenuation:
@@ -682,7 +682,7 @@ running solver...
  preparing optimized arrays
    fused array done
 
- Elapsed time for preparing timerun in seconds =   0.10146100000000002     
+ Elapsed time for preparing timerun in seconds =   0.10146100000000002
 
  ************
   time loop
@@ -713,17 +713,17 @@ running solver...
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    1.5999794006347657E-003
  Time steps remaining =         1495
- Estimated remaining time in seconds =    2.3919692039489746     
+ Estimated remaining time in seconds =    2.3919692039489746
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    2.3999691009521484     
+ Estimated total run time in seconds =    2.3999691009521484
  Estimated total run time in hh:mm:ss =      0 h 00 m 02 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step            5
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    4.2077194185130951E-008
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -742,21 +742,21 @@ running solver...
  Time: -4.080000E-02 s
  We have done    6.60440302     % of the total
  Max norm of vector field in solid (elastic) =    4.50066553E-04
- Elapsed time in seconds =   0.21700000762939453     
+ Elapsed time in seconds =   0.21700000762939453
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    2.1700000762939452E-003
  Time steps remaining =         1400
- Estimated remaining time in seconds =    3.0380001068115234     
+ Estimated remaining time in seconds =    3.0380001068115234
  Estimated remaining time in hh:mm:ss =      0 h 00 m 03 s
- Estimated total run time in seconds =    3.2550001144409180     
+ Estimated total run time in seconds =    3.2550001144409180
  Estimated total run time in hh:mm:ss =      0 h 00 m 03 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          100
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    4.5462729180021207E-004
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -775,21 +775,21 @@ running solver...
  Time:    0.0392 s
  We have done    13.2755175     % of the total
  Max norm of vector field in solid (elastic) =    4.58435155E-04
- Elapsed time in seconds =   0.43199992179870605     
+ Elapsed time in seconds =   0.43199992179870605
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    2.1599996089935302E-003
  Time steps remaining =         1300
- Estimated remaining time in seconds =    2.8079994916915894     
+ Estimated remaining time in seconds =    2.8079994916915894
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    3.2399994134902954     
+ Estimated total run time in seconds =    3.2399994134902954
  Estimated total run time in hh:mm:ss =      0 h 00 m 03 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          200
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    4.5868631319323071E-004
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -808,21 +808,21 @@ running solver...
  Time:    0.1192 s
  We have done    19.9466305     % of the total
  Max norm of vector field in solid (elastic) =    3.19122810E-05
- Elapsed time in seconds =   0.65599989891052246     
+ Elapsed time in seconds =   0.65599989891052246
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    2.1866663297017415E-003
  Time steps remaining =         1200
- Estimated remaining time in seconds =    2.6239995956420898     
+ Estimated remaining time in seconds =    2.6239995956420898
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    3.2799994945526123     
+ Estimated total run time in seconds =    3.2799994945526123
  Estimated total run time in hh:mm:ss =      0 h 00 m 03 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          300
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    3.2167259651872620E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -841,21 +841,21 @@ running solver...
  Time:    0.1992 s
  We have done    26.6177444     % of the total
  Max norm of vector field in solid (elastic) =    2.55766354E-05
- Elapsed time in seconds =   0.96399998664855957     
+ Elapsed time in seconds =   0.96399998664855957
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    2.4099999666213987E-003
  Time steps remaining =         1100
- Estimated remaining time in seconds =    2.6509999632835384     
+ Estimated remaining time in seconds =    2.6509999632835384
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    3.6149999499320979     
+ Estimated total run time in seconds =    3.6149999499320979
  Estimated total run time in hh:mm:ss =      0 h 00 m 03 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          400
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    2.5512417778568094E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -874,21 +874,21 @@ running solver...
  Time:    0.2792 s
  We have done    33.2888603     % of the total
  Max norm of vector field in solid (elastic) =    2.15364144E-05
- Elapsed time in seconds =    1.3569998741149902     
+ Elapsed time in seconds =    1.3569998741149902
  Elapsed time in hh:mm:ss =      0 h 00 m 01 s
  Mean elapsed time per time step in seconds =    2.7139997482299805E-003
  Time steps remaining =         1000
- Estimated remaining time in seconds =    2.7139997482299805     
+ Estimated remaining time in seconds =    2.7139997482299805
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    4.0709996223449707     
+ Estimated total run time in seconds =    4.0709996223449707
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          500
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    2.1366515284185165E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -907,21 +907,21 @@ running solver...
  Time:    0.3592 s
  We have done    39.9599724     % of the total
  Max norm of vector field in solid (elastic) =    1.88204340E-05
- Elapsed time in seconds =    1.8059999942779541     
+ Elapsed time in seconds =    1.8059999942779541
  Elapsed time in hh:mm:ss =      0 h 00 m 01 s
  Mean elapsed time per time step in seconds =    3.0099999904632567E-003
  Time steps remaining =          900
- Estimated remaining time in seconds =    2.7089999914169312     
+ Estimated remaining time in seconds =    2.7089999914169312
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    4.5149999856948853     
+ Estimated total run time in seconds =    4.5149999856948853
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          600
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    1.8939092115034655E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -940,21 +940,21 @@ running solver...
  Time:    0.4392 s
  We have done    46.6310883     % of the total
  Max norm of vector field in solid (elastic) =    1.68781826E-05
- Elapsed time in seconds =    2.2099997997283936     
+ Elapsed time in seconds =    2.2099997997283936
  Elapsed time in hh:mm:ss =      0 h 00 m 02 s
  Mean elapsed time per time step in seconds =    3.1571425710405624E-003
  Time steps remaining =          800
- Estimated remaining time in seconds =    2.5257140568324501     
+ Estimated remaining time in seconds =    2.5257140568324501
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    4.7357138565608441     
+ Estimated total run time in seconds =    4.7357138565608441
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          700
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    1.6743422197369942E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -973,21 +973,21 @@ running solver...
  Time:    0.5192 s
  We have done    53.3022003     % of the total
  Max norm of vector field in solid (elastic) =    1.10866067E-05
- Elapsed time in seconds =    2.5759999752044678     
+ Elapsed time in seconds =    2.5759999752044678
  Elapsed time in hh:mm:ss =      0 h 00 m 02 s
  Mean elapsed time per time step in seconds =    3.2199999690055848E-003
  Time steps remaining =          700
- Estimated remaining time in seconds =    2.2539999783039093     
+ Estimated remaining time in seconds =    2.2539999783039093
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    4.8299999535083771     
+ Estimated total run time in seconds =    4.8299999535083771
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          800
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    1.1008720190585681E-005
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1006,21 +1006,21 @@ running solver...
  Time:    0.5992 s
  We have done    59.9733162     % of the total
  Max norm of vector field in solid (elastic) =    4.57623446E-06
- Elapsed time in seconds =    2.9299998283386230     
+ Elapsed time in seconds =    2.9299998283386230
  Elapsed time in hh:mm:ss =      0 h 00 m 02 s
  Mean elapsed time per time step in seconds =    3.2555553648206921E-003
  Time steps remaining =          600
- Estimated remaining time in seconds =    1.9533332188924153     
+ Estimated remaining time in seconds =    1.9533332188924153
  Estimated remaining time in hh:mm:ss =      0 h 00 m 01 s
- Estimated total run time in seconds =    4.8833330472310381     
+ Estimated total run time in seconds =    4.8833330472310381
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step          900
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    4.5258529773834858E-006
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1039,13 +1039,13 @@ running solver...
  Time:    0.6792 s
  We have done    66.6444321     % of the total
  Max norm of vector field in solid (elastic) =    1.43739510E-06
- Elapsed time in seconds =    3.2599999904632568     
+ Elapsed time in seconds =    3.2599999904632568
  Elapsed time in hh:mm:ss =      0 h 00 m 03 s
  Mean elapsed time per time step in seconds =    3.2599999904632570E-003
  Time steps remaining =          500
- Estimated remaining time in seconds =    1.6299999952316284     
+ Estimated remaining time in seconds =    1.6299999952316284
  Estimated remaining time in hh:mm:ss =      0 h 00 m 01 s
- Estimated total run time in seconds =    4.8899999856948853     
+ Estimated total run time in seconds =    4.8899999856948853
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
@@ -1056,8 +1056,8 @@ running solver...
 
  Writing PostScript vector plot for time step         1000
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    1.4184872788762249E-006
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1076,21 +1076,21 @@ running solver...
  Time:    0.7592 s
  We have done    73.3155441     % of the total
  Max norm of vector field in solid (elastic) =    8.62808491E-08
- Elapsed time in seconds =    3.5569999217987061     
+ Elapsed time in seconds =    3.5569999217987061
  Elapsed time in hh:mm:ss =      0 h 00 m 03 s
  Mean elapsed time per time step in seconds =    3.2336362925442781E-003
  Time steps remaining =          400
- Estimated remaining time in seconds =    1.2934545170177112     
+ Estimated remaining time in seconds =    1.2934545170177112
  Estimated remaining time in hh:mm:ss =      0 h 00 m 01 s
- Estimated total run time in seconds =    4.8504544388164170     
+ Estimated total run time in seconds =    4.8504544388164170
  Estimated total run time in hh:mm:ss =      0 h 00 m 04 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step         1100
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    8.4486800183697091E-008
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1109,21 +1109,21 @@ running solver...
  Time:    0.8392 s
  We have done    79.9866562     % of the total
  Max norm of vector field in solid (elastic) =    7.78462006E-09
- Elapsed time in seconds =    4.0539999008178711     
+ Elapsed time in seconds =    4.0539999008178711
  Elapsed time in hh:mm:ss =      0 h 00 m 04 s
  Mean elapsed time per time step in seconds =    3.3783332506815591E-003
  Time steps remaining =          300
- Estimated remaining time in seconds =    1.0134999752044678     
+ Estimated remaining time in seconds =    1.0134999752044678
  Estimated remaining time in hh:mm:ss =      0 h 00 m 01 s
- Estimated total run time in seconds =    5.0674998760223389     
+ Estimated total run time in seconds =    5.0674998760223389
  Estimated total run time in hh:mm:ss =      0 h 00 m 05 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step         1200
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    7.8009599813308813E-009
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1142,21 +1142,21 @@ running solver...
  Time:    0.9192 s
  We have done    86.6577682     % of the total
  Max norm of vector field in solid (elastic) =    9.50542756E-09
- Elapsed time in seconds =    4.5909998416900635     
+ Elapsed time in seconds =    4.5909998416900635
  Elapsed time in hh:mm:ss =      0 h 00 m 04 s
  Mean elapsed time per time step in seconds =    3.5315383397615872E-003
  Time steps remaining =          200
- Estimated remaining time in seconds =   0.70630766795231748     
+ Estimated remaining time in seconds =   0.70630766795231748
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    5.2973075096423807     
+ Estimated total run time in seconds =    5.2973075096423807
  Estimated total run time in hh:mm:ss =      0 h 00 m 05 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step         1300
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    9.1512321503855347E-009
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1175,21 +1175,21 @@ running solver...
  Time:    0.9992 s
  We have done    93.3288879     % of the total
  Max norm of vector field in solid (elastic) =    1.35995801E-08
- Elapsed time in seconds =    5.1250000000000000     
+ Elapsed time in seconds =    5.1250000000000000
  Elapsed time in hh:mm:ss =      0 h 00 m 05 s
  Mean elapsed time per time step in seconds =    3.6607142857142858E-003
  Time steps remaining =          100
- Estimated remaining time in seconds =   0.36607142857142860     
+ Estimated remaining time in seconds =   0.36607142857142860
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    5.4910714285714288     
+ Estimated total run time in seconds =    5.4910714285714288
  Estimated total run time in hh:mm:ss =      0 h 00 m 05 s
  The run will finish approximately on: Mon Jun 30, 2025 14:57
 
 
  Writing PostScript vector plot for time step         1400
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    1.3501803503694808E-008
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1208,13 +1208,13 @@ running solver...
  Time:    1.0792 s
  We have done    100.000000     % of the total
  Max norm of vector field in solid (elastic) =    6.90086210E-09
- Elapsed time in seconds =    5.6569998264312744     
+ Elapsed time in seconds =    5.6569998264312744
  Elapsed time in hh:mm:ss =      0 h 00 m 05 s
  Mean elapsed time per time step in seconds =    3.7713332176208497E-003
  Time steps remaining =            0
- Estimated remaining time in seconds =    0.0000000000000000     
+ Estimated remaining time in seconds =    0.0000000000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    5.6569998264312744     
+ Estimated total run time in seconds =    5.6569998264312744
  Estimated total run time in hh:mm:ss =      0 h 00 m 05 s
 
 
@@ -1224,8 +1224,8 @@ running solver...
 
  Writing PostScript vector plot for time step         1500
  drawing displacement vector as small arrows...
-   X min, max =    0.0000000000000000        2000.0000000000000     
-   Z min, max =   -2000.0000000000000        0.0000000000000000     
+   X min, max =    0.0000000000000000        2000.0000000000000
+   Z min, max =   -2000.0000000000000        0.0000000000000000
    Max norm =    6.8742000962686389E-009
    Interpolating the vector field...
    Interpolation uniform grid element         1000  on processor core 0
@@ -1259,7 +1259,7 @@ running solver...
 
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- Program SPECFEM2D: 
+ Program SPECFEM2D:
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
  Test for 2D P-SV elastic
