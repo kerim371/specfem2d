@@ -67,13 +67,14 @@
         ! adds source term
         ! note: we use sourcearrays for both collocated forces and moment tensors
         !       (see setup in setup_source_interpolation() routine)
+        !       the sign conventions follows the implementation of elastic source terms.
         if (P_SV) then
           do j = 1,NGLLZ
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
               ! 2D: x-component uses array(1,..) and z-component (2,..)
-              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
-              accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) - sourcearrays(2,i,j,i_source) * stf_used
+              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + sourcearrays(1,i,j,i_source) * stf_used
+              accel_electromagnetic(2,iglob) = accel_electromagnetic(2,iglob) + sourcearrays(2,i,j,i_source) * stf_used
             enddo
           enddo
         else
@@ -81,7 +82,7 @@
             do i = 1,NGLLX
               iglob = ibool(i,j,ispec)
               ! 2D: y-component uses array(1,..)
-              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) - sourcearrays(1,i,j,i_source) * stf_used
+              accel_electromagnetic(1,iglob) = accel_electromagnetic(1,iglob) + sourcearrays(1,i,j,i_source) * stf_used
             enddo
           enddo
         endif
