@@ -302,7 +302,8 @@
       write(IMAIN,*) '  Time function type:',time_function_type(i_source)
       write(IMAIN,*) '  ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,'
       write(IMAIN,*) '    5=Heaviside,            6=Ocean type I,    7=Ocean type II,     8=Read from file,  9=Burst,'
-      write(IMAIN,*) '   10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )'
+      write(IMAIN,*) '   10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe,'
+      write(IMAIN,*) '   15=Integrated Yoffe )'
 
       select case (time_function_type(i_source))
       case (0)
@@ -358,6 +359,13 @@
         write(IMAIN,*) '  delay     = ',tshift_src(i_source)
       case (14)
         write(IMAIN,*) '  Regularized Yoffe:'
+        write(IMAIN,*) '  Frequency        = ',f0_source(i_source), &
+                       ' (slip acceleration duration: T_acc = ',sngl(1.d0/f0_source(i_source)),' s)'
+        write(IMAIN,*) '  burst band width = ',burst_band_width(i_source), &
+                       ' (effective final duration  : T_eff = ',sngl(1.d0/burst_band_width(i_source)),' s)'
+        write(IMAIN,*) '  delay            = ',tshift_src(i_source)
+      case (15)
+        write(IMAIN,*) '  Integrated Regularized Yoffe:'
         write(IMAIN,*) '  Frequency        = ',f0_source(i_source), &
                        ' (slip acceleration duration: T_acc = ',sngl(1.d0/f0_source(i_source)),' s)'
         write(IMAIN,*) '  burst band width = ',burst_band_width(i_source), &

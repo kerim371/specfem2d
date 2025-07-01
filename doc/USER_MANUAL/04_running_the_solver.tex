@@ -143,6 +143,13 @@ This gives the wavelet of Figure~\ref{fig:RickerWavelet}.
 \label{fig:RickerWavelet}
 \end{figure}
 %%
+Note that the Gaussian function (type \texttt{3}) is defined as the second integral of this Ricker wavelet.
+This allows the \texttt{USE\_TRICK\_FOR\_BETTER\_PRESSURE} feature in \texttt{DATA/Par\_file} to compute pressure as second-order accurate solution for acoustic simulations.
+However, this resulting Gaussian function will have a minus sign in front and thus have values less or equal to zero.
+Additional source time functions include a normalized Gaussian (type \texttt{0}; normalized with respect to the integral value),
+ocean acoustic wavelets (types \texttt{6} and \texttt{7}), an external file (type \texttt{8}), a Burst wavelet (type \texttt{9}),
+a Sinusoidal function (type \texttt{10}), the Marmousi Ormsby wavelet (type \texttt{11}), the Brune and smoothed Brune functions (types \texttt{12} and \texttt{13}),
+and the regularized and integrated regularized Yoffe function (types \texttt{14} and \texttt{15}).
 
 \item[{\texttt{f0}}] Set this to the dominant frequency of the source.
 For point-source simulations using a Heaviside source-time function (\texttt{time\_function\_type = 5}),
