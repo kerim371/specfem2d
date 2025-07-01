@@ -27,3 +27,12 @@ TO RUN:
 
 
 ----------------------------------------------------------------------
+
+Note about source time function:
+
+  For Fig.4 in Moreny2008, the source time function is a Gaussian with a dominant frequency of 30 Hz.
+  In SPECFEM2D, the Gaussian (time_function_type == 3) is defined as the second integral of the Ricker wavelet
+  to be able to apply the USE_TRICK_FOR_BETTER_PRESSURE feature. This leads to a negative sign in front of the Gaussian,
+  i.e., the Gaussian source time function values are stricly <= 0.0. In Morency2008, the Gaussian is defined with positive
+  values, we therefore flip the sign of the source amplification factor in DATA/SOURCE to match the trace solution.
+
