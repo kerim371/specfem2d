@@ -29,3 +29,11 @@ Note that because our example has no absorbing conditions on the edges of the gr
 Beware that the reference solution is not exact, only quasi-exact (i.e., the formulation uses an approximation, and some integrals are computed numerically) therefore some tiny discrepancies can be noticed.
 
 ----------------------------------------------------------------------
+
+Note about source time function:
+
+  This example uses the feature USE_TRICK_FOR_BETTER_PRESSURE in DATA/Par_file to compute the pressure trace as a second-order accurate solution.
+  With this trick, pressure relates to the acoustic potential instead of potential_dot_dot by taking the second derivative of the source time function.
+  In SPECFEM2D, the Gaussian wavelet (time_function_type == 3) is defined such that its second derivative becomes the Ricker wavelet. Thus, you will see
+  a Ricker wavelet as source time function in OUTPUT_FILES/plot_source_time_function.txt and not a Gaussian.
+
