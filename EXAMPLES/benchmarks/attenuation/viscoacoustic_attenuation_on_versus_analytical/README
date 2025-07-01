@@ -14,3 +14,9 @@ Note: The reference code provided in attenuation_viscoacoustic_NSLS_3/ folder is
       While the code provided in check_absolute_amplitude_of_pressure_source_seismograms_acoustic/analytical_solution_viscoacoustic_Carcione_version1.f90
       is dividing the source by 4 * PI * cp^2 to get the right amplitude directly.
 
+Note about source time function:
+  This example uses the feature USE_TRICK_FOR_BETTER_PRESSURE in DATA/Par_file to compute the pressure trace as a second-order accurate solution.
+  With this trick, pressure relates to the acoustic potential instead of potential_dot_dot by taking the second derivative of the source time function.
+  In SPECFEM2D, the Gaussian wavelet (time_function_type == 3) is defined such that its second derivative becomes the Ricker wavelet. Thus, you will see
+  a Ricker wavelet as source time function in OUTPUT_FILES/plot_source_time_function.txt and not a Gaussian.
+
