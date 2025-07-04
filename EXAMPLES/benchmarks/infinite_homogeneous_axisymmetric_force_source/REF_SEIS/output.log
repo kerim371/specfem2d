@@ -22,7 +22,7 @@ running mesher on 4 processors...
  Receiver lines:
    Nb of line sets =            3
 
- Parameter file successfully read 
+ Parameter file successfully read
 
 
  Mesh from internal meshing:
@@ -31,8 +31,8 @@ running mesher on 4 processors...
 
  --------
  Material #           1  isotropic
- rho,cp,cs   =    2500.0000000000000        3400.0000000000000        1963.0000000000000     
- Qkappa, Qmu =    9999.0000000000000        9999.0000000000000     
+ rho,cp,cs   =    2500.0000000000000        3400.0000000000000        1963.0000000000000
+ Qkappa, Qmu =    9999.0000000000000        9999.0000000000000
  Material is solid
  --------
 
@@ -55,12 +55,12 @@ running mesher on 4 processors...
  IZ from            1  to          120
  Material #            1  isotropic
  Material is solid
- vp     =    3400.00000    
- vs     =    1963.00000    
- rho    =    2500.00000    
- Poisson's ratio =   0.249996528    
- QKappa =    9999.00000    
- Qmu    =    9999.00000    
+ vp     =    3400.00000
+ vs     =    1963.00000
+ rho    =    2500.00000
+ Poisson's ratio =   0.249996528
+ QKappa =    9999.00000
+ Qmu    =    9999.00000
  ------
 
  creating mesh from internal meshing:
@@ -76,13 +76,13 @@ running mesher on 4 processors...
  Reading in SOURCE file...
 
  Source           1
-   Position xs, zs =    0.0000000000000000        2500.0000000000000     
+   Position xs, zs =    0.0000000000000000        2500.0000000000000
 
    Source type:            1
    (1=force, 2=moment tensor)
 
    Force source:
-   Angle of the source (deg) =    0.0000000000000000     
+   Angle of the source (deg) =    0.0000000000000000
 
    Time function type:           1
    ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
@@ -90,8 +90,8 @@ running mesher on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe,
     15=Integrated Yoffe )
    Ricker wavelet (second-derivative):
-   Frequency, delay   =    3.0000000000000000        0.0000000000000000     
-   Multiplying factor =    1.0000000000000000     
+   Frequency, delay   =    3.0000000000000000        0.0000000000000000
+   Multiplying factor =    1.0000000000000000
 
  all sources are okay
 
@@ -113,9 +113,9 @@ running mesher on 4 processors...
  Axial elements:          120
 
 
- Mesh dimensions: 
-   Min and max value of X in the grid =    0.0000000000000000        6400.0000000000000     
-   Min and max value of Z in the grid =    0.0000000000000000        4800.0000000000000     
+ Mesh dimensions:
+   Min and max value of X in the grid =    0.0000000000000000        6400.0000000000000
+   Min and max value of Z in the grid =    0.0000000000000000        4800.0000000000000
 
  checking mesh elements for invalid Jacobians...
    number of elements:        19200
@@ -185,9 +185,9 @@ running mesher on 4 processors...
 
  Target positions (x,z) of the            3  receivers
 
- Receiver            1  =    0.0000000000000000        2500.0000000000000     
- Receiver            2  =    2500.0000000000000        2500.0000000000000     
- Receiver            3  =    2500.0000000000000        1500.0000000000000     
+ Receiver            1  =    0.0000000000000000        2500.0000000000000
+ Receiver            2  =    2500.0000000000000        2500.0000000000000
+ Receiver            3  =    2500.0000000000000        1500.0000000000000
 
  This will be a parallel simulation on            4  processor cores
 
@@ -226,18 +226,18 @@ running solver on 4 processors...
  Receiver lines:
    Nb of line sets =            3
 
- Parameter file successfully read 
+ Parameter file successfully read
 
  Reading in SOURCE file...
 
  Source           1
-   Position xs, zs =    0.0000000000000000        2500.0000000000000     
+   Position xs, zs =    0.0000000000000000        2500.0000000000000
 
    Source type:            1
    (1=force, 2=moment tensor)
 
    Force source:
-   Angle of the source (deg) =    0.0000000000000000     
+   Angle of the source (deg) =    0.0000000000000000
 
    Time function type:           1
    ( 0=Normalized Gaussian,  1=Ricker,          2=First derivative,  3=Gaussian,        4=Dirac,
@@ -245,8 +245,8 @@ running solver on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe,
     15=Integrated Yoffe )
    Ricker wavelet (second-derivative):
-   Frequency, delay   =    3.0000000000000000        0.0000000000000000     
-   Multiplying factor =    1.0000000000000000     
+   Frequency, delay   =    3.0000000000000000        0.0000000000000000
+   Multiplying factor =    1.0000000000000000
 
  all sources are okay
 
@@ -254,7 +254,7 @@ running solver on 4 processors...
 
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- Program SPECFEM2D: 
+ Program SPECFEM2D:
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
  Axisymmetric simulation
@@ -282,11 +282,11 @@ running solver on 4 processors...
 
      Display frequency . . . (NTSTEP_BETWEEN_OUTPUT_INFO) =    500
      Color display . . . . . . . . . . . . . . . (colors) =      1
-      == 0     black and white display              
-      == 1     color display                        
+      == 0     black and white display
+      == 1     color display
      Numbered mesh . . . . . . . . . . . . . . .(numbers) =      0
-      == 0     do not number the mesh               
-      == 1     number the mesh                      
+      == 0     do not number the mesh
+      == 1     number the mesh
 
 
  C o n t r o l
@@ -318,7 +318,7 @@ running solver on 4 processors...
      Subsampling of velocity model display. (subsamp_postscript) =      1
 
 
- I t e r a t i o n s 
+ I t e r a t i o n s
  ===================
 
      Number of time iterations . . . . .(NSTEP) =    4500
@@ -430,8 +430,8 @@ running solver on 4 processors...
    in reality they have more degrees of freedom)
 
  Mesh dimensions:
-   Xmin,Xmax of the whole mesh =    0.0000000000000000        6400.0000000000000     
-   Zmin,Zmax of the whole mesh =    0.0000000000000000        4800.0000000000000     
+   Xmin,Xmax of the whole mesh =    0.0000000000000000        6400.0000000000000
+   Zmin,Zmax of the whole mesh =    0.0000000000000000        4800.0000000000000
 
  Material properties:
    MODEL                   : default
@@ -440,9 +440,9 @@ running solver on 4 processors...
 
    setting up material arrays
    elasticitiy:
-     rho : min/max =    2500.00000     /   2500.00000    
-     vs  : min/max =    1963.00000     /   1963.00000    
-     vp  : min/max =    3400.00000     /   3400.00000    
+     rho : min/max =    2500.00000     /   2500.00000
+     vs  : min/max =    1963.00000     /   1963.00000
+     vp  : min/max =    3400.00000     /   3400.00000
 
    all material arrays done
 
@@ -507,9 +507,9 @@ running solver on 4 processors...
    simulation start time t0 =  -0.39999999999999997       s
 
    Source:            1
-     Onset time. . . . . . =  -0.39999999999999997     
-     Fundamental period. . =   0.33333333333333331     
-     Fundamental frequency =    3.0000000000000000     
+     Onset time. . . . . . =  -0.39999999999999997
+     Fundamental period. . =   0.33333333333333331
+     Fundamental frequency =    3.0000000000000000
      The onset time is ok
 
  Source:            1
@@ -518,13 +518,13 @@ running solver on 4 processors...
  *******************************
 
  Force source:
-             original x:    0.00000000    
-             original z:    2500.00000    
+             original x:    0.00000000
+             original z:    2500.00000
  Closest estimate found:    0.00000000      m away
   in rank            3
   in element          185
   in elastic domain
-  at xi,gamma coordinates =   -1.0000000000000000        0.0000000000000000     
+  at xi,gamma coordinates =   -1.0000000000000000        0.0000000000000000
 
 
  end of force source detection
@@ -542,36 +542,36 @@ running solver on 4 processors...
  reading receiver information from the ./DATA/STATIONS file
 
 
- Station #            1     AA      S0001                           
-             original x:    0.00000000    
-             original z:    2500.00000    
+ Station #            1     AA      S0001
+             original x:    0.00000000
+             original z:    2500.00000
  Closest estimate found:    0.00000000      m away
   in rank            3
   in element          185
   in elastic domain
-  at xi,gamma coordinates =   -1.0000000000000000        0.0000000000000000     
+  at xi,gamma coordinates =   -1.0000000000000000        0.0000000000000000
  Distance from source:    0.00000000      m
 
 
- Station #            2     AA      S0002                           
-             original x:    2500.00000    
-             original z:    2500.00000    
+ Station #            2     AA      S0002
+             original x:    2500.00000
+             original z:    2500.00000
  Closest estimate found:    0.00000000      m away
   in rank            3
   in element          247
   in elastic domain
-  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000     
+  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000
  Distance from source:    2500.00000      m
 
 
- Station #            3     AA      S0003                           
-             original x:    2500.00000    
-             original z:    1500.00000    
+ Station #            3     AA      S0003
+             original x:    2500.00000
+             original z:    1500.00000
  Closest estimate found:    0.00000000      m away
   in rank            2
   in element         3467
   in elastic domain
-  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000     
+  at xi,gamma coordinates =    0.0000000000000000        0.0000000000000000
  Distance from source:    2692.58252      m
 
  maximum error in location of all the receivers:    0.00000000      m
@@ -597,9 +597,9 @@ running solver on 4 processors...
  Checking mesh and stability
 
  ********
- Model: P (or PI) velocity min,max =    3400.0000000000000        3400.0000000000000     
- Model: S velocity min,max         =    1962.9999832908813        1962.9999832908813     
- Model: density min,max            =    2500.0000000000000        2500.0000000000000     
+ Model: P (or PI) velocity min,max =    3400.0000000000000        3400.0000000000000
+ Model: S velocity min,max         =    1962.9999832908813        1962.9999832908813
+ Model: density min,max            =    2500.0000000000000        2500.0000000000000
  ********
 
 
@@ -607,21 +607,21 @@ running solver on 4 processors...
  *** Verification of simulation parameters ***
  *********************************************
 
- *** Max grid size =    40.000000000000455     
- *** Min grid size =    39.999999999999545     
- *** Max/min ratio =    1.0000000000000226     
+ *** Max grid size =    40.000000000000455
+ *** Min grid size =    39.999999999999545
+ *** Max/min ratio =    1.0000000000000226
 
- *** Minimum GLL point distance  =    6.9069265858403774     
- *** Average GLL point distance  =    9.9999999999998863     
+ *** Minimum GLL point distance  =    6.9069265858403774
+ *** Average GLL point distance  =    9.9999999999998863
 
  *** Minimum period resolved     =    2.5471217741009765E-002
  *** Maximum frequency resolved  =    39.259999665817183      Hz
 
  *** Maximum suggested time step                 =    1.0157244979177025E-003
- *** Maximum suggested (Ricker) source frequency =    15.703999866326875     
+ *** Maximum suggested (Ricker) source frequency =    15.703999866326875
 
  *** for DT :    6.00000028E-04
- *** Max CFL stability condition of the time scheme based on P wave velocity (must be below about 0.50 or so) =   0.29535568022137731     
+ *** Max CFL stability condition of the time scheme based on P wave velocity (must be below about 0.50 or so) =   0.29535568022137731
 
  ----
  Number of points per wavelength:
@@ -630,11 +630,11 @@ running solver on 4 processors...
    maximum dominant source frequency =    7.5000000000000000      Hz
 
 
-   Nb pts / lambdaP_fmax min =    45.3333321    
-   Nb pts / lambdaP_fmax max =    45.3333321    
+   Nb pts / lambdaP_fmax min =    45.3333321
+   Nb pts / lambdaP_fmax max =    45.3333321
 
-   Nb pts / lambdaS_fmax min =    26.1733322    
-   Nb pts / lambdaS_fmax max =    26.1733322    
+   Nb pts / lambdaS_fmax min =    26.1733322
+   Nb pts / lambdaS_fmax max =    26.1733322
 
  -----------------------------------------
 
@@ -694,13 +694,13 @@ running solver on 4 processors...
    number of points on  elastic abs in this slice =          513
 
    defining PML coefficients:
-     using mesh dimension : xmin/xmax =    0.00000000     /   6400.00000    
-                            zmin/zmax =    0.00000000     /   4800.00000    
-     thickness PML: left   =    0.00000000    
-                    right  =    200.000000    
-                    bottom =    200.000000    
-                    top    =    200.000000    
-     maximum dominant frequency (sources):    3.00000000    
+     using mesh dimension : xmin/xmax =    0.00000000     /   6400.00000
+                            zmin/zmax =    0.00000000     /   4800.00000
+     thickness PML: left   =    0.00000000
+                    right  =    200.000000
+                    bottom =    200.000000
+                    top    =    200.000000
+     maximum dominant frequency (sources):    3.00000000
      PML coefficients all set
 
  Attenuation:
@@ -727,7 +727,7 @@ running solver on 4 processors...
  preparing optimized arrays
    fused array done
 
- Elapsed time for preparing timerun in seconds =   0.13555199999999998     
+ Elapsed time for preparing timerun in seconds =   0.13555199999999998
 
  ************
   time loop
@@ -758,9 +758,9 @@ running solver on 4 processors...
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
  Mean elapsed time per time step in seconds =    3.6000251770019532E-003
  Time steps remaining =         4495
- Estimated remaining time in seconds =    16.182113170623779     
+ Estimated remaining time in seconds =    16.182113170623779
  Estimated remaining time in hh:mm:ss =      0 h 00 m 16 s
- Estimated total run time in seconds =    16.200113296508789     
+ Estimated total run time in seconds =    16.200113296508789
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -796,13 +796,13 @@ running solver on 4 processors...
  Time: -1.006000E-01 s
  We have done    11.0913534     % of the total
  Max norm of vector field in solid (elastic) =    1.62168282E-12
- Elapsed time in seconds =    1.8229999542236328     
+ Elapsed time in seconds =    1.8229999542236328
  Elapsed time in hh:mm:ss =      0 h 00 m 01 s
  Mean elapsed time per time step in seconds =    3.6459999084472658E-003
  Time steps remaining =         4000
- Estimated remaining time in seconds =    14.583999633789062     
+ Estimated remaining time in seconds =    14.583999633789062
  Estimated remaining time in hh:mm:ss =      0 h 00 m 14 s
- Estimated total run time in seconds =    16.406999588012695     
+ Estimated total run time in seconds =    16.406999588012695
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -838,13 +838,13 @@ running solver on 4 processors...
  Time:    0.1994 s
  We have done    22.2049351     % of the total
  Max norm of vector field in solid (elastic) =    8.77950327E-13
- Elapsed time in seconds =    3.6660001277923584     
+ Elapsed time in seconds =    3.6660001277923584
  Elapsed time in hh:mm:ss =      0 h 00 m 03 s
  Mean elapsed time per time step in seconds =    3.6660001277923583E-003
  Time steps remaining =         3500
- Estimated remaining time in seconds =    12.831000447273254     
+ Estimated remaining time in seconds =    12.831000447273254
  Estimated remaining time in hh:mm:ss =      0 h 00 m 12 s
- Estimated total run time in seconds =    16.497000575065613     
+ Estimated total run time in seconds =    16.497000575065613
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -884,13 +884,13 @@ running solver on 4 processors...
  Time:    0.4994 s
  We have done    33.3185158     % of the total
  Max norm of vector field in solid (elastic) =    8.33232155E-15
- Elapsed time in seconds =    5.5210001468658447     
+ Elapsed time in seconds =    5.5210001468658447
  Elapsed time in hh:mm:ss =      0 h 00 m 05 s
  Mean elapsed time per time step in seconds =    3.6806667645772296E-003
  Time steps remaining =         3000
- Estimated remaining time in seconds =    11.042000293731689     
+ Estimated remaining time in seconds =    11.042000293731689
  Estimated remaining time in hh:mm:ss =      0 h 00 m 11 s
- Estimated total run time in seconds =    16.563000440597534     
+ Estimated total run time in seconds =    16.563000440597534
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -926,13 +926,13 @@ running solver on 4 processors...
  Time:    0.7994 s
  We have done    44.4320946     % of the total
  Max norm of vector field in solid (elastic) =    5.25156404E-15
- Elapsed time in seconds =    7.3750000000000000     
+ Elapsed time in seconds =    7.3750000000000000
  Elapsed time in hh:mm:ss =      0 h 00 m 07 s
  Mean elapsed time per time step in seconds =    3.6874999999999998E-003
  Time steps remaining =         2500
- Estimated remaining time in seconds =    9.2187500000000000     
+ Estimated remaining time in seconds =    9.2187500000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 09 s
- Estimated total run time in seconds =    16.593750000000000     
+ Estimated total run time in seconds =    16.593750000000000
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -972,13 +972,13 @@ running solver on 4 processors...
  Time:    1.0994 s
  We have done    55.5456772     % of the total
  Max norm of vector field in solid (elastic) =    3.82155558E-15
- Elapsed time in seconds =    9.2509999275207520     
+ Elapsed time in seconds =    9.2509999275207520
  Elapsed time in hh:mm:ss =      0 h 00 m 09 s
  Mean elapsed time per time step in seconds =    3.7003999710083007E-003
  Time steps remaining =         2000
- Estimated remaining time in seconds =    7.4007999420166017     
+ Estimated remaining time in seconds =    7.4007999420166017
  Estimated remaining time in hh:mm:ss =      0 h 00 m 07 s
- Estimated total run time in seconds =    16.651799869537353     
+ Estimated total run time in seconds =    16.651799869537353
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -1014,13 +1014,13 @@ running solver on 4 processors...
  Time:    1.3994 s
  We have done    66.6592560     % of the total
  Max norm of vector field in solid (elastic) =    3.00773099E-15
- Elapsed time in seconds =    11.110000133514404     
+ Elapsed time in seconds =    11.110000133514404
  Elapsed time in hh:mm:ss =      0 h 00 m 11 s
  Mean elapsed time per time step in seconds =    3.7033333778381350E-003
  Time steps remaining =         1500
- Estimated remaining time in seconds =    5.5550000667572021     
+ Estimated remaining time in seconds =    5.5550000667572021
  Estimated remaining time in hh:mm:ss =      0 h 00 m 05 s
- Estimated total run time in seconds =    16.665000200271606     
+ Estimated total run time in seconds =    16.665000200271606
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -1060,13 +1060,13 @@ running solver on 4 processors...
  Time:    1.6994 s
  We have done    77.7728348     % of the total
  Max norm of vector field in solid (elastic) =    2.47430415E-15
- Elapsed time in seconds =    12.966000080108643     
+ Elapsed time in seconds =    12.966000080108643
  Elapsed time in hh:mm:ss =      0 h 00 m 12 s
  Mean elapsed time per time step in seconds =    3.7045714514596121E-003
  Time steps remaining =         1000
- Estimated remaining time in seconds =    3.7045714514596120     
+ Estimated remaining time in seconds =    3.7045714514596120
  Estimated remaining time in hh:mm:ss =      0 h 00 m 03 s
- Estimated total run time in seconds =    16.670571531568253     
+ Estimated total run time in seconds =    16.670571531568253
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -1102,13 +1102,13 @@ running solver on 4 processors...
  Time:    1.9994 s
  We have done    88.8864212     % of the total
  Max norm of vector field in solid (elastic) =    2.10771613E-15
- Elapsed time in seconds =    14.805999994277954     
+ Elapsed time in seconds =    14.805999994277954
  Elapsed time in hh:mm:ss =      0 h 00 m 14 s
  Mean elapsed time per time step in seconds =    3.7014999985694884E-003
  Time steps remaining =          500
- Estimated remaining time in seconds =    1.8507499992847443     
+ Estimated remaining time in seconds =    1.8507499992847443
  Estimated remaining time in hh:mm:ss =      0 h 00 m 01 s
- Estimated total run time in seconds =    16.656749993562698     
+ Estimated total run time in seconds =    16.656749993562698
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
  The run will finish approximately on: Fri Jul 04, 2025 13:01
 
@@ -1148,13 +1148,13 @@ running solver on 4 processors...
  Time:    2.2994 s
  We have done    100.000000     % of the total
  Max norm of vector field in solid (elastic) =    1.82367210E-15
- Elapsed time in seconds =    16.664000034332275     
+ Elapsed time in seconds =    16.664000034332275
  Elapsed time in hh:mm:ss =      0 h 00 m 16 s
  Mean elapsed time per time step in seconds =    3.7031111187405055E-003
  Time steps remaining =            0
- Estimated remaining time in seconds =    0.0000000000000000     
+ Estimated remaining time in seconds =    0.0000000000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    16.664000034332275     
+ Estimated total run time in seconds =    16.664000034332275
  Estimated total run time in hh:mm:ss =      0 h 00 m 16 s
 
 
@@ -1188,7 +1188,7 @@ running solver on 4 processors...
 
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- Program SPECFEM2D: 
+ Program SPECFEM2D:
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
  Axisymmetric simulation
