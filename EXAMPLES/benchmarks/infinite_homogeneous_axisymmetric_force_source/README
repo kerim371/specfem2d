@@ -1,0 +1,15 @@
+----------------------------------------------------------------------
+README
+----------------------------------------------------------------------
+
+This example runs an axisymmetric example in an infinite homogeneous elastic medium, for benchmarking against an analytical 3D solution.
+The domain defined is physically the meridional 2D shape of a axisymmetric 3D domain. The source is a vertical point force on the symmetry axis.
+
+To run the example, type:
+
+  ./run_this_example.sh
+
+in this directory.
+
+The results are stored in OUTPUT_FILES/ and the seismograms created can be compared with those in the REF_SEIS/ folder.
+
