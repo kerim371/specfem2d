@@ -607,6 +607,7 @@
         if (myrank == islice_selected_rec(irec)) then
           irec_local = irec_local + 1
           adj_source_file = trim(network_name(irec))//'.'//trim(station_name(irec))
+          ! reads in file values to fill source_adjoint() array
           call read_adj_source(irec_local,seismotype_adj,adj_source_file)
         endif
       enddo
