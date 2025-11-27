@@ -616,7 +616,6 @@
 ! SEM seismograms governed by their sampling rate.
 ! Instrument code (second letter in channel codes) is fixed to "X" which is assigned by IRIS for synthetic seismograms.
 ! See the manual for further explanations!
-! Ebru Bozdag, November 2010
 
   implicit none
 

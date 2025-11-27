@@ -341,7 +341,7 @@
 
   !!! local
   integer :: ier
-  character(len=512) :: junk,sep_header_file_complete
+  character(len=512) :: sep_header_file_complete
 
   sep_header_file_complete = trim(adjustl(sep_directory))//trim(adjustl(sep_header_file))
 
@@ -352,18 +352,19 @@
   print *, trim(adjustl(sep_header_file_complete))
   if (ier /= 0) stop 'ERROR: cannot open sep header file'
 
-  read(13,'(a3a)')     junk, sep_file
-  read(13,'(a3i10)')     junk, NX
-  read(13,'(a3i10)')     junk, NY
-  read(13,'(a3i10)')     junk, NZ
-  read(13,'(a3f20.0)') junk, OX
-  read(13,'(a3f20.0)') junk, OY
-  read(13,'(a3f20.0)') junk, OZ
-  read(13,'(a3f20.0)') junk, DX
-  read(13,'(a3f20.0)') junk, DY
-  read(13,'(a3f20.0)') junk, DZ
-  read(13,'(a6i10)')     junk, esize
-  read(13,'(a13a)')    junk, data_format
+  read(13,'(3x,a)')     sep_file    ! Skip 3 chars, then read the string
+  read(13,'(3x,i10)')   NX          ! Skip 3 chars, then read 10-digit integer
+  read(13,'(3x,i10)')   NY
+  read(13,'(3x,i10)')   NZ
+  read(13,'(3x,f20.0)') OX          ! Skip 3 chars, then read 20-width real
+  read(13,'(3x,f20.0)') OY
+  read(13,'(3x,f20.0)') OZ
+  read(13,'(3x,f20.0)') DX
+  read(13,'(3x,f20.0)') DY
+  read(13,'(3x,f20.0)') DZ
+  read(13,'(6x,i10)')   esize       ! Skip 6 chars, then read 10-digit integer
+  read(13,'(13x,a)')    data_format ! Skip 13 chars, then read the string
+
   close(13)
   sep_file = trim(adjustl(sep_directory))//trim(adjustl(sep_file))
   data_format = data_format(1:len_trim(adjustl(data_format))-1)
