@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Example of external velocity model
-Build 1D velocity model and write it in ASCII tomo file that can be read by specfem 2d.
+Build 1D velocity model and write it in ASCII tomo file that can be read by SPECFEM2D.
 This is the velocity profile set:
 
                  vmin
@@ -18,7 +18,7 @@ This is the velocity profile set:
                |            \\
      Depth (m) v
 
-How to use external velocity model in specfem (03/20/2017) :
+How to use external velocity model in SPECFEM2D (03/20/2017) :
 
 To set an arbitrary velocity model you have to use the option TOMOGRAPHY_FILE that I have implemented,
 and you have to set it like that in the Par_file when you define the velocity model:

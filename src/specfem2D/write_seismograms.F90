@@ -284,6 +284,9 @@
   character(len=1) :: component
   character(len=4) :: suffix
   character(len=150) :: sisname,sismo_statut
+  ! band code
+  character(len=2) :: bic
+  double precision :: sampling_rate
 
   ! to write seismograms in single precision SEP and double precision binary format
   double precision, dimension(:,:,:), allocatable :: buffer_binary
@@ -472,6 +475,10 @@
     endif ! myrank == 0
   enddo
 
+  ! get band code
+  sampling_rate = DT * NTSTEP_BETWEEN_OUTPUT_SAMPLE
+  call band_instrument_code(sampling_rate,bic)
+
   ! outputs to file
   if (myrank == 0) then
     irecloc = 0
@@ -484,10 +491,11 @@
           ! write trace
           do iorientation = 1,number_of_components
 
+            ! channel name
             if (iorientation == 1) then
-              channel = 'BXX'
+              channel = bic(1:2)//'X'   ! e.g. BXX
             else if (iorientation == 2) then
-              channel = 'BXZ'
+              channel = bic(1:2)//'Z'   ! e.g. BXZ
             else if (iorientation == 3) then
               channel = 'cur'
             else
@@ -499,7 +507,7 @@
             if (seismotype_l == 6) channel = 'POT'
 
             ! in case of SH (membrane) waves, use different abbreviation
-            if (.not. P_SV) channel = 'BXY'
+            if (.not. P_SV) channel = bic(1:2)//'Y'   ! e.g. BXY
 
             ! create the name of the seismogram file for each slice
             ! file name includes the name of the station, the network and the component
@@ -597,3 +605,39 @@
 
   end subroutine write_seismograms_to_file
 
+!================================================================
+
+  subroutine band_instrument_code(sampling_rate,bic)
+
+! This subroutine is to choose the appropriate band and instrument codes for channel names of seismograms
+! based on the IRIS convention (first two letters of channel codes, respectively,
+! which were LH(Z/E/N) previously).
+! For consistency with observed data, we now use the IRIS convention for band codes (first letter in channel codes) of
+! SEM seismograms governed by their sampling rate.
+! Instrument code (second letter in channel codes) is fixed to "X" which is assigned by IRIS for synthetic seismograms.
+! See the manual for further explanations!
+
+  implicit none
+
+  double precision,intent(in) :: sampling_rate
+  character(len=2),intent(out) :: bic
+
+  ! local parameter
+  logical,parameter :: SUPPRESS_IRIS_CONVENTION = .false.
+
+  bic = ''
+
+  ! see manual for ranges
+  if (sampling_rate >= 1.0d0)  bic = 'LX'
+  if (sampling_rate < 1.0d0 .and. sampling_rate > 0.1d0) bic = 'MX'
+  if (sampling_rate <= 0.1d0 .and. sampling_rate > 0.0125d0) bic = 'BX'
+  if (sampling_rate <= 0.0125d0 .and. sampling_rate > 0.004d0) bic = 'HX'
+  if (sampling_rate <= 0.004d0 .and. sampling_rate > 0.001d0) bic = 'CX'
+  if (sampling_rate <= 0.001d0) bic = 'FX'
+
+  ! ignores IRIS convention, uses previous, constant band and instrument code
+  if (SUPPRESS_IRIS_CONVENTION) then
+    bic = 'BX'
+  endif
+
+  end subroutine band_instrument_code

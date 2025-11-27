@@ -253,6 +253,9 @@
 
   character(len=3) :: comp(3)
   character(len=MAX_STRING_LEN) :: filename
+  ! band code
+  character(len=2) :: bic
+  double precision :: sampling_rate
 
   ! initializes temporary array
   ! note: we need to explicitly initialize the full array,
@@ -261,10 +264,15 @@
   adj_src_s(:,:) = 0.d0
   temp(:) = 0.d0
 
+  ! get band code
+  sampling_rate = DT    ! requires sampling rate == DT, not DT * NTSTEP_BETWEEN_OUTPUT_SAMPLE, since we won't interpolate
+  call band_instrument_code(sampling_rate,bic)
+
   select case(seismotype_adj)
   case (1,2,3)
     ! displacement/velocity/acceleration
-    comp = (/"BXX","BXY","BXZ"/)
+    ! component names
+    comp = (/ bic(1:2)//"X", bic(1:2)//"Y", bic(1:2)//"Z" /)   ! e.g. "BXX","BXY","BXZ"
 
     ! reads corresponding components
     do icomp = 1,3

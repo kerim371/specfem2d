@@ -70,7 +70,7 @@
   double precision, external :: comp_source_time_function_ext
   double precision, external :: comp_source_time_function_burst,comp_source_time_function_d2burst
   double precision, external :: comp_source_time_function_Brune,comp_source_time_function_Smooth_Brune
-  double precision, external :: comp_source_time_function_Yoffe
+  double precision, external :: comp_source_time_function_Yoffe,comp_source_time_function_Yoffe_integrated
   ! user output
   if (myrank == 0) then
     write(IMAIN,*)
@@ -319,6 +319,12 @@
             ! Frequency parameter        -> T_acc == 1/f0  (acceleration duration)
             ! burst band width parameter -> T_eff == 1/bbw (effective duration)
             stf = comp_source_time_function_Yoffe(t_used,f0,burst_band_width(isource))
+
+          case (15)
+            ! Integrated Regularized Yoffe
+            ! Frequency parameter        -> T_acc == 1/f0  (acceleration duration)
+            ! burst band width parameter -> T_eff == 1/bbw (effective duration)
+            stf = comp_source_time_function_Yoffe_integrated(t_used,f0,burst_band_width(isource))
 
           case default
             call exit_MPI(myrank,'unknown source time function')

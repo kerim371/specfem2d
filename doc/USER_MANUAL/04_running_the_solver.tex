@@ -143,6 +143,13 @@ This gives the wavelet of Figure~\ref{fig:RickerWavelet}.
 \label{fig:RickerWavelet}
 \end{figure}
 %%
+Note that the Gaussian function (type \texttt{3}) is defined as the second integral of this Ricker wavelet.
+This allows the \texttt{USE\_TRICK\_FOR\_BETTER\_PRESSURE} feature in \texttt{DATA/Par\_file} to compute pressure as second-order accurate solution for acoustic simulations.
+However, this resulting Gaussian function will have a minus sign in front and thus have values less or equal to zero.
+Additional source time functions include a normalized Gaussian (type \texttt{0}; normalized with respect to the integral value),
+ocean acoustic wavelets (types \texttt{6} and \texttt{7}), an external file (type \texttt{8}), a Burst wavelet (type \texttt{9}),
+a Sinusoidal function (type \texttt{10}), the Marmousi Ormsby wavelet (type \texttt{11}), the Brune and smoothed Brune functions (types \texttt{12} and \texttt{13}),
+and the regularized and integrated regularized Yoffe function (types \texttt{14} and \texttt{15}).
 
 \item[{\texttt{f0}}] Set this to the dominant frequency of the source.
 For point-source simulations using a Heaviside source-time function (\texttt{time\_function\_type = 5}),
@@ -200,7 +207,7 @@ Note that the units for the components of a moment tensor source are different i
 \end{itemize}
 %
 The conversion factor from $dyne*cm$ to $N*m$ is: $1 \, dyne*cm = 10^{-7} \, N*m$.
-To go from strike / dip / slip to CMTSOLUTION moment-tensor format using the classical formulas (of e.g. \cite{AkRi80} you can use these two small C programs provided in the \href{https://github.com/SPECFEM/specfem3d_globe}{SPECFEM3D\_GLOBE} repository:
+To go from strike / dip / slip to CMTSOLUTION moment-tensor format using the classical formulas (of e.g. \cite{AkRi80} you can use these two small C programs provided in the \href{https://github.com/SPECFEM/specfem3d_globe}{SPECFEM3D Globe} repository:
 {\small
 \begin{verbatim}
   ./utils/scripts/CMTs/strike_dip_rake_to_CMTSOLUTION.c

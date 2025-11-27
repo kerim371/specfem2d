@@ -56,6 +56,10 @@
   ! EM attenuation
   double precision :: tauinv(2)
 
+  ! info
+  logical :: show_warning
+  integer :: nelem_viscoacoustic,iproc
+
   ! attenuation
   ! user output
   call synchronize_all()
@@ -138,6 +142,7 @@
       write(IMAIN,*)
       call flush_IMAIN()
     endif
+    call synchronize_all()
 
     ! temporary arrays for function argument
     allocate(tau_epsilon_nu1_sent(N_SLS), &
@@ -154,6 +159,9 @@
     phi_nu1_sent(:) = 0.0_CUSTOM_REAL
     phi_nu2_sent(:) = 0.0_CUSTOM_REAL
 
+    show_warning = .false.
+    nelem_viscoacoustic = 0
+
     ! define the attenuation quality factors.
     do ispec = 1,nspec
 
@@ -164,14 +172,8 @@
           call stop_the_code('READ_VELOCITIES_AT_f0 only implemented for non anisotropic, non-poroelastic materials for now')
 
         if (ispec_is_acoustic(ispec)) then
-          print *
-          print *,'******************************'
-          print *,'WARNING: READ_VELOCITIES_AT_f0 in viscoacoustic elements may imply having to rebuild the mass matrix &
-               &with the shifted velocities, since the fluid mass matrix contains Kappa; not implemented yet, BEWARE!!'
-          print *
-          print *,'viscoacoustic element: ',ispec
-          print *,'******************************'
-          print *
+          show_warning = .true.
+          nelem_viscoacoustic = nelem_viscoacoustic + 1
         endif
       endif
 
@@ -276,6 +278,25 @@
           endif
         enddo
       enddo
+    enddo
+
+    ! warning
+    do iproc = 0,NPROC
+      if (iproc == myrank) then
+        if (show_warning) then
+          if (myrank == 0) then
+            ! warning text
+            print *
+            print *,'******************************'
+            print *,'WARNING: READ_VELOCITIES_AT_f0 in viscoacoustic elements may imply having to rebuild the mass matrix &
+                 &with the shifted velocities, since the fluid mass matrix contains Kappa; not implemented yet, BEWARE!!'
+            print *,'******************************'
+            print *
+          endif
+          print *,'  slice ',myrank,' has ',nelem_viscoacoustic,' viscoacoustic elements'
+        endif
+      endif
+      call synchronize_all()
     enddo
 
     ! for PMLs

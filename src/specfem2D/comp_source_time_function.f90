@@ -926,3 +926,97 @@ contains
 
   end function comp_source_time_function_Yoffe
 
+!
+!------------------------------------------------------------
+!
+
+  double precision function comp_source_time_function_Yoffe_integrated(t,f0,burst_band_width)
+
+! integrated regularized Yoffe function using Simpson's rule
+
+  use constants, only: PI
+
+  use shared_parameters, only: DT
+
+  implicit none
+
+  double precision, intent(in) :: t,f0,burst_band_width
+
+  ! local variables
+  double precision :: T_acc,T_eff,tauR,tauS
+  double precision :: integrated_val
+  integer :: n_steps, i
+  double precision :: dt_step, t_current, stf_val
+
+  ! external function
+  double precision, external :: comp_source_time_function_Yoffe
+
+! note: The regularized Yoffe function is a moment-rate (or slip rate or slip velocity) function.
+!       Here, we provide the moment function that is the integral from 0 to t of the Yoffe function.
+!       This is thus the moment (or cummulative slip) function that applies to CMT sources.
+!       Integration is done numerically using Simpson's 1/3 rule.
+
+  ! defined only for times t > 0
+  if (t <= 0.d0) then
+    comp_source_time_function_Yoffe_integrated = 0.d0
+    return
+  endif
+
+  ! regularized Yoffe function parameters
+  T_acc = 1.d0 / f0
+  T_eff = 1.d0 / burst_band_width
+
+  tauS = T_acc / 1.27d0
+  tauR = T_eff - 2.d0 * tauS
+
+  ! imposes tauS >= 0.0
+  if (tauS < 0.d0) tauS = 0.d0
+
+  ! imposes tauR >= tauS
+  if (tauR < tauS) tauR = tauS
+
+  ! check rise times
+  if (tauR == 0.d0 .or. tauS == 0.d0) then
+    comp_source_time_function_Yoffe_integrated = 0.d0
+    return
+  endif
+
+  ! determine integration parameters (must be even for Simpson's rule)
+  n_steps = max(100, int(t / (tauS * 0.01d0)))
+  n_steps = max(n_steps, int(t / DT))         ! to double-check enough fine stepping in case tauS is large
+
+  ! ensure even number
+  if (mod(n_steps, 2) == 1) n_steps = n_steps + 1
+  dt_step = t / dble(n_steps)
+
+  ! Simpson's rule integration
+  integrated_val = 0.d0
+
+  ! first point
+  stf_val = 0.d0  ! or comp_source_time_function_Yoffe(0.d0, f0, burst_band_width)
+                  !    integrated_val = integrated_val + stf_val
+
+  ! intermediate points
+  do i = 1, n_steps - 1
+    t_current = dble(i) * dt_step
+    stf_val = comp_source_time_function_Yoffe(t_current, f0, burst_band_width)
+    if (mod(i, 2) == 1) then
+      ! odd indices
+      integrated_val = integrated_val + 4.d0 * stf_val
+    else
+      ! even indices
+      integrated_val = integrated_val + 2.d0 * stf_val
+    endif
+  enddo
+
+  ! last point
+  stf_val = comp_source_time_function_Yoffe(t, f0, burst_band_width)
+  integrated_val = integrated_val + stf_val
+
+  ! apply Simpson's rule factor
+  integrated_val = integrated_val * dt_step / 3.d0
+
+  ! returns integrated source time function value
+  comp_source_time_function_Yoffe_integrated = integrated_val
+
+  end function comp_source_time_function_Yoffe_integrated

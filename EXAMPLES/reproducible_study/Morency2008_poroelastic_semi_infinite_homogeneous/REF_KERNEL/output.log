@@ -1,4 +1,4 @@
-running example: Mon Jun 30 19:06:37 CEST 2025
+running example: Tue Jul  1 11:05:14 CEST 2025
 
 (will take about 5 minutes)
 
@@ -8,7 +8,7 @@ running forward simulation (with saving forward wavefield)
 
 ############################################################
 Changed simulation_type to 1 and save_forward = .true. in Par_file
-running example: Mon Jun 30 19:06:38 CEST 2025
+running example: Tue Jul  1 11:05:14 CEST 2025
 
 setting up example...
 
@@ -98,7 +98,7 @@ running mesher on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Gaussian:
    Frequency, delay   =    30.000000000000000        0.0000000000000000
-   Multiplying factor =    10000000000.000000
+   Multiplying factor =   -10000000000.000000
 
  all sources are okay
 
@@ -246,7 +246,7 @@ running solver on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Gaussian:
    Frequency, delay   =    30.000000000000000        0.0000000000000000
-   Multiplying factor =    10000000000.000000
+   Multiplying factor =   -10000000000.000000
 
  all sources are okay
 
@@ -260,7 +260,7 @@ running solver on 4 processors...
  poroelastic semi-infinite homogeneous
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 30 - 06 - 2025                                 T i m e  : 19:06:38
+ D a t e : 01 - 07 - 2025                                 T i m e  : 11:05:15
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
@@ -527,7 +527,7 @@ running solver on 4 processors...
      Y-position (meters). . . . . . . . . . =    3.0000000000E+02
      Fundamental frequency (Hz) . . . . . . =    3.0000000000E+01
      Time delay (s) . . . . . . . . . . . . =    0.0000000000E+00
-     Multiplying factor . . . . . . . . . . =    1.0000000000E+10
+     Multiplying factor . . . . . . . . . . =   -1.0000000000E+10
      Mxx. . . . . . . . . . . . . . . . . . =    1.0000000000E+00
      Mzz. . . . . . . . . . . . . . . . . . =    1.0000000000E+00
      Mxz. . . . . . . . . . . . . . . . . . =    0.0000000000E+00
@@ -740,7 +740,7 @@ running solver on 4 processors...
  preparing optimized arrays
    fused array done
 
- Elapsed time for preparing timerun in seconds =   0.22932300000000000
+ Elapsed time for preparing timerun in seconds =   0.24767400000000001
 
  ************
   time loop
@@ -776,7 +776,7 @@ running solver on 4 processors...
  Estimated remaining time in hh:mm:ss =      0 h 00 m 45 s
  Estimated total run time in seconds =    46.000003814697266
  Estimated total run time in hh:mm:ss =      0 h 00 m 46 s
- The run will finish approximately on: Mon Jun 30, 2025 19:07
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
  Creating color image of size         1610  x         1690  for time step            5
  drawing scalar image of the forward wavefield displacement...
@@ -791,15 +791,15 @@ running solver on 4 processors...
  We have done    7.96318531     % of the total
  Max norm of vector field in solid (poroelastic) =    9.28500299E-07
  Max norm of vector field in fluid (poroelastic) =    1.38497921E-06
- Elapsed time in seconds =    4.8619999885559082
+ Elapsed time in seconds =    4.9760000705718994
  Elapsed time in hh:mm:ss =      0 h 00 m 04 s
- Mean elapsed time per time step in seconds =    2.4309999942779541E-002
+ Mean elapsed time per time step in seconds =    2.4880000352859498E-002
  Time steps remaining =         2300
- Estimated remaining time in seconds =    55.912999868392944
- Estimated remaining time in hh:mm:ss =      0 h 00 m 55 s
- Estimated total run time in seconds =    60.774999856948853
- Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    57.224000811576843
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 57 s
+ Estimated total run time in seconds =    62.200000882148743
+ Estimated total run time in hh:mm:ss =      0 h 01 m 02 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -809,15 +809,15 @@ running solver on 4 processors...
  We have done    15.9663868     % of the total
  Max norm of vector field in solid (poroelastic) =    3.46976740E-05
  Max norm of vector field in fluid (poroelastic) =    5.48414246E-05
- Elapsed time in seconds =    9.6590001583099365
+ Elapsed time in seconds =    9.9259998798370361
  Elapsed time in hh:mm:ss =      0 h 00 m 09 s
- Mean elapsed time per time step in seconds =    2.4147500395774842E-002
+ Mean elapsed time per time step in seconds =    2.4814999699592589E-002
  Time steps remaining =         2100
- Estimated remaining time in seconds =    50.709750831127167
- Estimated remaining time in hh:mm:ss =      0 h 00 m 50 s
- Estimated total run time in seconds =    60.368750989437103
- Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    52.111499369144440
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 52 s
+ Estimated total run time in seconds =    62.037499248981476
+ Estimated total run time in hh:mm:ss =      0 h 01 m 02 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
  Creating color image of size         1610  x         1690  for time step          500
  drawing scalar image of the forward wavefield displacement...
@@ -832,15 +832,15 @@ running solver on 4 processors...
  We have done    23.9695873     % of the total
  Max norm of vector field in solid (poroelastic) =    1.07048174E-06
  Max norm of vector field in fluid (poroelastic) =    7.76378511E-06
- Elapsed time in seconds =    14.424999952316284
+ Elapsed time in seconds =    14.833999872207642
  Elapsed time in hh:mm:ss =      0 h 00 m 14 s
- Mean elapsed time per time step in seconds =    2.4041666587193807E-002
+ Mean elapsed time per time step in seconds =    2.4723333120346070E-002
  Time steps remaining =         1900
- Estimated remaining time in seconds =    45.679166515668236
- Estimated remaining time in hh:mm:ss =      0 h 00 m 45 s
- Estimated total run time in seconds =    60.104166467984520
- Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    46.974332928657532
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 46 s
+ Estimated total run time in seconds =    61.808332800865173
+ Estimated total run time in hh:mm:ss =      0 h 01 m 01 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -850,15 +850,15 @@ running solver on 4 processors...
  We have done    31.9727898     % of the total
  Max norm of vector field in solid (poroelastic) =    1.09476119E-07
  Max norm of vector field in fluid (poroelastic) =    7.29693193E-06
- Elapsed time in seconds =    19.153000116348267
+ Elapsed time in seconds =    19.783999919891357
  Elapsed time in hh:mm:ss =      0 h 00 m 19 s
- Mean elapsed time per time step in seconds =    2.3941250145435335E-002
+ Mean elapsed time per time step in seconds =    2.4729999899864196E-002
  Time steps remaining =         1700
- Estimated remaining time in seconds =    40.700125247240067
- Estimated remaining time in hh:mm:ss =      0 h 00 m 40 s
- Estimated total run time in seconds =    59.853125363588333
- Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    42.040999829769135
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 42 s
+ Estimated total run time in seconds =    61.824999749660492
+ Estimated total run time in hh:mm:ss =      0 h 01 m 01 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -868,19 +868,19 @@ running solver on 4 processors...
  We have done    39.9759903     % of the total
  Max norm of vector field in solid (poroelastic) =    8.85822189E-08
  Max norm of vector field in fluid (poroelastic) =    6.83028520E-06
- Elapsed time in seconds =    23.614000082015991
- Elapsed time in hh:mm:ss =      0 h 00 m 23 s
- Mean elapsed time per time step in seconds =    2.3614000082015991E-002
+ Elapsed time in seconds =    24.560999870300293
+ Elapsed time in hh:mm:ss =      0 h 00 m 24 s
+ Mean elapsed time per time step in seconds =    2.4560999870300294E-002
  Time steps remaining =         1500
- Estimated remaining time in seconds =    35.421000123023987
- Estimated remaining time in hh:mm:ss =      0 h 00 m 35 s
- Estimated total run time in seconds =    59.035000205039978
- Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    36.841499805450439
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 36 s
+ Estimated total run time in seconds =    61.402499675750732
+ Estimated total run time in hh:mm:ss =      0 h 01 m 01 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  Total number of time steps done:         1000
- Writing the seismograms by main proc alone took    3.30900005E-03  seconds
+ Writing the seismograms by main proc alone took    4.31999983E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         1000
  drawing scalar image of the forward wavefield displacement...
@@ -895,15 +895,15 @@ running solver on 4 processors...
  We have done    47.9791908     % of the total
  Max norm of vector field in solid (poroelastic) =    7.63715207E-08
  Max norm of vector field in fluid (poroelastic) =    6.33902982E-06
- Elapsed time in seconds =    28.180999994277954
- Elapsed time in hh:mm:ss =      0 h 00 m 28 s
- Mean elapsed time per time step in seconds =    2.3484166661898294E-002
+ Elapsed time in seconds =    29.364000082015991
+ Elapsed time in hh:mm:ss =      0 h 00 m 29 s
+ Mean elapsed time per time step in seconds =    2.4470000068346660E-002
  Time steps remaining =         1300
- Estimated remaining time in seconds =    30.529416660467781
- Estimated remaining time in hh:mm:ss =      0 h 00 m 30 s
- Estimated total run time in seconds =    58.710416654745735
- Estimated total run time in hh:mm:ss =      0 h 00 m 58 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    31.811000088850658
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 31 s
+ Estimated total run time in seconds =    61.175000170866653
+ Estimated total run time in hh:mm:ss =      0 h 01 m 01 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -913,15 +913,15 @@ running solver on 4 processors...
  We have done    55.9823914     % of the total
  Max norm of vector field in solid (poroelastic) =    6.81297792E-08
  Max norm of vector field in fluid (poroelastic) =    5.87871682E-06
- Elapsed time in seconds =    32.651999950408936
- Elapsed time in hh:mm:ss =      0 h 00 m 32 s
- Mean elapsed time per time step in seconds =    2.3322857107434956E-002
+ Elapsed time in seconds =    33.930000066757202
+ Elapsed time in hh:mm:ss =      0 h 00 m 33 s
+ Mean elapsed time per time step in seconds =    2.4235714333398002E-002
  Time steps remaining =         1100
- Estimated remaining time in seconds =    25.655142818178451
- Estimated remaining time in hh:mm:ss =      0 h 00 m 25 s
- Estimated total run time in seconds =    58.307142768587383
- Estimated total run time in hh:mm:ss =      0 h 00 m 58 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    26.659285766737803
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 26 s
+ Estimated total run time in seconds =    60.589285833495005
+ Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
  Creating color image of size         1610  x         1690  for time step         1500
  drawing scalar image of the forward wavefield displacement...
@@ -936,15 +936,15 @@ running solver on 4 processors...
  We have done    63.9855957     % of the total
  Max norm of vector field in solid (poroelastic) =    6.22907308E-08
  Max norm of vector field in fluid (poroelastic) =    5.52238998E-06
- Elapsed time in seconds =    37.952000141143799
- Elapsed time in hh:mm:ss =      0 h 00 m 37 s
- Mean elapsed time per time step in seconds =    2.3720000088214874E-002
+ Elapsed time in seconds =    38.769000053405762
+ Elapsed time in hh:mm:ss =      0 h 00 m 38 s
+ Mean elapsed time per time step in seconds =    2.4230625033378601E-002
  Time steps remaining =          900
- Estimated remaining time in seconds =    21.348000079393387
+ Estimated remaining time in seconds =    21.807562530040741
  Estimated remaining time in hh:mm:ss =      0 h 00 m 21 s
- Estimated total run time in seconds =    59.300000220537186
- Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated total run time in seconds =    60.576562583446503
+ Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -954,15 +954,15 @@ running solver on 4 processors...
  We have done    71.9887924     % of the total
  Max norm of vector field in solid (poroelastic) =    5.74070107E-08
  Max norm of vector field in fluid (poroelastic) =    5.19283412E-06
- Elapsed time in seconds =    42.660000085830688
- Elapsed time in hh:mm:ss =      0 h 00 m 42 s
- Mean elapsed time per time step in seconds =    2.3700000047683717E-002
+ Elapsed time in seconds =    43.581000089645386
+ Elapsed time in hh:mm:ss =      0 h 00 m 43 s
+ Mean elapsed time per time step in seconds =    2.4211666716469658E-002
  Time steps remaining =          700
- Estimated remaining time in seconds =    16.590000033378601
+ Estimated remaining time in seconds =    16.948166701528759
  Estimated remaining time in hh:mm:ss =      0 h 00 m 16 s
- Estimated total run time in seconds =    59.250000119209290
- Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated total run time in seconds =    60.529166791174148
+ Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -972,19 +972,19 @@ running solver on 4 processors...
  We have done    79.9919968     % of the total
  Max norm of vector field in solid (poroelastic) =    5.36407150E-08
  Max norm of vector field in fluid (poroelastic) =    4.92862819E-06
- Elapsed time in seconds =    47.233999967575073
- Elapsed time in hh:mm:ss =      0 h 00 m 47 s
- Mean elapsed time per time step in seconds =    2.3616999983787537E-002
+ Elapsed time in seconds =    48.042999982833862
+ Elapsed time in hh:mm:ss =      0 h 00 m 48 s
+ Mean elapsed time per time step in seconds =    2.4021499991416929E-002
  Time steps remaining =          500
- Estimated remaining time in seconds =    11.808499991893768
- Estimated remaining time in hh:mm:ss =      0 h 00 m 11 s
- Estimated total run time in seconds =    59.042499959468842
- Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated remaining time in seconds =    12.010749995708466
+ Estimated remaining time in hh:mm:ss =      0 h 00 m 12 s
+ Estimated total run time in seconds =    60.053749978542328
+ Estimated total run time in hh:mm:ss =      0 h 01 m 00 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  Total number of time steps done:         2000
- Writing the seismograms by main proc alone took    3.36800003E-03  seconds
+ Writing the seismograms by main proc alone took    3.02199996E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         2000
  drawing scalar image of the forward wavefield displacement...
@@ -999,15 +999,15 @@ running solver on 4 processors...
  We have done    87.9952011     % of the total
  Max norm of vector field in solid (poroelastic) =    5.05933286E-08
  Max norm of vector field in fluid (poroelastic) =    4.70017903E-06
- Elapsed time in seconds =    51.900000095367432
- Elapsed time in hh:mm:ss =      0 h 00 m 51 s
- Mean elapsed time per time step in seconds =    2.3590909134257924E-002
+ Elapsed time in seconds =    52.540999889373779
+ Elapsed time in hh:mm:ss =      0 h 00 m 52 s
+ Mean elapsed time per time step in seconds =    2.3882272676988083E-002
  Time steps remaining =          300
- Estimated remaining time in seconds =    7.0772727402773770
+ Estimated remaining time in seconds =    7.1646818030964248
  Estimated remaining time in hh:mm:ss =      0 h 00 m 07 s
- Estimated total run time in seconds =    58.977272835644811
- Estimated total run time in hh:mm:ss =      0 h 00 m 58 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated total run time in seconds =    59.705681692470208
+ Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -1017,15 +1017,15 @@ running solver on 4 processors...
  We have done    95.9983978     % of the total
  Max norm of vector field in solid (poroelastic) =    4.79772808E-08
  Max norm of vector field in fluid (poroelastic) =    4.49699155E-06
- Elapsed time in seconds =    56.361000061035156
- Elapsed time in hh:mm:ss =      0 h 00 m 56 s
- Mean elapsed time per time step in seconds =    2.3483750025431314E-002
+ Elapsed time in seconds =    57.069999933242798
+ Elapsed time in hh:mm:ss =      0 h 00 m 57 s
+ Mean elapsed time per time step in seconds =    2.3779166638851167E-002
  Time steps remaining =          100
- Estimated remaining time in seconds =    2.3483750025431314
+ Estimated remaining time in seconds =    2.3779166638851166
  Estimated remaining time in hh:mm:ss =      0 h 00 m 02 s
- Estimated total run time in seconds =    58.709375063578285
- Estimated total run time in hh:mm:ss =      0 h 00 m 58 s
- The run will finish approximately on: Mon Jun 30, 2025 19:08
+ Estimated total run time in seconds =    59.447916597127914
+ Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:06
 
 
  ******************************************************************
@@ -1035,18 +1035,18 @@ running solver on 4 processors...
  We have done    100.000000     % of the total
  Max norm of vector field in solid (poroelastic) =    4.67469157E-08
  Max norm of vector field in fluid (poroelastic) =    4.40540316E-06
- Elapsed time in seconds =    58.696000099182129
- Elapsed time in hh:mm:ss =      0 h 00 m 58 s
- Mean elapsed time per time step in seconds =    2.3478400039672852E-002
+ Elapsed time in seconds =    59.444000005722046
+ Elapsed time in hh:mm:ss =      0 h 00 m 59 s
+ Mean elapsed time per time step in seconds =    2.3777600002288818E-002
  Time steps remaining =            0
  Estimated remaining time in seconds =    0.0000000000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    58.696000099182129
- Estimated total run time in hh:mm:ss =      0 h 00 m 58 s
+ Estimated total run time in seconds =    59.444000005722046
+ Estimated total run time in hh:mm:ss =      0 h 00 m 59 s
 
 
  Total number of time steps done:         2500
- Writing the seismograms by main proc alone took    2.08100001E-03  seconds
+ Writing the seismograms by main proc alone took    2.76999990E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         2500
  drawing scalar image of the forward wavefield displacement...
@@ -1055,21 +1055,21 @@ running solver on 4 processors...
 
 
  Time loop finished. Timing info:
- Total duration of the time loop in seconds  =    58.7705116      s
- Total duration of the time loop in hh:mm:ss =      0 h 00 m 58 s
+ Total duration of the time loop in seconds  =    59.5689125      s
+ Total duration of the time loop in hh:mm:ss =      0 h 00 m 59 s
 
  Total number of time steps =         2500
- Average duration of a time step of the time loop =    2.35082060E-02  s
+ Average duration of a time step of the time loop =    2.38275658E-02  s
 
  Total number of spectral elements in the mesh =        40000
      of which        40000  are regular elements
      and            0  are PML elements.
- Average duration of the calculation per spectral element =    5.87705131E-07  s
+ Average duration of the calculation per spectral element =    5.95689130E-07  s
 
 
  Total duration of the timeloop measured using date and time of the system
-     in seconds     =    58.7729988      s
-     in in hh:mm:ss =      0 h 00 m 58 s
+     in seconds     =    59.5709991      s
+     in in hh:mm:ss =      0 h 00 m 59 s
 
 
  Saving forward arrays:
@@ -1085,14 +1085,14 @@ running solver on 4 processors...
  poroelastic semi-infinite homogeneous
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 30 - 06 - 2025                                 T i m e  : 19:07:38
+ D a t e : 01 - 07 - 2025                                 T i m e  : 11:06:15
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
 see results in directory: OUTPUT_FILES/
 
 done
-Mon Jun 30 19:07:38 CEST 2025
+Tue Jul 1 11:06:15 CEST 2025
 ############################################################
 
 setting up adjoint sources
@@ -1142,7 +1142,7 @@ running kernel simulation
 
 ############################################################
 Changed simulation_type to 3 in Par_file
-running example: Mon Jun 30 19:07:59 CEST 2025
+running example: Tue Jul  1 11:06:39 CEST 2025
 
 setting up example...
 
@@ -1231,7 +1231,7 @@ running mesher on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Gaussian:
    Frequency, delay   =    30.000000000000000        0.0000000000000000
-   Multiplying factor =    10000000000.000000
+   Multiplying factor =   -10000000000.000000
 
  all sources are okay
 
@@ -1379,7 +1379,7 @@ running solver on 4 processors...
     10=Sinusoidal,          11=Ormsby,         12=Brune,            13=Smoothed Brune, 14=Yoffe )
    Gaussian:
    Frequency, delay   =    30.000000000000000        0.0000000000000000
-   Multiplying factor =    10000000000.000000
+   Multiplying factor =   -10000000000.000000
 
  all sources are okay
 
@@ -1393,7 +1393,7 @@ running solver on 4 processors...
  poroelastic semi-infinite homogeneous
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 30 - 06 - 2025                                 T i m e  : 19:08:02
+ D a t e : 01 - 07 - 2025                                 T i m e  : 11:06:41
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
@@ -1660,7 +1660,7 @@ running solver on 4 processors...
      Y-position (meters). . . . . . . . . . =    3.0000000000E+02
      Fundamental frequency (Hz) . . . . . . =    3.0000000000E+01
      Time delay (s) . . . . . . . . . . . . =    0.0000000000E+00
-     Multiplying factor . . . . . . . . . . =    1.0000000000E+10
+     Multiplying factor . . . . . . . . . . =   -1.0000000000E+10
      Mxx. . . . . . . . . . . . . . . . . . =    1.0000000000E+00
      Mzz. . . . . . . . . . . . . . . . . . =    1.0000000000E+00
      Mxz. . . . . . . . . . . . . . . . . . =    0.0000000000E+00
@@ -1882,7 +1882,7 @@ running solver on 4 processors...
  preparing optimized arrays
    fused array done
 
- Elapsed time for preparing timerun in seconds =   0.32917900000000005
+ Elapsed time for preparing timerun in seconds =   0.36159299999999994
 
  ************
   time loop
@@ -1910,15 +1910,15 @@ running solver on 4 processors...
  We have done   0.160064027     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =   0.40300011634826660
+ Elapsed time in seconds =   0.38800001144409180
  Elapsed time in hh:mm:ss =      0 h 00 m 00 s
- Mean elapsed time per time step in seconds =    8.0600023269653320E-002
+ Mean elapsed time per time step in seconds =    7.7600002288818359E-002
  Time steps remaining =         2495
- Estimated remaining time in seconds =    201.09705805778503
- Estimated remaining time in hh:mm:ss =      0 h 03 m 21 s
- Estimated total run time in seconds =    201.50005817413330
- Estimated total run time in hh:mm:ss =      0 h 03 m 21 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ Estimated remaining time in seconds =    193.61200571060181
+ Estimated remaining time in hh:mm:ss =      0 h 03 m 13 s
+ Estimated total run time in seconds =    194.00000572204590
+ Estimated total run time in hh:mm:ss =      0 h 03 m 14 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
  Creating color image of size         1610  x         1690  for time step            5
  drawing scalar image of the adjoint wavefield displacement...
@@ -1937,15 +1937,15 @@ running solver on 4 processors...
  We have done    7.96318531     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =    14.592000007629395
+ Elapsed time in seconds =    14.500000000000000
  Elapsed time in hh:mm:ss =      0 h 00 m 14 s
- Mean elapsed time per time step in seconds =    7.2960000038146969E-002
+ Mean elapsed time per time step in seconds =    7.2499999999999995E-002
  Time steps remaining =         2300
- Estimated remaining time in seconds =    167.80800008773804
- Estimated remaining time in hh:mm:ss =      0 h 02 m 47 s
- Estimated total run time in seconds =    182.40000009536743
- Estimated total run time in hh:mm:ss =      0 h 03 m 02 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ Estimated remaining time in seconds =    166.75000000000000
+ Estimated remaining time in hh:mm:ss =      0 h 02 m 46 s
+ Estimated total run time in seconds =    181.25000000000000
+ Estimated total run time in hh:mm:ss =      0 h 03 m 01 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -1955,15 +1955,15 @@ running solver on 4 processors...
  We have done    15.9663868     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =    28.884999990463257
+ Elapsed time in seconds =    28.802999973297119
  Elapsed time in hh:mm:ss =      0 h 00 m 28 s
- Mean elapsed time per time step in seconds =    7.2212499976158140E-002
+ Mean elapsed time per time step in seconds =    7.2007499933242791E-002
  Time steps remaining =         2100
- Estimated remaining time in seconds =    151.64624994993210
+ Estimated remaining time in seconds =    151.21574985980988
  Estimated remaining time in hh:mm:ss =      0 h 02 m 31 s
- Estimated total run time in seconds =    180.53124994039536
+ Estimated total run time in seconds =    180.01874983310699
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
  Creating color image of size         1610  x         1690  for time step          500
  drawing scalar image of the adjoint wavefield displacement...
@@ -1982,15 +1982,15 @@ running solver on 4 processors...
  We have done    23.9695873     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =    43.350000143051147
+ Elapsed time in seconds =    43.256000041961670
  Elapsed time in hh:mm:ss =      0 h 00 m 43 s
- Mean elapsed time per time step in seconds =    7.2250000238418585E-002
+ Mean elapsed time per time step in seconds =    7.2093333403269455E-002
  Time steps remaining =         1900
- Estimated remaining time in seconds =    137.27500045299530
- Estimated remaining time in hh:mm:ss =      0 h 02 m 17 s
- Estimated total run time in seconds =    180.62500059604645
+ Estimated remaining time in seconds =    136.97733346621197
+ Estimated remaining time in hh:mm:ss =      0 h 02 m 16 s
+ Estimated total run time in seconds =    180.23333350817364
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2000,15 +2000,15 @@ running solver on 4 processors...
  We have done    31.9727898     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =    57.712000131607056
+ Elapsed time in seconds =    57.627000093460083
  Elapsed time in hh:mm:ss =      0 h 00 m 57 s
- Mean elapsed time per time step in seconds =    7.2140000164508819E-002
+ Mean elapsed time per time step in seconds =    7.2033750116825099E-002
  Time steps remaining =         1700
- Estimated remaining time in seconds =    122.63800027966499
+ Estimated remaining time in seconds =    122.45737519860266
  Estimated remaining time in hh:mm:ss =      0 h 02 m 02 s
- Estimated total run time in seconds =    180.35000041127205
+ Estimated total run time in seconds =    180.08437529206276
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2018,19 +2018,19 @@ running solver on 4 processors...
  We have done    39.9759903     % of the total
  Max norm of vector field in solid (poroelastic) =    0.00000000
  Max norm of vector field in fluid (poroelastic) =    0.00000000
- Elapsed time in seconds =    72.041000127792358
- Elapsed time in hh:mm:ss =      0 h 01 m 12 s
- Mean elapsed time per time step in seconds =    7.2041000127792354E-002
+ Elapsed time in seconds =    71.976000070571899
+ Elapsed time in hh:mm:ss =      0 h 01 m 11 s
+ Mean elapsed time per time step in seconds =    7.1976000070571894E-002
  Time steps remaining =         1500
- Estimated remaining time in seconds =    108.06150019168854
- Estimated remaining time in hh:mm:ss =      0 h 01 m 48 s
- Estimated total run time in seconds =    180.10250031948090
- Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ Estimated remaining time in seconds =    107.96400010585783
+ Estimated remaining time in hh:mm:ss =      0 h 01 m 47 s
+ Estimated total run time in seconds =    179.94000017642975
+ Estimated total run time in hh:mm:ss =      0 h 02 m 59 s
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  Total number of time steps done:         1000
- Writing the seismograms by main proc alone took    3.28999991E-03  seconds
+ Writing the seismograms by main proc alone took    3.55600007E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         1000
  drawing scalar image of the adjoint wavefield displacement...
@@ -2049,15 +2049,15 @@ running solver on 4 processors...
  We have done    47.9791908     % of the total
  Max norm of vector field in solid (poroelastic) =    6.53612051E-06
  Max norm of vector field in fluid (poroelastic) =    7.15670865E-07
- Elapsed time in seconds =    86.532000064849854
+ Elapsed time in seconds =    86.503999948501587
  Elapsed time in hh:mm:ss =      0 h 01 m 26 s
- Mean elapsed time per time step in seconds =    7.2110000054041543E-002
+ Mean elapsed time per time step in seconds =    7.2086666623751322E-002
  Time steps remaining =         1300
- Estimated remaining time in seconds =    93.743000070253999
+ Estimated remaining time in seconds =    93.712666610876724
  Estimated remaining time in hh:mm:ss =      0 h 01 m 33 s
- Estimated total run time in seconds =    180.27500013510385
+ Estimated total run time in seconds =    180.21666655937833
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2067,15 +2067,15 @@ running solver on 4 processors...
  We have done    55.9823914     % of the total
  Max norm of vector field in solid (poroelastic) =    2.18570465E-04
  Max norm of vector field in fluid (poroelastic) =    2.27189230E-05
- Elapsed time in seconds =    100.88499999046326
+ Elapsed time in seconds =    100.87700009346008
  Elapsed time in hh:mm:ss =      0 h 01 m 40 s
- Mean elapsed time per time step in seconds =    7.2060714278902330E-002
+ Mean elapsed time per time step in seconds =    7.2055000066757205E-002
  Time steps remaining =         1100
- Estimated remaining time in seconds =    79.266785706792561
+ Estimated remaining time in seconds =    79.260500073432922
  Estimated remaining time in hh:mm:ss =      0 h 01 m 19 s
- Estimated total run time in seconds =    180.15178569725583
+ Estimated total run time in seconds =    180.13750016689301
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
  Creating color image of size         1610  x         1690  for time step         1500
  drawing scalar image of the adjoint wavefield displacement...
@@ -2094,15 +2094,15 @@ running solver on 4 processors...
  We have done    63.9855957     % of the total
  Max norm of vector field in solid (poroelastic) =    5.79751213E-04
  Max norm of vector field in fluid (poroelastic) =    5.31374862E-05
- Elapsed time in seconds =    115.33700013160706
+ Elapsed time in seconds =    115.33100008964539
  Elapsed time in hh:mm:ss =      0 h 01 m 55 s
- Mean elapsed time per time step in seconds =    7.2085625082254412E-002
+ Mean elapsed time per time step in seconds =    7.2081875056028366E-002
  Time steps remaining =          900
- Estimated remaining time in seconds =    64.877062574028969
+ Estimated remaining time in seconds =    64.873687550425529
  Estimated remaining time in hh:mm:ss =      0 h 01 m 04 s
- Estimated total run time in seconds =    180.21406270563602
+ Estimated total run time in seconds =    180.20468764007092
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2112,15 +2112,15 @@ running solver on 4 processors...
  We have done    71.9887924     % of the total
  Max norm of vector field in solid (poroelastic) =    2.38584777E-04
  Max norm of vector field in fluid (poroelastic) =    1.61572825E-05
- Elapsed time in seconds =    129.69900012016296
+ Elapsed time in seconds =    129.66000008583069
  Elapsed time in hh:mm:ss =      0 h 02 m 09 s
- Mean elapsed time per time step in seconds =    7.2055000066757205E-002
+ Mean elapsed time per time step in seconds =    7.2033333381017042E-002
  Time steps remaining =          700
- Estimated remaining time in seconds =    50.438500046730042
+ Estimated remaining time in seconds =    50.423333366711930
  Estimated remaining time in hh:mm:ss =      0 h 00 m 50 s
- Estimated total run time in seconds =    180.13750016689301
+ Estimated total run time in seconds =    180.08333345254260
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2130,19 +2130,19 @@ running solver on 4 processors...
  We have done    79.9919968     % of the total
  Max norm of vector field in solid (poroelastic) =    2.00795592E-04
  Max norm of vector field in fluid (poroelastic) =    1.12024882E-05
- Elapsed time in seconds =    144.06000018119812
+ Elapsed time in seconds =    144.01699995994568
  Elapsed time in hh:mm:ss =      0 h 02 m 24 s
- Mean elapsed time per time step in seconds =    7.2030000090599067E-002
+ Mean elapsed time per time step in seconds =    7.2008499979972843E-002
  Time steps remaining =          500
- Estimated remaining time in seconds =    36.015000045299530
+ Estimated remaining time in seconds =    36.004249989986420
  Estimated remaining time in hh:mm:ss =      0 h 00 m 36 s
- Estimated total run time in seconds =    180.07500022649765
+ Estimated total run time in seconds =    180.02124994993210
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  Total number of time steps done:         2000
- Writing the seismograms by main proc alone took    3.21700005E-03  seconds
+ Writing the seismograms by main proc alone took    3.43500008E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         2000
  drawing scalar image of the adjoint wavefield displacement...
@@ -2161,15 +2161,15 @@ running solver on 4 processors...
  We have done    87.9952011     % of the total
  Max norm of vector field in solid (poroelastic) =    1.72627435E-04
  Max norm of vector field in fluid (poroelastic) =    9.99881286E-06
- Elapsed time in seconds =    158.51400017738342
+ Elapsed time in seconds =    158.46000003814697
  Elapsed time in hh:mm:ss =      0 h 02 m 38 s
- Mean elapsed time per time step in seconds =    7.2051818262447012E-002
+ Mean elapsed time per time step in seconds =    7.2027272744612264E-002
  Time steps remaining =          300
- Estimated remaining time in seconds =    21.615545478734102
+ Estimated remaining time in seconds =    21.608181823383678
  Estimated remaining time in hh:mm:ss =      0 h 00 m 21 s
- Estimated total run time in seconds =    180.12954565611753
+ Estimated total run time in seconds =    180.06818186153066
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2179,15 +2179,15 @@ running solver on 4 processors...
  We have done    95.9983978     % of the total
  Max norm of vector field in solid (poroelastic) =    1.52653098E-04
  Max norm of vector field in fluid (poroelastic) =    8.99922907E-06
- Elapsed time in seconds =    172.87400007247925
+ Elapsed time in seconds =    172.82700014114380
  Elapsed time in hh:mm:ss =      0 h 02 m 52 s
- Mean elapsed time per time step in seconds =    7.2030833363533026E-002
+ Mean elapsed time per time step in seconds =    7.2011250058809914E-002
  Time steps remaining =          100
- Estimated remaining time in seconds =    7.2030833363533029
+ Estimated remaining time in seconds =    7.2011250058809910
  Estimated remaining time in hh:mm:ss =      0 h 00 m 07 s
- Estimated total run time in seconds =    180.07708340883255
+ Estimated total run time in seconds =    180.02812514702478
  Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
- The run will finish approximately on: Mon Jun 30, 2025 19:11
+ The run will finish approximately on: Tue Jul 01, 2025 11:10
 
 
  ******************************************************************
@@ -2197,18 +2197,18 @@ running solver on 4 processors...
  We have done    100.000000     % of the total
  Max norm of vector field in solid (poroelastic) =    1.44847290E-04
  Max norm of vector field in fluid (poroelastic) =    8.57459600E-06
- Elapsed time in seconds =    180.05200004577637
- Elapsed time in hh:mm:ss =      0 h 03 m 00 s
- Mean elapsed time per time step in seconds =    7.2020800018310543E-002
+ Elapsed time in seconds =    179.99699997901917
+ Elapsed time in hh:mm:ss =      0 h 02 m 59 s
+ Mean elapsed time per time step in seconds =    7.1998799991607659E-002
  Time steps remaining =            0
  Estimated remaining time in seconds =    0.0000000000000000
  Estimated remaining time in hh:mm:ss =      0 h 00 m 00 s
- Estimated total run time in seconds =    180.05200004577637
- Estimated total run time in hh:mm:ss =      0 h 03 m 00 s
+ Estimated total run time in seconds =    179.99699997901917
+ Estimated total run time in hh:mm:ss =      0 h 02 m 59 s
 
 
  Total number of time steps done:         2500
- Writing the seismograms by main proc alone took    2.26199999E-03  seconds
+ Writing the seismograms by main proc alone took    2.47499999E-03  seconds
 
  Creating color image of size         1610  x         1690  for time step         2500
  drawing scalar image of the adjoint wavefield displacement...
@@ -2221,20 +2221,20 @@ running solver on 4 processors...
 
 
  Time loop finished. Timing info:
- Total duration of the time loop in seconds  =    180.224030      s
+ Total duration of the time loop in seconds  =    180.172470      s
  Total duration of the time loop in hh:mm:ss =      0 h 03 m 00 s
 
  Total number of time steps =         2500
- Average duration of a time step of the time loop =    7.20896125E-02  s
+ Average duration of a time step of the time loop =    7.20689893E-02  s
 
  Total number of spectral elements in the mesh =        40000
      of which        40000  are regular elements
      and            0  are PML elements.
- Average duration of the calculation per spectral element =    1.80224038E-06  s
+ Average duration of the calculation per spectral element =    1.80172469E-06  s
 
 
  Total duration of the timeloop measured using date and time of the system
-     in seconds     =    180.229004      s
+     in seconds     =    180.173996      s
      in in hh:mm:ss =      0 h 03 m 00 s
 
 
@@ -2275,14 +2275,14 @@ running solver on 4 processors...
  poroelastic semi-infinite homogeneous
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
- D a t e : 30 - 06 - 2025                                 T i m e  : 19:11:06
+ D a t e : 01 - 07 - 2025                                 T i m e  : 11:09:45
  -------------------------------------------------------------------------------
  -------------------------------------------------------------------------------
 
 see results in directory: OUTPUT_FILES/
 
 done
-Mon Jun 30 19:11:06 CEST 2025
+Tue Jul 1 11:09:46 CEST 2025
 ############################################################
 
 plotting kernels
@@ -2387,4 +2387,4 @@ plotted file:  OUTPUT_FILES/Mb_rhob_rhofb_kernel.png
 see results in directory: OUTPUT_FILES/
 
 done
-Mon Jun 30 19:14:46 CEST 2025
+Tue Jul  1 11:13:24 CEST 2025
