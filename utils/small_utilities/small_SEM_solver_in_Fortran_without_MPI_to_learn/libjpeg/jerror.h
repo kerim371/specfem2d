@@ -56,6 +56,7 @@ JMESSAGE(JERR_BAD_LENGTH, "Bogus marker length")
 JMESSAGE(JERR_BAD_LIB_VERSION,
    "Wrong JPEG library version: library is %d, caller expects %d")
 JMESSAGE(JERR_BAD_MCU_SIZE, "Sampling factors too large for interleaved scan")
+JMESSAGE(JERR_BAD_PARAM, "Bogus parameter")
 JMESSAGE(JERR_BAD_POOL_ID, "Invalid memory pool code %d")
 JMESSAGE(JERR_BAD_PRECISION, "Unsupported JPEG data precision %d")
 JMESSAGE(JERR_BAD_PROGRESSION,
