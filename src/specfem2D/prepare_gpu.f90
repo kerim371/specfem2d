@@ -362,7 +362,7 @@
   ! local parameters
   integer :: i_spec_free,ipoint1D,i,j,ispec,i_source,i_source_local,ispec_PML,ielem
   integer :: ispec_acoustic,ispec_elastic,iedge_acoustic,iedge_elastic
-  integer :: inum
+  integer :: inum,ier
   real(kind=CUSTOM_REAL) :: zxi,xgamma,jacobian1D
   real(kind=CUSTOM_REAL) :: xxi,zgamma
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: abs_normalized_temp
@@ -396,8 +396,10 @@
     ! spec_to_PML_GPU(ispec) \in [NSPEC_PML_X + 1, NSPEC_PML_X + NSPEC_PML_Z] indicates the element is in the region CPML_Z_ONLY
     ! spec_to_PML_GPU(ispec) >  NSPEC_PML_X + NSPEC_PML_Z indicates the element is in the region CPML_XZ
     ! Finally, spec_to_PML_GPU(ispec) = ielem, where ielem the local number of the element in the PML
-    allocate(spec_to_PML_GPU(nspec))
+    allocate(spec_to_PML_GPU(nspec),stat=ier)
+    if (ier /= 0) stop 'Error allocating spec_to_PML_GPU array'
     spec_to_PML_GPU(:) = 0
+
     nspec_PML_X = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_X_ONLY ) then
@@ -405,6 +407,7 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X
       endif
     enddo
+
     nspec_PML_Z = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_Z_ONLY ) then
@@ -412,6 +415,7 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X + nspec_PML_Z
       endif
     enddo
+
     nspec_PML_XZ = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_XZ ) then
@@ -419,6 +423,7 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X + nspec_PML_Z + nspec_PML_XZ
       endif
     enddo
+
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  number of PML elements in this process slice    = ',nspec_PML
@@ -437,17 +442,24 @@
 
     ! EB EB : We reorganize the arrays abs_normalized and abs_normalized2 that
     ! don't have the correct dimension and new local element numbering
-    allocate(abs_normalized_temp(NGLLX,NGLLZ,NSPEC))
+    allocate(abs_normalized_temp(NGLLX,NGLLZ,NSPEC),stat=ier)
+    if (ier /= 0) stop 'Error allocating abs_normalized_temp array'
     abs_normalized_temp(:,:,:) = abs_normalized(:,:,:)
     deallocate(abs_normalized)
-    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC_PML))
+
+    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC_PML),stat=ier)
+    if (ier /= 0) stop 'Error allocating abs_normalized array'
+    abs_normalized(:,:,:) = 0.0_CUSTOM_REAL
     do ispec = 1,nspec
       if (spec_to_PML_GPU(ispec) > 0) abs_normalized(:,:,spec_to_PML_GPU(ispec)) = abs_normalized_temp(:,:,ispec)
     enddo
     deallocate(abs_normalized_temp)
 
-    allocate(alphax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),alphaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             betax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),betaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ))
+    allocate(alphax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
+             alphaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
+             betax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
+             betaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),stat=ier)
+    if (ier /= 0) stop 'Error allocating alphax_store_GPU,.. arrays'
     alphax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     alphaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
