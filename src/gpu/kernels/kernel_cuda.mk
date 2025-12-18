@@ -26,6 +26,7 @@ cuda_kernels_OBJS := \
 	$O/kernel_3_cuda_device.cuda-kernel.o \
 	$O/kernel_3_veloc_cuda_device.cuda-kernel.o \
 	$O/pml_boundary_acoustic_cuda_kernel.cuda-kernel.o \
+	$O/pml_boundary_elastic_cuda_kernel.cuda-kernel.o \
 	$O/prepare_boundary_accel_on_device_kernel.cuda-kernel.o \
 	$O/prepare_boundary_potential_on_device_kernel.cuda-kernel.o \
 	$O/process_smooth.cuda-kernel.o \

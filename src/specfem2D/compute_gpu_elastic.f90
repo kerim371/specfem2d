@@ -37,7 +37,7 @@
 
   use constants, only: CUSTOM_REAL,NGLLX,NDIM
 
-  use specfem_par, only: myrank,NPROC,ninterface,max_nibool_interfaces_ext_mesh,nibool_interfaces_ext_mesh, &
+  use specfem_par, only: NPROC,ninterface,max_nibool_interfaces_ext_mesh,nibool_interfaces_ext_mesh, &
     my_neighbors,ninterface_elastic,inum_interfaces_elastic,ibool_interfaces_ext_mesh, &
     num_fluid_solid_edges,UNDO_ATTENUATION_AND_OR_PML, &
     STACEY_ABSORBING_CONDITIONS,PML_BOUNDARY_CONDITIONS, &
@@ -97,10 +97,6 @@
     endif
   endif
 
-  ! check
-  if (PML_BOUNDARY_CONDITIONS ) &
-    call exit_MPI(myrank,'PML conditions not yet implemented for routine compute_forces_viscoelastic_GPU()')
-
   ! distinguishes two runs: for points on MPI interfaces, and points within the partitions
   do iphase = 1,2
 
@@ -143,6 +139,11 @@
       ! adds elastic absorbing boundary term to acceleration (Stacey conditions)
       if (STACEY_ABSORBING_CONDITIONS) then
         call compute_stacey_viscoelastic_GPU(iphase,compute_wavefield_1,compute_wavefield_2)
+      endif
+
+      ! PML boundary conditions enforces zero displ/veloc/accel on boundary
+      if (PML_BOUNDARY_CONDITIONS) then
+        call pml_boundary_elastic_cuda(Mesh_pointer,compute_wavefield_1,compute_wavefield_2)
       endif
 
       ! acoustic coupling

@@ -321,7 +321,14 @@ void FC_FUNC_(initialize_cuda_aware_mpi,
 //
 
 void FC_FUNC_(pml_boundary_acoustic_cuda,
-              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,int* compute_wavefield_1,int* compute_wavefield_2) {}
+              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,
+                                          int* compute_wavefield_1,
+                                          int* compute_wavefield_2) {}
+
+void FC_FUNC_(pml_boundary_elastic_cuda,
+              PML_BOUNDARY_ELASTIC_CUDA)(long* Mesh_pointer,
+                                         int* compute_wavefield_1,
+                                         int* compute_wavefield_2) {}
 
 
 //
@@ -430,7 +437,9 @@ void FC_FUNC_(prepare_pml_device,
                                   realw* h_betax_store,
                                   realw* h_betaz_store,
                                   int *PML_nglob_abs_acoustic_f,
-                                  int *h_PML_abs_points_acoustic){}
+                                  int *h_PML_abs_points_acoustic,
+                                  int *PML_nglob_abs_elastic_f,
+                                  int *h_PML_abs_points_elastic){}
 
 void FC_FUNC_(prepare_stacey_device,
               PREPARE_STACEY_DEVICE)(long* Mesh_pointer,

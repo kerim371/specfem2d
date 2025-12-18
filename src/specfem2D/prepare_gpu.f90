@@ -71,8 +71,8 @@
   if ((ATTENUATION_VISCOACOUSTIC .or. ATTENUATION_VISCOELASTIC) .and. any_elastic .and. any_acoustic) &
     call stop_the_code('GPU_MODE not supported yet coupled fluid-solid simulations with attenuation')
 
-  if (PML_BOUNDARY_CONDITIONS .and. any_elastic) &
-    call stop_the_code('PML on GPU not supported yet for elastic cases')
+  if (PML_BOUNDARY_CONDITIONS .and. any_poroelastic) &
+    call stop_the_code('PML on GPU not supported yet for poroelastic cases')
   if (PML_BOUNDARY_CONDITIONS .and. ATTENUATION_VISCOACOUSTIC) &
     call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
   if (PML_BOUNDARY_CONDITIONS .and. SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
@@ -223,7 +223,8 @@
                             deltat, &
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
-                            PML_nglob_abs_acoustic,PML_abs_points_acoustic)
+                            PML_nglob_abs_acoustic,PML_abs_points_acoustic, &
+                            PML_nglob_abs_elastic,PML_abs_points_elastic)
   endif
 
 ! abs_boundary_ispec                     : Array containing spectral element indices in absorbing areas

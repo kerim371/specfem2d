@@ -45,7 +45,9 @@
 
 extern "C"
 void FC_FUNC_(pml_boundary_acoustic_cuda,
-              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,int* compute_wavefield_1,int* compute_wavefield_2) {
+              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,
+                                          int* compute_wavefield_1,
+                                          int* compute_wavefield_2) {
 
   TRACE("pml_boundary_acoustic_cuda");
 
@@ -67,22 +69,70 @@ void FC_FUNC_(pml_boundary_acoustic_cuda,
 
   // sets potentials to zero at free surface
   if (*compute_wavefield_1) {
-    pml_boundary_acoustic_cuda_kernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_potential_acoustic,
-                                                                             mp->d_potential_dot_acoustic,
-                                                                             mp->d_potential_dot_dot_acoustic,
-                                                                             mp->pml_nglob_abs_acoustic,
-                                                                             mp->d_pml_abs_points_acoustic);
+    pml_boundary_acoustic_cuda_kernel<<<grid, threads, 0, mp->compute_stream>>>(mp->d_potential_acoustic,
+                                                                                mp->d_potential_dot_acoustic,
+                                                                                mp->d_potential_dot_dot_acoustic,
+                                                                                mp->pml_nglob_abs_acoustic,
+                                                                                mp->d_pml_abs_points_acoustic);
   }
 
   // for backward/reconstructed potentials
   if (*compute_wavefield_2) {
-    pml_boundary_acoustic_cuda_kernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_b_potential_acoustic,
-                                                                             mp->d_b_potential_dot_acoustic,
-                                                                             mp->d_b_potential_dot_dot_acoustic,
-                                                                             mp->pml_nglob_abs_acoustic,
-                                                                             mp->d_pml_abs_points_acoustic);
+    pml_boundary_acoustic_cuda_kernel<<<grid, threads, 0, mp->compute_stream>>>(mp->d_b_potential_acoustic,
+                                                                                mp->d_b_potential_dot_acoustic,
+                                                                                mp->d_b_potential_dot_dot_acoustic,
+                                                                                mp->pml_nglob_abs_acoustic,
+                                                                                mp->d_pml_abs_points_acoustic);
   }
 
-  GPU_ERROR_CHECKING ("pml_boundary_acoustic_cuda");
+  GPU_ERROR_CHECKING("pml_boundary_acoustic_cuda");
 }
 
+
+/* ----------------------------------------------------------------------------------------------- */
+
+
+extern "C"
+void FC_FUNC_(pml_boundary_elastic_cuda,
+              PML_BOUNDARY_ELASTIC_CUDA)(long* Mesh_pointer,
+                                         int* compute_wavefield_1,
+                                         int* compute_wavefield_2) {
+
+  TRACE("pml_boundary_elastic_cuda");
+
+  Mesh* mp = (Mesh*)(*Mesh_pointer); // get mesh pointer out of fortran integercontainer
+
+  int size = mp->pml_nglob_abs_elastic;
+
+  // checks if anything to do
+  if (size == 0) return;
+
+  int blocksize = BLOCKSIZE_KERNEL1;
+  int size_padded = ((int)ceil(((double)size) / ((double)blocksize))) * blocksize;
+
+  int num_blocks_x, num_blocks_y;
+  get_blocks_xy(size_padded / blocksize, &num_blocks_x, &num_blocks_y);
+
+  dim3 grid(num_blocks_x, num_blocks_y);
+  dim3 threads(blocksize, 1, 1);
+
+  // sets potentials to zero at free surface
+  if (*compute_wavefield_1) {
+    pml_boundary_elastic_cuda_kernel<<<grid, threads, 0, mp->compute_stream>>>(mp->d_displ,
+                                                                               mp->d_veloc,
+                                                                               mp->d_accel,
+                                                                               mp->pml_nglob_abs_elastic,
+                                                                               mp->d_pml_abs_points_elastic);
+  }
+
+  // for backward/reconstructed potentials
+  if (*compute_wavefield_2) {
+    pml_boundary_elastic_cuda_kernel<<<grid, threads, 0, mp->compute_stream>>>(mp->d_b_displ,
+                                                                               mp->d_b_veloc,
+                                                                               mp->d_b_accel,
+                                                                               mp->pml_nglob_abs_elastic,
+                                                                               mp->d_pml_abs_points_elastic);
+  }
+
+  GPU_ERROR_CHECKING("pml_boundary_elastic_cuda");
+}
