@@ -535,7 +535,7 @@ typedef struct mesh_ {
   realw* d_recv_accel_buffer;
   realw* d_b_recv_accel_buffer;
 
-  //used for absorbing stacey boundaries
+  // used for absorbing stacey boundaries
   int d_num_abs_boundary_faces;
   int* d_abs_boundary_ispec;
   int* d_abs_boundary_ijk;
@@ -569,14 +569,20 @@ typedef struct mesh_ {
 
   int* d_spec_to_pml;
 
-  // acoustic
-  realw* PML_dpotentialdxl_old;
-  realw* PML_dpotentialdzl_old;
-  realw* d_potential_old;
+  realw deltat;
+  realw* alphax_store;
+  realw* alphaz_store;
+  realw* betax_store;
+  realw* betaz_store;
 
   realw* abscissa_norm;
   realw ALPHA_MAX_PML;
   realw d0_max;
+
+  // acoustic
+  realw* PML_dpotentialdxl_old;
+  realw* PML_dpotentialdzl_old;
+  realw* d_potential_old;
 
   realw* rmemory_acoustic_dux_dx;
   realw* rmemory_acoustic_dux_dz;
@@ -584,12 +590,6 @@ typedef struct mesh_ {
   realw* rmemory_acoustic_dux_dz2;
   realw* rmemory_pot_acoustic;
   realw* rmemory_pot_acoustic2;
-
-  realw deltat;
-  realw* alphax_store;
-  realw* alphaz_store;
-  realw* betax_store;
-  realw* betaz_store;
 
   int pml_nglob_abs_acoustic;
   int* d_pml_abs_points_acoustic;

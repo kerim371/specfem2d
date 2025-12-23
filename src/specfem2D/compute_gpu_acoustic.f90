@@ -35,13 +35,13 @@
 
   use specfem_par, only: NPROC,ninterface,max_nibool_interfaces_ext_mesh,nibool_interfaces_ext_mesh, &
                          my_neighbors,ninterface_acoustic,inum_interfaces_acoustic, &
-                         nelem_acoustic_surface,num_fluid_solid_edges,UNDO_ATTENUATION_AND_OR_PML, &
+                         nelem_acoustic_surface,num_fluid_solid_edges, &
                          STACEY_ABSORBING_CONDITIONS,PML_BOUNDARY_CONDITIONS, &
                          coupled_acoustic_elastic,coupled_acoustic_poro, &
-                         SIMULATION_TYPE,ATTENUATION_VISCOACOUSTIC, &
+                         ATTENUATION_VISCOACOUSTIC, &
                          deltatover2,b_deltatover2
 
-  use specfem_par, only: nspec_outer_acoustic, nspec_inner_acoustic,NO_BACKWARD_RECONSTRUCTION
+  use specfem_par, only: nspec_outer_acoustic, nspec_inner_acoustic
 
   use specfem_par_gpu, only: Mesh_pointer, &
                              buffer_send_scalar_gpu,buffer_recv_scalar_gpu, &
@@ -59,40 +59,9 @@
   logical :: compute_wavefield_2    ! backward/reconstructed wavefield (b_** arrays)
 
   ! determines which wavefields to compute
-  if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. (SIMULATION_TYPE == 1 .or. NO_BACKWARD_RECONSTRUCTION) ) then
-    ! forward wavefield only
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .false.
-  else if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. SIMULATION_TYPE == 3) then
-    ! forward & backward wavefields
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .true.
-  else if (UNDO_ATTENUATION_AND_OR_PML .and. compute_b_wavefield) then
-    ! only backward wavefield
-    compute_wavefield_1 = .false.
-    compute_wavefield_2 = .true.
-  else
-    ! default forward wavefield only
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .false.
-  endif
+  call determine_wavefield_flags(compute_b_wavefield,compute_wavefield_1,compute_wavefield_2)
 
-  ! coupled simulation
-  ! requires different coupling terms for forward/adjoint and backpropagated wavefields
-  if (coupled_acoustic_elastic) then
-    if (SIMULATION_TYPE == 3) then
-      if (compute_b_wavefield) then
-        ! only backward wavefield
-        compute_wavefield_1 = .false.
-        compute_wavefield_2 = .true.
-      else
-        ! only forward/adjoint wavefield
-        compute_wavefield_1 = .true.
-        compute_wavefield_2 = .false.
-      endif
-    endif
-  endif
-
+  ! free surface
   if (nelem_acoustic_surface > 0) then
     !  enforces free surface (zeroes potentials at free surface)
     call acoustic_enforce_free_surf_cuda(Mesh_pointer,compute_wavefield_1,compute_wavefield_2)

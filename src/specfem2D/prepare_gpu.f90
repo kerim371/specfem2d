@@ -393,7 +393,7 @@
   if (PML_BOUNDARY_CONDITIONS) then
     ! EB EB : We create spec_to_PML_GPU such that :
     ! spec_to_PML_GPU(ispec) = 0 indicates the element is not in the PML
-    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is not in the region CPML_X_ONLY
+    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is in the region CPML_X_ONLY
     ! spec_to_PML_GPU(ispec) \in [NSPEC_PML_X + 1, NSPEC_PML_X + NSPEC_PML_Z] indicates the element is in the region CPML_Z_ONLY
     ! spec_to_PML_GPU(ispec) >  NSPEC_PML_X + NSPEC_PML_Z indicates the element is in the region CPML_XZ
     ! Finally, spec_to_PML_GPU(ispec) = ielem, where ielem the local number of the element in the PML

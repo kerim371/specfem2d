@@ -311,7 +311,9 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
                         realw* d_kappav,
                         realw* d_muv,
                         const int simulation_type,
-                        const int p_sv){
+                        const int p_sv,
+                        const int PML,
+                        const int* d_spec_to_pml){
 
 // elastic compute kernel without attenuation for isotropic elements
 //
@@ -368,6 +370,20 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
 // counts:
 // 2 FLOP
 
+  // spectral-element id
+  // iphase-1 and working_element-1 for Fortran->C array conventions
+  working_element = d_phase_ispec_inner_elastic[bx + num_phase_ispec_elastic*(d_iphase-1)] - 1;
+
+  //checks if element is outside the PML
+  if (PML){
+    if (d_spec_to_pml[working_element] > 0) return;
+  }
+
+// counts:
+// + 4 FLOP
+//
+// + 1 float * 128 threads = 512 BYTE
+
   // limits thread ids to range [0,25-1]
   if (tx >= NGLL2 ) tx = tx - NGLL2 ;
 
@@ -391,10 +407,6 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
 //
 // 2 * 1 float * 25 threads = 200 BYTE
 
-  // spectral-element id
-  // iphase-1 and working_element-1 for Fortran->C array conventions
-  working_element = d_phase_ispec_inner_elastic[bx + num_phase_ispec_elastic*(d_iphase-1)] - 1;
-
   // local padded index
   offset = working_element*NGLL2_PADDED + tx;
 
@@ -402,9 +414,9 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
   iglob = d_ibool[offset] - 1 ;
 
 // counts:
-// + 7 FLOP
+// + 3 FLOP
 //
-// + 2 float * 128 threads = 1024 BYTE
+// + 1 float * 128 threads = 512 BYTE
 
   // copy from global memory to shared memory
   // each thread writes one of the NGLL^2 = 25 data points
@@ -609,6 +621,214 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
 
 
 } // kernel_2_noatt_iso_impl()
+
+
+/* ----------------------------------------------------------------------------------------------- */
+
+// KERNEL 2 - elastic isotropic compute forces kernel with PML (no attenuation)
+
+/* ----------------------------------------------------------------------------------------------- */
+
+template<int FORWARD_OR_ADJOINT> __global__ void
+#ifdef USE_LAUNCH_BOUNDS
+// adds compiler specification
+__launch_bounds__(NGLL2_PADDED,LAUNCH_MIN_BLOCKS)
+#endif
+// main kernel
+Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
+                            const int* d_ibool,
+                            const int* d_phase_ispec_inner_elastic,const int num_phase_ispec_elastic,
+                            const int d_iphase,
+                            realw_const_p d_displ,
+                            realw_p d_accel,
+                            realw* d_xix,realw* d_xiz,
+                            realw* d_gammax,realw* d_gammaz,
+                            realw_const_p d_hprime_xx,
+                            realw_const_p d_hprimewgll_xx,
+                            realw_const_p wxgll,
+                            realw* d_kappav,
+                            realw* d_muv,
+                            const int simulation_type,
+                            const int p_sv,
+                            const int PML,
+                            const int* d_spec_to_pml){
+
+// elastic compute kernel without attenuation for isotropic elements with PML
+
+  // block-id == number of local element id in phase_ispec array
+  int bx = blockIdx.y*gridDim.x+blockIdx.x;
+
+  // thread-id == GLL node id
+  int tx = threadIdx.x;
+
+  int iglob,offset;
+  int working_element;
+
+  realw tempx1l,tempx3l,tempz1l,tempz3l;
+  realw xixl,xizl,gammaxl,gammazl,jacobianl;
+  realw duxdxl,duxdzl,duzdxl,duzdzl;
+  realw duzdxl_plus_duxdzl;
+
+  realw lambdal,mul,lambdalplus2mul,kappal;
+  realw sigma_xx,sigma_zz,sigma_xz;
+  realw sum_terms1,sum_terms3;
+
+  // shared memory
+  __shared__ realw sh_tempx[NGLL2];
+  __shared__ realw sh_tempz[NGLL2];
+
+  // note: using shared memory for hprime's improves performance
+  //       (but could tradeoff with occupancy)
+  __shared__ realw sh_hprime_xx[NGLL2];
+  __shared__ realw sh_hprimewgll_xx[NGLL2];
+  __shared__ realw sh_wxgll[NGLLX];
+
+  int ispec_pml;
+
+  // checks if anything to do
+  if (bx >= nb_blocks_to_compute ) return;
+
+  // spectral-element id
+  // iphase-1 and working_element-1 for Fortran->C array conventions
+  working_element = d_phase_ispec_inner_elastic[bx + num_phase_ispec_elastic*(d_iphase-1)] - 1;
+  ispec_pml = d_spec_to_pml[working_element] - 1;
+
+  // checks if element is inside the PML
+  if (ispec_pml < 0) return;
+
+  // limits thread ids to range [0,25-1]
+  if (tx >= NGLL2 ) tx = tx - NGLL2 ;
+
+  // loads hprime's into shared memory
+  if (threadIdx.x < NGLL2) {
+    // copy hprime from global memory to shared memory
+    load_shared_memory_hprime(&tx,d_hprime_xx,sh_hprime_xx);
+
+    // copy hprimewgll from global memory to shared memory
+    load_shared_memory_hprimewgll(&tx,d_hprimewgll_xx,sh_hprimewgll_xx);
+  }
+  else if (threadIdx.x < NGLL2 + NGLLX ) load_shared_memory_wxgll(&tx,wxgll,sh_wxgll);
+
+  // local padded index
+  offset = working_element*NGLL2_PADDED + tx;
+
+  // global index
+  iglob = d_ibool[offset] - 1 ;
+
+  // copy from global memory to shared memory
+  // each thread writes one of the NGLL^2 = 25 data points
+  if (threadIdx.x < NGLL2) {
+    // copy displacement from global memory to shared memory
+    load_shared_memory_displ<FORWARD_OR_ADJOINT>(&tx,&iglob,d_displ,sh_tempx,sh_tempz);
+  }
+
+  kappal = d_kappav[offset];
+  mul = d_muv[offset];
+
+  // calculates laplacian
+  xixl = get_global_cr( &d_xix[offset] ); // first array with texture load
+  xizl = get_global_cr( &d_xiz[offset] ); // first array with texture load
+
+  gammaxl = d_gammax[offset];
+  gammazl = d_gammaz[offset];
+
+  jacobianl = 1.f / (xixl*gammazl-gammaxl*xizl);
+
+  // local index
+  int J = (tx/NGLLX);
+  int I = (tx-J*NGLLX);
+
+  // synchronize all the threads
+  __syncthreads();
+
+  // computes first matrix products
+  // 1. cut-plane
+  sum_hprime_xi(I,J,&tempx1l,&tempz1l,sh_tempx,sh_tempz,sh_hprime_xx);
+  // 3. cut-plane
+  sum_hprime_gamma(I,J,&tempx3l,&tempz3l,sh_tempx,sh_tempz,sh_hprime_xx);
+
+  // compute derivatives of ux, uy and uz with respect to x, y and z
+  duxdxl = xixl*tempx1l + gammaxl*tempx3l;
+  duxdzl = xizl*tempx1l + gammazl*tempx3l;
+
+  duzdxl = xixl*tempz1l + gammaxl*tempz3l;
+  duzdzl = xizl*tempz1l + gammazl*tempz3l;
+
+  // precompute some sums to save CPU time
+  duzdxl_plus_duxdzl = duzdxl + duxdzl;
+
+  // stress calculations
+  // isotropic case
+  // compute elements with an elastic isotropic rheology
+
+  // conversion from kappa/mu to lambda/mu
+  // AXISYM    : kappal = lambdal + TWO_THIRDS * mul
+  // non-AXISYM: kappal = lambdal + mul
+  lambdal = kappal - mul;
+  lambdalplus2mul = kappal + mul;
+
+  // compute the three components of the stress tensor sigma
+  if (p_sv){
+    // P_SV case
+    sigma_xx = lambdalplus2mul*duxdxl + lambdal*duzdzl;
+    sigma_zz = lambdalplus2mul*duzdzl + lambdal*duxdxl;
+    sigma_xz = mul*duzdxl_plus_duxdzl;
+  }else{
+    // SH-case
+    sigma_xx = mul * duxdxl;  // would be sigma_xy in CPU-version
+    sigma_xz = mul * duxdzl;  // sigma_zy
+  }
+
+  // form dot product with test vector, non-symmetric form
+  // 1. cut-plane xi
+  __syncthreads();
+  if (threadIdx.x < NGLL2) {
+    if (p_sv){
+      // P_SV case
+      sh_tempx[tx] = sh_wxgll[J] *jacobianl * (sigma_xx*xixl + sigma_xz*xizl); // sh_tempx1
+      sh_tempz[tx] = sh_wxgll[J] *jacobianl * (sigma_xz*xixl + sigma_zz*xizl); // sh_tempz1
+    }else{
+      // SH-case
+      sh_tempx[tx] = sh_wxgll[J] *jacobianl * (sigma_xx*xixl + sigma_xz*xizl); // sh_tempx1
+      sh_tempz[tx] = 0.f;
+    }
+  }
+  __syncthreads();
+
+  // 1. cut-plane xi
+  sum_hprimewgll_xi(I,J,&tempx1l,&tempz1l,sh_tempx,sh_tempz,sh_hprimewgll_xx);
+  __syncthreads();
+
+  if (threadIdx.x < NGLL2) {
+    if (p_sv){
+      // P_SV case
+      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx*gammaxl +  sigma_xz*gammazl); // sh_tempx3
+      sh_tempz[tx] = sh_wxgll[I] * jacobianl * (sigma_xz*gammaxl +  sigma_zz*gammazl); // sh_tempz3
+    }else{
+      // SH-case
+      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx*gammaxl +  sigma_xz*gammazl); // sh_tempx3
+      sh_tempz[tx] = 0.f; // sh_tempz3
+    }
+  }
+  __syncthreads();
+
+  // 3. cut-plane gamma
+  sum_hprimewgll_gamma(I,J,&tempx3l,&tempz3l,sh_tempx,sh_tempz,sh_hprimewgll_xx);
+  __syncthreads();
+
+  sum_terms1= -tempx1l - tempx3l;
+  sum_terms3= -tempz1l - tempz3l;
+
+  // assembles acceleration array
+  if (threadIdx.x < NGLL2) {
+    atomicAdd(&d_accel[iglob*2], sum_terms1);
+    atomicAdd(&d_accel[iglob*2+1], sum_terms3);
+  }
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+
+// KERNEL 2 - elastic anisotropic compute forces kernel (no attenuation)
 
 /* ----------------------------------------------------------------------------------------------- */
 
@@ -1438,18 +1658,33 @@ Kernel_2_att_ani_impl(int nb_blocks_to_compute,
 // for compute_forces_viscoelastic_cuda.cu:
 // Kernel_2_noatt_iso_impl<1> needs an explicit instantiation here to be able to link against it from a different .cu file, ..
 
+// isotropic, no attenuation
 template __global__ void Kernel_2_noatt_iso_impl<1>(const int,const int*,const int*,const int,const int,
                                                     realw_const_p,realw_p,
                                                     realw*,realw*,realw*,realw*,
                                                     realw_const_p,realw_const_p,realw_const_p,
-                                                    realw*,realw*,const int,const int);
+                                                    realw*,realw*,const int,const int,const int,const int*);
 
 template __global__ void Kernel_2_noatt_iso_impl<3>(const int,const int*,const int*,const int,const int,
                                                     realw_const_p,realw_p,
                                                     realw*,realw*,realw*,realw*,
                                                     realw_const_p,realw_const_p,realw_const_p,
-                                                    realw*,realw*,const int,const int);
+                                                    realw*,realw*,const int,const int,const int,const int*);
 
+// isotropic, no attenuation, w/ PML
+template __global__ void Kernel_2_noatt_iso_PML_impl<1>(const int,const int*,const int*,const int,const int,
+                                                        realw_const_p,realw_p,
+                                                        realw*,realw*,realw*,realw*,
+                                                        realw_const_p,realw_const_p,realw_const_p,
+                                                        realw*,realw*,const int,const int,const int,const int*);
+
+template __global__ void Kernel_2_noatt_iso_PML_impl<3>(const int,const int*,const int*,const int,const int,
+                                                        realw_const_p,realw_p,
+                                                        realw*,realw*,realw*,realw*,
+                                                        realw_const_p,realw_const_p,realw_const_p,
+                                                        realw*,realw*,const int,const int,const int,const int*);
+
+// anisotropic, no attenuation
 template __global__ void Kernel_2_noatt_ani_impl<1>(int,const int*,const int*,const int,const int,
                                                     realw_const_p,realw_p,
                                                     realw*,realw*,realw*,realw*,
@@ -1464,6 +1699,7 @@ template __global__ void Kernel_2_noatt_ani_impl<3>(int,const int*,const int*,co
                                                     const int,const int,const int*,
                                                     realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*);
 
+// isotropic, w/ attenuation
 template __global__ void Kernel_2_att_iso_impl<1>(const int,const int*,const int*,const int,const int,
                                                   realw_const_p,realw_p,
                                                   realw*,realw*,realw*,realw*,
@@ -1480,6 +1716,7 @@ template __global__ void Kernel_2_att_iso_impl<3>(const int,const int*,const int
                                                   realw_const_p,realw_const_p,realw_const_p,realw_const_p,
                                                   realw_p,realw_p,realw_p,realw_p,realw_p,realw_p);
 
+// anisotropic, w/ attenuation
 template __global__ void Kernel_2_att_ani_impl<1>(int,const int*,const int*,const int,const int,
                                                   realw_const_p,realw_p,
                                                   realw*,realw*,realw*,realw*,

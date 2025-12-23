@@ -515,7 +515,28 @@ Kernel_2_noatt_iso_impl(const int nb_blocks_to_compute,
                         realw* d_kappav,
                         realw* d_muv,
                         const int simulation_type,
-                        const int p_sv);
+                        const int p_sv,
+                        const int PML,
+                        const int* d_spec_to_pml);
+
+template<int FORWARD_OR_ADJOINT> __global__ void
+Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
+                            const int* d_ibool,
+                            const int* d_phase_ispec_inner_elastic,const int num_phase_ispec_elastic,
+                            const int d_iphase,
+                            realw_const_p d_displ,
+                            realw_p d_accel,
+                            realw* d_xix,realw* d_xiz,
+                            realw* d_gammax,realw* d_gammaz,
+                            realw_const_p d_hprime_xx,
+                            realw_const_p d_hprimewgll_xx,
+                            realw_const_p wxgll,
+                            realw* d_kappav,
+                            realw* d_muv,
+                            const int simulation_type,
+                            const int p_sv,
+                            const int PML,
+                            const int* d_spec_to_pml);
 
 template<int FORWARD_OR_ADJOINT> __global__ void
 Kernel_2_noatt_ani_impl(int nb_blocks_to_compute,

@@ -1253,21 +1253,30 @@ TRACE("prepare_cleanup_device");
   // PML
   if (mp->pml_boundary_conditions){
     cudaFree(mp->d_spec_to_pml);
-    cudaFree(mp->PML_dpotentialdxl_old);
-    cudaFree(mp->PML_dpotentialdzl_old);
-    cudaFree(mp->d_potential_old);
+    if (mp->nspec_acoustic > 0) {
+      cudaFree(mp->PML_dpotentialdxl_old);
+      cudaFree(mp->PML_dpotentialdzl_old);
+      cudaFree(mp->d_potential_old);
+    }
     cudaFree(mp->abscissa_norm);
-    cudaFree(mp->rmemory_acoustic_dux_dx);
-    cudaFree(mp->rmemory_acoustic_dux_dz);
-    cudaFree(mp->rmemory_acoustic_dux_dx2);
-    cudaFree(mp->rmemory_acoustic_dux_dz2);
-    cudaFree(mp->rmemory_pot_acoustic);
-    cudaFree(mp->rmemory_pot_acoustic2);
+    if (mp->nspec_acoustic > 0) {
+      cudaFree(mp->rmemory_acoustic_dux_dx);
+      cudaFree(mp->rmemory_acoustic_dux_dz);
+      cudaFree(mp->rmemory_acoustic_dux_dx2);
+      cudaFree(mp->rmemory_acoustic_dux_dz2);
+      cudaFree(mp->rmemory_pot_acoustic);
+      cudaFree(mp->rmemory_pot_acoustic2);
+    }
     cudaFree(mp->alphax_store);
     cudaFree(mp->alphaz_store);
     cudaFree(mp->betax_store);
     cudaFree(mp->betaz_store);
-    cudaFree(mp->d_pml_abs_points_acoustic);
+    if (mp->pml_nglob_abs_acoustic > 0) {
+      cudaFree(mp->d_pml_abs_points_acoustic);
+    }
+    if (mp->pml_nglob_abs_elastic > 0) {
+      cudaFree(mp->d_pml_abs_points_elastic);
+    }
   }
 
   // ACOUSTIC arrays

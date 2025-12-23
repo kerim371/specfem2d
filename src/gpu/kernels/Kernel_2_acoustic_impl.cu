@@ -177,7 +177,9 @@ Kernel_2_acoustic_impl(const int nb_blocks_to_compute,
   ispec = d_phase_ispec_inner_acoustic[bx + num_phase_ispec_acoustic*(d_iphase-1)] - 1; // array indexing starts at 0
 
   //checks if element is outside the PML
-  if (PML){ if (d_spec_to_pml[ispec] > 0) return; }
+  if (PML){
+    if (d_spec_to_pml[ispec] > 0) return;
+  }
 
   // local padded index
   offset = ispec * NGLL2_PADDED + tx;
@@ -414,6 +416,7 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   realw coef1,coef2,coef3,coef4,pml_contrib;
   realw r1,r2,r3,r4,r5,r6;
   realw rhol,kappal;
+  realw fac,A1,A2,A3,A4;
 
   // checks if anything to do
   if (bx >= nb_blocks_to_compute ) return;
@@ -495,10 +498,12 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   offset_local_pml = (ispec_pml-(NSPEC_PML_X + NSPEC_PML_Z))*NGLL2 + tx; // local pml elements in range [0,NSPEC_PML_XZ-1]
 
   if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_X_ONLY or in CPML_Z_ONLY region
     abs_norm = abs_normalized[offset_pml];
     alpha1 = ALPHA_MAX_PML * ( 1.f - abs_norm ) ;
     beta1 =  alpha1 + 2.f * d0  * abs_norm * abs_norm;}
   else{
+    // in CPML_XZ region
     alpha1 = alphaz_store[offset_local_pml];
     beta1  = betaz_store[offset_local_pml];
     alphax = alphax_store[offset_local_pml];
@@ -506,10 +511,12 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   }
   coef1 = __expf(-0.5f * deltat * alpha1);
   coef2 = __expf(-0.5f * deltat * beta1);
+
   // Update memory variables of derivatives
   r1 = rmemory_acoustic_dux_dx[offset_pml];
   r2 = rmemory_acoustic_dux_dz[offset_pml];
   if (ispec_pml < NSPEC_PML_X){
+    // in CPML_X_ONLY region
     r1 *= coef2 * coef2;
     if (abs(beta1) > 0.00001){
       r1 += ( 1.f - coef2 ) / beta1 * dpotentialdxl + coef2 * ( 1.f - coef2 ) / beta1 * PML_dpotentialdxl_old[offset_pml];}
@@ -523,6 +530,7 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
       r2 += 0.5f * deltat * dpotentialdzl + 0.5f* deltat * PML_dpotentialdzl_old[offset_pml];
     }
   }else{
+    // in CPML_Z_ONLY or in CPML_XZ region
     r1 *= coef1 * coef1;
     if (abs(alpha1) > 0.00001){
       r1 += ( 1.f - coef1 ) / alpha1 * dpotentialdxl + coef1 * ( 1.f - coef1 ) / alpha1 * PML_dpotentialdxl_old[offset_pml];}
@@ -540,6 +548,7 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   rmemory_acoustic_dux_dz[offset_pml] = r2;
 
   if (ispec_pml >= (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_XZ region
     coef3 = __expf(-0.5f * deltat * betax);
     coef4 = __expf(-0.5f * deltat * alphax);
 
@@ -567,7 +576,10 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
     r5 += 0.5f * deltat *  s_dummy_loc[tx] + 0.5f * deltat * d_potential_old[offset_pml];
   }
   rmemory_pot_acoustic[offset_pml] = r5 ;
+
+  r6 = 0.f;
   if (ispec_pml >= (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_XZ region
     r6 = coef4 * coef4 * rmemory_pot_acoustic2[offset_local_pml];
     if (abs(alphax) > 0.00001){
       r6 += ( 1.f - coef4 ) / alphax *  s_dummy_loc[tx] + coef4 * ( 1.f - coef4 ) / alphax * d_potential_old[offset_pml];
@@ -583,31 +595,50 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   d_potential_old[offset_pml] = s_dummy_loc[tx];
 
   // Compute contribution of the PML to second derivative of potential
-  coef2 = rho_invl_times_jacobianl * rhol / kappal;
+  // note: compare to routine pml_compute_accel_contribution_acoustic():
+  //          potential_dot_dot_acoustic_PML(i,j)= wxgll(i) * wzgll(j) * fac * &
+  //                                               (A1 * potential_dot_acoustic(iglob) + A2 * potential_acoustic(iglob) + &
+  //                                                A3 * rmemory_potential_acoustic(1,i,j,ispec_PML) + &
+  //                                                A4 * rmemory_potential_acoustic(2,i,j,ispec_PML))
+  fac = rho_invl_times_jacobianl * rhol / kappal;    // jacobianl / kappal
 
   if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
-    pml_contrib = sh_wxgll[J] * sh_wxgll[I] * coef2 * ( (beta1-alpha1) * potential_dot[iglob] - alpha1 * (beta1-alpha1) * s_dummy_loc[tx] + alpha1 * alpha1 * (beta1-alpha1) * r5 );
+    // in CPML_X_ONLY or in CPML_Z_ONLY region
+    A1 = beta1 - alpha1;
+    A2 = - alpha1 * A1;     // - alpha1 * (beta1 - alpha1)
+    A3 = - alpha1 * A2;     // alpha1 * alpha1 * (beta1 - alpha1)
+    A4 = 0.f;
+    //pml_contrib = sh_wxgll[J] * sh_wxgll[I] * fac * (A1 * potential_dot[iglob] + A2 * s_dummy_loc[tx] + A3 * r5);
   }else{
+    // in CPML_XZ region
     coef3 = (alphax * alpha1 + alphax*alphax + 2.f * betax * beta1 - 2.f * alphax * (betax + beta1)) / (alpha1 - alphax);
     coef4 = (alphax * alpha1 + alpha1*alpha1 + 2.f * betax * beta1 - 2.f * alpha1 * (betax + beta1)) / (alphax - alpha1);
-    pml_contrib = sh_wxgll[J] * sh_wxgll[I] * coef2 * ( 0.5f * (coef3 - alphax + coef4 - alpha1) * potential_dot[iglob] + 0.5f * (alphax*alphax - coef3 * alphax + alpha1*alpha1 - coef4 * alpha1)*s_dummy_loc[tx] + 0.5f * alphax * alphax * (coef3 - alphax) * r6  + 0.5f * alpha1 * alpha1 * (coef4 - alpha1) * r5);
+
+    A1 = 0.5f * (coef3 - alphax + coef4 - alpha1);
+    A2 = 0.5f * (alphax*alphax - coef3 * alphax + alpha1*alpha1 - coef4 * alpha1);
+    A3 = 0.5f * alpha1 * alpha1 * (coef4 - alpha1);
+    A4 = 0.5f * alphax * alphax * (coef3 - alphax);
+    //pml_contrib = sh_wxgll[J] * sh_wxgll[I] * fac * (A1 * potential_dot[iglob] + A2 * s_dummy_loc[tx] + A3 * r5 + A4 * r6);
   }
+  pml_contrib = sh_wxgll[J] * sh_wxgll[I] * fac * (A1 * potential_dot[iglob] + A2 * s_dummy_loc[tx] + A3 * r5 + A4 * r6);
 
   // Update derivatives
   if (ispec_pml < NSPEC_PML_X){
+    // in CPML_X_ONLY region
     dpotentialdxl += (alpha1-beta1) * r1;
     dpotentialdzl -= (alpha1-beta1) * r2;}
   else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_Z_ONLY region
     dpotentialdxl -= (alpha1-beta1) * r1;
     dpotentialdzl += (alpha1-beta1) * r2;}
   else{
+    // in CPML_XZ region
     dpotentialdxl += 0.5f * ((alpha1 * betax + alpha1*alpha1 + 2.f * beta1 * alphax - 2.f * alpha1 * ( beta1 + alphax)) / (betax - alpha1) - alpha1 ) * r1;
     dpotentialdxl += 0.5f * ((alpha1 * betax + betax*betax + 2.f * beta1 * alphax - 2.f * betax * ( beta1 + alphax)) / (alpha1 - betax) - betax ) * r3;
     dpotentialdzl += 0.5f * ((alphax * beta1 + alphax*alphax + 2.f * betax * alpha1 - 2.f * alphax * ( betax + alpha1)) / (beta1 - alphax) - alphax ) * r4;
     dpotentialdzl += 0.5f * ((alphax * beta1 + beta1*beta1 + 2.f * betax * alpha1 - 2.f * beta1 * ( betax + alpha1)) / (alphax - beta1) - beta1 ) * r2;
   }
-
-  __syncthreads();
+  //__syncthreads();  // not needed... still everything thread local
 
   // form the dot product with the test vector
   s_temp1[tx] = sh_wxgll[J]*rho_invl_times_jacobianl  * (dpotentialdxl*xixl  + dpotentialdzl*xizl)  ;

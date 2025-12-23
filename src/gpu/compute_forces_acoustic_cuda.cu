@@ -121,6 +121,7 @@ TRACE("Kernel_2_acoustic");
                                                                          mp->pml_boundary_conditions,
                                                                          mp->d_spec_to_pml);
 
+        // PML elements
         if (mp->pml_boundary_conditions){
           Kernel_2_acoustic_PML_impl<1><<<grid,threads,0,mp->compute_stream>>>(nb_blocks_to_compute,
                                                                                d_ibool,
@@ -157,7 +158,7 @@ TRACE("Kernel_2_acoustic");
                                                                                mp->alphaz_store,
                                                                                mp->betax_store,
                                                                                mp->betaz_store);
-        } //PML
+        } // PML
       } // compute_wavefield1
       if (compute_wavefield_2){
         // this run only happens with UNDO_ATTENUATION_AND_OR_PML on
