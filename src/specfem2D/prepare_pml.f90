@@ -404,11 +404,11 @@
 
       if (time_stepping_scheme == 2) then
         allocate(rmemory_potential_acoustic_LDDRK(2,NGLLX,NGLLZ,nspec_PML),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_potential_acoustic')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_potential_acoustic_LDDRK')
         allocate(rmemory_acoustic_dux_dx_LDDRK(NGLLX,NGLLZ,nspec_PML,2),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dx')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dx_LDDRK')
         allocate(rmemory_acoustic_dux_dz_LDDRK(NGLLX,NGLLZ,nspec_PML,2),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dz')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dz_LDDRK')
       else
         allocate(rmemory_potential_acoustic_LDDRK(1,1,1,1),stat=ier)
         allocate(rmemory_acoustic_dux_dx_LDDRK(1,1,1,1),stat=ier)

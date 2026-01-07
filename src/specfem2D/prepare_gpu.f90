@@ -71,12 +71,22 @@
   if ((ATTENUATION_VISCOACOUSTIC .or. ATTENUATION_VISCOELASTIC) .and. any_elastic .and. any_acoustic) &
     call stop_the_code('GPU_MODE not supported yet coupled fluid-solid simulations with attenuation')
 
-  if (PML_BOUNDARY_CONDITIONS .and. any_poroelastic) &
-    call stop_the_code('PML on GPU not supported yet for poroelastic cases')
-  if (PML_BOUNDARY_CONDITIONS .and. ATTENUATION_VISCOACOUSTIC) &
-    call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
-  if (PML_BOUNDARY_CONDITIONS .and. SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
-    call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
+  if (PML_BOUNDARY_CONDITIONS) then
+    if (any_poroelastic) &
+      call stop_the_code('PML on GPU not supported yet for poroelastic cases')
+    if (ATTENUATION_VISCOACOUSTIC) &
+      call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
+    if (SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
+      call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
+    if (K_MIN_PML /= 1.0d0 .or. K_MAX_PML /= 1.0d0) &
+      call stop_the_code('PML on GPU needs K_MIN_PML == 1.0 and K_MAX_PML == 1.0 in Par_file')
+    if (any_acoustic .and. damping_change_factor_acoustic /= 0.5d0) &
+      call stop_the_code('PML on GPU for acoustic cases needs damping_change_factor_acoustic == 0.5 in Par_file')
+    if (any_elastic .and. damping_change_factor_elastic /= 1.0d0) &
+      call stop_the_code('PML on GPU for elastic cases needs damping_change_factor_elastic == 1.0 in Par_file')
+    if (PML_PARAMETER_ADJUSTMENT) &
+      call stop_the_code('PML on GPU needs PML_PARAMETER_ADJUSTMENT == .false. in Par_file')
+  endif
 
   ! initializes arrays
   call init_host_to_dev_variable()
@@ -219,7 +229,7 @@
                             spec_to_PML_GPU, &
                             abs_normalized, &
                             sngl(ALPHA_MAX_PML), &
-                            d0_max, &
+                            d0_max_acoustic,d0_max_elastic, &
                             deltat, &
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
@@ -469,7 +479,7 @@
       if (region_CPML(ispec) == CPML_XZ) then
         ispec_PML = spec_to_PML(ispec)
         ! element index in range [1,NSPEC_PML_XZ]
-        ielem = spec_to_PML_GPU(ispec)-(nspec_PML_X + nspec_PML_Z)
+        ielem = spec_to_PML_GPU(ispec) - (nspec_PML_X + nspec_PML_Z)
         do j = 1,NGLLZ
           do i = 1,NGLLX
             alphax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML))

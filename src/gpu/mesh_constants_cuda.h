@@ -577,24 +577,27 @@ typedef struct mesh_ {
 
   realw* abscissa_norm;
   realw ALPHA_MAX_PML;
-  realw d0_max;
 
   // acoustic
+  realw d0_max_acoustic;
+
   realw* PML_dpotentialdxl_old;
   realw* PML_dpotentialdzl_old;
   realw* d_potential_old;
 
-  realw* rmemory_acoustic_dux_dx;
-  realw* rmemory_acoustic_dux_dz;
-  realw* rmemory_acoustic_dux_dx2;
-  realw* rmemory_acoustic_dux_dz2;
-  realw* rmemory_pot_acoustic;
-  realw* rmemory_pot_acoustic2;
+  realw* d_rmemory_acoustic_dux_dx;
+  realw* d_rmemory_acoustic_dux_dz;
+  realw* d_rmemory_acoustic_dux_dx2;
+  realw* d_rmemory_acoustic_dux_dz2;
+  realw* d_rmemory_pot_acoustic;
+  realw* d_rmemory_pot_acoustic2;
 
   int pml_nglob_abs_acoustic;
   int* d_pml_abs_points_acoustic;
 
   // elastic
+  realw d0_max_elastic;
+
   realw* d_displ_elastic_old;
 
   int pml_nglob_abs_elastic;

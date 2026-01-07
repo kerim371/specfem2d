@@ -212,7 +212,7 @@
             xizl = deriv_mapping(2,i,j,ispec)
             gammaxl = deriv_mapping(3,i,j,ispec)
             gammazl = deriv_mapping(4,i,j,ispec)
-            jacobianl = deriv_mapping(5,i,j,ispec)
+            ! not needed: jacobianl = deriv_mapping(5,i,j,ispec)
             fac = deriv_mapping(6,i,j,ispec) ! jacobian/rho
 
             iglob = ibool(i,j,ispec)
@@ -228,7 +228,7 @@
           xizl = deriv_mapping(2,INDEX_IJ,ispec)
           gammaxl = deriv_mapping(3,INDEX_IJ,ispec)
           gammazl = deriv_mapping(4,INDEX_IJ,ispec)
-          jacobianl = deriv_mapping(5,INDEX_IJ,ispec)
+          ! not needed: jacobianl = deriv_mapping(5,INDEX_IJ,ispec)
           fac = deriv_mapping(6,INDEX_IJ,ispec) ! jacobian/rho
 
           tempx1(INDEX_IJ) = fac * (xixl * dux_dxl(INDEX_IJ) + xizl * dux_dzl(INDEX_IJ))

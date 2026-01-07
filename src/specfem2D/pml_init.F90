@@ -559,7 +559,7 @@
   use specfem_par, only: ispec_is_PML,spec_to_PML,region_CPML,PML_PARAMETER_ADJUSTMENT, &
                          K_x_store,K_z_store,d_x_store,d_z_store,alpha_x_store,alpha_z_store, &
                          min_distance_between_CPML_parameter,damping_change_factor_acoustic,damping_change_factor_elastic, &
-                         K_MAX_PML,K_MIN_PML,GPU_MODE,abs_normalized,ALPHA_MAX_PML,d0_max
+                         K_MAX_PML,K_MIN_PML,GPU_MODE,abs_normalized,ALPHA_MAX_PML,d0_max_acoustic,d0_max_elastic
 
   implicit none
 
@@ -884,7 +884,8 @@
 
   if (GPU_MODE) then
    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC))
-   d0_max = sngl(max(d0_z_top_acoustic,d0_z_bottom_acoustic,d0_x_right_acoustic,d0_x_left_acoustic))
+   d0_max_acoustic = sngl(max(d0_z_top_acoustic,d0_z_bottom_acoustic,d0_x_right_acoustic,d0_x_left_acoustic))
+   d0_max_elastic = sngl(max(d0_z_top_elastic,d0_z_bottom_elastic,d0_x_right_elastic,d0_x_left_elastic))
   endif
 
 !!!----------------------------------------------------------------------------

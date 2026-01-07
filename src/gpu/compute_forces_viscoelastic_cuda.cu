@@ -297,8 +297,17 @@ TRACE("Kernel_2");
                                                                                 mp->d_muv,
                                                                                 mp->simulation_type,
                                                                                 mp->p_sv,
-                                                                                mp->pml_boundary_conditions,
-                                                                                mp->d_spec_to_pml);
+                                                                                mp->d_spec_to_pml,
+                                                                                mp->ALPHA_MAX_PML,
+                                                                                mp->d0_max_elastic,
+                                                                                mp->abscissa_norm,
+                                                                                mp->nspec_pml_x,
+                                                                                mp->nspec_pml_z,
+                                                                                mp->deltat,
+                                                                                mp->alphax_store,
+                                                                                mp->alphaz_store,
+                                                                                mp->betax_store,
+                                                                                mp->betaz_store);
         } // PML
       }
       // backward/reconstructed wavefield

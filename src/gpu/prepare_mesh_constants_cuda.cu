@@ -861,7 +861,8 @@ void FC_FUNC_(prepare_pml_device,
                                   int* h_spec_to_pml,
                                   realw* h_abs_normalized,
                                   realw* ALPHA_MAX_PML,
-                                  realw* d0_max,
+                                  realw* d0_max_acoustic,
+                                  realw* d0_max_elastic,
                                   realw* deltat,
                                   realw* h_alphax_store,
                                   realw* h_alphaz_store,
@@ -877,56 +878,58 @@ void FC_FUNC_(prepare_pml_device,
   Mesh* mp = (Mesh*)(*Mesh_pointer);
 
   if (mp->pml_boundary_conditions){
-    mp->deltat = *deltat;
     mp->nspec_pml    = *NSPEC_PML;
     mp->nspec_pml_x  = *NSPEC_PML_X;
     mp->nspec_pml_z  = *NSPEC_PML_Z;
+
     mp->ALPHA_MAX_PML = *ALPHA_MAX_PML;
-    mp->d0_max = *d0_max;
-
-    copy_todevice_int((void**)&mp->d_spec_to_pml,h_spec_to_pml,mp->NSPEC_AB);
-
-    // PML wavefields
-    // acoustic
-    if (mp->nspec_acoustic > 0) {
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdxl_old,NGLL2*mp->nspec_pml*sizeof(realw)),1301);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdzl_old,NGLL2*mp->nspec_pml*sizeof(realw)),1302);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdxl_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdzl_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
-
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_potential_old,NGLL2*mp->nspec_pml*sizeof(realw)),1303);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->d_potential_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
-    }
-
-    copy_todevice_realw((void**)&mp->abscissa_norm,h_abs_normalized,NGLL2*mp->nspec_pml);
-
-    // PML memory variables
-    // acoustic
-    if (mp->nspec_acoustic > 0) {
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_acoustic_dux_dx,NGLL2*mp->nspec_pml*sizeof(realw)),1290);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_acoustic_dux_dz,NGLL2*mp->nspec_pml*sizeof(realw)),1291);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_acoustic_dux_dx2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1292);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_acoustic_dux_dz2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1292);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_acoustic_dux_dx,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_acoustic_dux_dz,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_acoustic_dux_dx2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_acoustic_dux_dz2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
-
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_pot_acoustic,NGLL2*mp->nspec_pml*sizeof(realw)),1293);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->rmemory_pot_acoustic2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1294);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_pot_acoustic,0,sizeof(realw)*NGLL2*(mp->nspec_pml)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->rmemory_pot_acoustic2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
-    }
+    mp->d0_max_acoustic = *d0_max_acoustic;
+    mp->d0_max_elastic = *d0_max_elastic;
+    mp->deltat = *deltat;
 
     // PML coefficients
     copy_todevice_realw((void**)&mp->alphax_store,h_alphax_store,NGLL2*(*NSPEC_PML_XZ));
     copy_todevice_realw((void**)&mp->alphaz_store,h_alphaz_store,NGLL2*(*NSPEC_PML_XZ));
     copy_todevice_realw((void**)&mp->betax_store,h_betax_store,NGLL2*(*NSPEC_PML_XZ));
     copy_todevice_realw((void**)&mp->betaz_store,h_betaz_store,NGLL2*(*NSPEC_PML_XZ));
+
+    copy_todevice_int((void**)&mp->d_spec_to_pml,h_spec_to_pml,mp->NSPEC_AB);
+    copy_todevice_realw((void**)&mp->abscissa_norm,h_abs_normalized,NGLL2*mp->nspec_pml);
+
+    // acoustic PML
+    if (mp->nspec_acoustic > 0) {
+      // PML wavefields
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdxl_old,NGLL2*mp->nspec_pml*sizeof(realw)),1301);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdzl_old,NGLL2*mp->nspec_pml*sizeof(realw)),1302);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_potential_old,NGLL2*mp->nspec_pml*sizeof(realw)),1303);
+      // initializes
+      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdxl_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdzl_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_potential_old,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
+
+      // PML memory variables
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx,NGLL2*mp->nspec_pml*sizeof(realw)),1290);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz,NGLL2*mp->nspec_pml*sizeof(realw)),1291);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1292);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1292);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic,NGLL2*mp->nspec_pml*sizeof(realw)),1293);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic2,NGLL2*(*NSPEC_PML_XZ)*sizeof(realw)),1294);
+      // initializes
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz,0,sizeof(realw)*NGLL2*mp->nspec_pml),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic,0,sizeof(realw)*NGLL2*(mp->nspec_pml)),2007);
+      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic2,0,sizeof(realw)*NGLL2*(*NSPEC_PML_XZ)),2007);
+    }
+
+    // elastic PML
+    if (mp->nspec_elastic > 0){
+      // PML wavefields
+      //!TODO
+      // PML memory variables
+      //!TODO
+    }
 
     // acoustic boundary
     mp->pml_nglob_abs_acoustic = *PML_nglob_abs_acoustic_f;
@@ -1260,12 +1263,12 @@ TRACE("prepare_cleanup_device");
     }
     cudaFree(mp->abscissa_norm);
     if (mp->nspec_acoustic > 0) {
-      cudaFree(mp->rmemory_acoustic_dux_dx);
-      cudaFree(mp->rmemory_acoustic_dux_dz);
-      cudaFree(mp->rmemory_acoustic_dux_dx2);
-      cudaFree(mp->rmemory_acoustic_dux_dz2);
-      cudaFree(mp->rmemory_pot_acoustic);
-      cudaFree(mp->rmemory_pot_acoustic2);
+      cudaFree(mp->d_rmemory_acoustic_dux_dx);
+      cudaFree(mp->d_rmemory_acoustic_dux_dz);
+      cudaFree(mp->d_rmemory_acoustic_dux_dx2);
+      cudaFree(mp->d_rmemory_acoustic_dux_dz2);
+      cudaFree(mp->d_rmemory_pot_acoustic);
+      cudaFree(mp->d_rmemory_pot_acoustic2);
     }
     cudaFree(mp->alphax_store);
     cudaFree(mp->alphaz_store);

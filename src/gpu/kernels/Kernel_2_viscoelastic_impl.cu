@@ -637,7 +637,8 @@ __launch_bounds__(NGLL2_PADDED,LAUNCH_MIN_BLOCKS)
 // main kernel
 Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
                             const int* d_ibool,
-                            const int* d_phase_ispec_inner_elastic,const int num_phase_ispec_elastic,
+                            const int* d_phase_ispec_inner_elastic,
+                            const int num_phase_ispec_elastic,
                             const int d_iphase,
                             realw_const_p d_displ,
                             realw_p d_accel,
@@ -650,8 +651,28 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
                             realw* d_muv,
                             const int simulation_type,
                             const int p_sv,
-                            const int PML,
-                            const int* d_spec_to_pml){
+                            const int* d_spec_to_pml,
+                            realw ALPHA_MAX_PML,
+                            realw d0,
+                            realw* abs_normalized,
+                            int NSPEC_PML_X,
+                            int NSPEC_PML_Z,
+                            realw deltat,
+                            //realw* PML_displ_dxl_old,
+                            //realw* PML_displ_dzl_old,
+                            //realw* d_displ_old,
+                            //realw* rmemory_elastic_dux_dx,
+                            //realw* rmemory_elastic_dux_dz,
+                            //realw* rmemory_elastic_dux_dx2,
+                            //realw* rmemory_elastic_dux_dz2,
+                            //realw* rmemory_displ,
+                            //realw* rmemory_displ2,
+                            //realw_p d_veloc,
+                            //realw* d_kappastore,
+                            realw* alphax_store,
+                            realw* alphaz_store,
+                            realw* betax_store,
+                            realw* betaz_store){
 
 // elastic compute kernel without attenuation for isotropic elements with PML
 
@@ -683,7 +704,14 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   __shared__ realw sh_hprimewgll_xx[NGLL2];
   __shared__ realw sh_wxgll[NGLLX];
 
+  // PML
   int ispec_pml;
+  int offset_pml,offset_local_pml;
+  realw alpha1,beta1,alphax,betax,abs_norm;
+  //realw coef1,coef2,coef3,coef4,pml_contrib;
+  //realw r1,r2,r3,r4,r5,r6;
+  //realw rhol,kappal;
+  //realw fac,A1,A2,A3,A4;
 
   // checks if anything to do
   if (bx >= nb_blocks_to_compute ) return;
@@ -756,6 +784,46 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
 
   // precompute some sums to save CPU time
   duzdxl_plus_duxdzl = duzdxl + duxdzl;
+
+  // local PML array index
+  offset_pml = ispec_pml*NGLL2 + tx;  // ispec_pml elements in range [0,NSPEC_PML-1]
+  offset_local_pml = (ispec_pml-(NSPEC_PML_X + NSPEC_PML_Z))*NGLL2 + tx; // local pml elements in range [0,NSPEC_PML_XZ-1]
+
+  if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_X_ONLY or in CPML_Z_ONLY region
+    abs_norm = abs_normalized[offset_pml];
+    // for CPML_X_ONLY:
+    //   (see pml_init.F90, routine `define_PML_coefficients`)
+    //   alpha1  == alpha_x == ALPHA_MAX * (1 - abscissa)
+    //   alpha_z == 0
+    //
+    //   beta1  == beta_x  == alpha_x + d_x / K_x
+    //                     == alpha_x + (d0_x / damping_change_factor_elastic * abscissa_normalized**NPOWER) /
+    //                                  (K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER)
+    //   note: damping_change_factor_elastic must be == 1.0 for this implementation,
+    //         K_MIN_PML must be == 1.0 and K_MAX_PML == 1.0,
+    //         and NPOWER must be == 2 (see parameter defined in pml_init.F90)    //
+    //
+    //   it follows, that
+    //   beta1  == beta_x  == alpha_x + (d0_x * abscissa**2)
+    //   beta_z == 0
+    //
+    // for CPML_Z_ONLY:
+    //   alpha1  == alpha_z == ALPHA_MAX * (1 - abscissa)
+    //   alpha_x == 0
+    //
+    //   beta1  == beta_z  == alpha_z + d_z / K_z
+    //                     == alpha_z + (d0_z * abscissa**2)
+    //   beta_x == 0
+    alpha1 = ALPHA_MAX_PML * ( 1.f - abs_norm ) ;
+    beta1 =  alpha1 + d0  * abs_norm * abs_norm;}
+  else{
+    // in CPML_XZ region
+    alpha1 = alphaz_store[offset_local_pml];
+    beta1  = betaz_store[offset_local_pml];
+    alphax = alphax_store[offset_local_pml];
+    betax  = betax_store[offset_local_pml];
+  }
 
   // stress calculations
   // isotropic case
@@ -1676,13 +1744,19 @@ template __global__ void Kernel_2_noatt_iso_PML_impl<1>(const int,const int*,con
                                                         realw_const_p,realw_p,
                                                         realw*,realw*,realw*,realw*,
                                                         realw_const_p,realw_const_p,realw_const_p,
-                                                        realw*,realw*,const int,const int,const int,const int*);
+                                                        realw*,realw*,const int,const int,const int*,
+                                                        realw,realw,realw*,int,int,realw,
+                                                        //realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw_p,realw*,
+                                                        realw*,realw*,realw*,realw*);
 
 template __global__ void Kernel_2_noatt_iso_PML_impl<3>(const int,const int*,const int*,const int,const int,
                                                         realw_const_p,realw_p,
                                                         realw*,realw*,realw*,realw*,
                                                         realw_const_p,realw_const_p,realw_const_p,
-                                                        realw*,realw*,const int,const int,const int,const int*);
+                                                        realw*,realw*,const int,const int,const int*,
+                                                        realw,realw,realw*,int,int,realw,
+                                                        //realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw_p,realw*,
+                                                        realw*,realw*,realw*,realw*);
 
 // anisotropic, no attenuation
 template __global__ void Kernel_2_noatt_ani_impl<1>(int,const int*,const int*,const int,const int,
