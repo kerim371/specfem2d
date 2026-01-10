@@ -440,7 +440,9 @@ void FC_FUNC_(prepare_pml_device,
                                   int *PML_nglob_abs_acoustic_f,
                                   int *h_PML_abs_points_acoustic,
                                   int *PML_nglob_abs_elastic_f,
-                                  int *h_PML_abs_points_elastic){}
+                                  int *h_PML_abs_points_elastic,
+                                  int *ACOUSTIC_SIMULATION,
+                                  realw* rhostore){}
 
 void FC_FUNC_(prepare_stacey_device,
               PREPARE_STACEY_DEVICE)(long* Mesh_pointer,

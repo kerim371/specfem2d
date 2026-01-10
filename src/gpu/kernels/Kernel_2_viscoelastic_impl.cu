@@ -658,17 +658,23 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
                             int NSPEC_PML_X,
                             int NSPEC_PML_Z,
                             realw deltat,
-                            //realw* PML_displ_dxl_old,
-                            //realw* PML_displ_dzl_old,
-                            //realw* d_displ_old,
-                            //realw* rmemory_elastic_dux_dx,
-                            //realw* rmemory_elastic_dux_dz,
-                            //realw* rmemory_elastic_dux_dx2,
-                            //realw* rmemory_elastic_dux_dz2,
-                            //realw* rmemory_displ,
-                            //realw* rmemory_displ2,
-                            //realw_p d_veloc,
-                            //realw* d_kappastore,
+                            realw* PML_dux_dxl_old,
+                            realw* PML_dux_dzl_old,
+                            realw* PML_duz_dxl_old,
+                            realw* PML_duz_dzl_old,
+                            realw* d_displ_elastic_old,
+                            realw* d_rmemory_dux_dx,
+                            realw* d_rmemory_dux_dx2,
+                            realw* d_rmemory_duz_dx,
+                            realw* d_rmemory_duz_dx2,
+                            realw* d_rmemory_dux_dz,
+                            realw* d_rmemory_dux_dz2,
+                            realw* d_rmemory_duz_dz,
+                            realw* d_rmemory_duz_dz2,
+                            realw* d_rmemory_displ_elastic,
+                            realw* d_rmemory_displ_elastic2,
+                            realw_p d_veloc,
+                            const realw* d_rhostore,
                             realw* alphax_store,
                             realw* alphaz_store,
                             realw* betax_store,
@@ -688,10 +694,10 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   realw tempx1l,tempx3l,tempz1l,tempz3l;
   realw xixl,xizl,gammaxl,gammazl,jacobianl;
   realw duxdxl,duxdzl,duzdxl,duzdzl;
-  realw duzdxl_plus_duxdzl;
+  //realw duzdxl_plus_duxdzl;
 
   realw lambdal,mul,lambdalplus2mul,kappal;
-  realw sigma_xx,sigma_zz,sigma_xz;
+  realw sigma_xx,sigma_zz,sigma_xz,sigma_zx;
   realw sum_terms1,sum_terms3;
 
   // shared memory
@@ -708,10 +714,16 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   int ispec_pml;
   int offset_pml,offset_local_pml;
   realw alpha1,beta1,alphax,betax,abs_norm;
-  //realw coef1,coef2,coef3,coef4,pml_contrib;
-  //realw r1,r2,r3,r4,r5,r6;
-  //realw rhol,kappal;
-  //realw fac,A1,A2,A3,A4;
+  realw c1,c2;
+  realw r1,r2,r3,r4,r5,r6,r7,r8;
+  realw r9_x,r9_z,r10_x,r10_z;
+  realw rhol,rho_times_jacobianl;
+  realw A1,A2,A3,A4;
+  realw coef0_1,coef1_1,coef2_1;
+  realw coef0_2,coef1_2,coef2_2;
+  realw coef0_3,coef1_3,coef2_3;
+  realw coef0_4,coef1_4,coef2_4;
+  realw pml_contrib_x,pml_contrib_z;
 
   // checks if anything to do
   if (bx >= nb_blocks_to_compute ) return;
@@ -752,6 +764,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
 
   kappal = d_kappav[offset];
   mul = d_muv[offset];
+  rhol = d_rhostore[offset];
 
   // calculates laplacian
   xixl = get_global_cr( &d_xix[offset] ); // first array with texture load
@@ -761,6 +774,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   gammazl = d_gammaz[offset];
 
   jacobianl = 1.f / (xixl*gammazl-gammaxl*xizl);
+  rho_times_jacobianl = rhol * jacobianl;
 
   // local index
   int J = (tx/NGLLX);
@@ -782,13 +796,15 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   duzdxl = xixl*tempz1l + gammaxl*tempz3l;
   duzdzl = xizl*tempz1l + gammazl*tempz3l;
 
-  // precompute some sums to save CPU time
-  duzdxl_plus_duxdzl = duzdxl + duxdzl;
-
+  // PML
   // local PML array index
   offset_pml = ispec_pml*NGLL2 + tx;  // ispec_pml elements in range [0,NSPEC_PML-1]
   offset_local_pml = (ispec_pml-(NSPEC_PML_X + NSPEC_PML_Z))*NGLL2 + tx; // local pml elements in range [0,NSPEC_PML_XZ-1]
 
+  // coefficients
+  // note: see pml_init.F90, compare to routine define_PML_coefficients()
+  //       (starting around line 900);
+  //       assumes coefficients are calculated w/out PML_PARAMETER_ADJUSTMENT
   if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
     // in CPML_X_ONLY or in CPML_Z_ONLY region
     abs_norm = abs_normalized[offset_pml];
@@ -802,7 +818,10 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
     //                                  (K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER)
     //   note: damping_change_factor_elastic must be == 1.0 for this implementation,
     //         K_MIN_PML must be == 1.0 and K_MAX_PML == 1.0,
-    //         and NPOWER must be == 2 (see parameter defined in pml_init.F90)    //
+    //         and NPOWER must be == 2 (see parameter defined in pml_init.F90)
+    //   Thus,
+    //   K_x == K_z == K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER == 1
+    //   d_x == d0_x / damping_change_factor_elastic * abscissa_normalized**NPOWER  == d0_x * abscissa**2
     //
     //   it follows, that
     //   beta1  == beta_x  == alpha_x + (d0_x * abscissa**2)
@@ -815,15 +834,326 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
     //   beta1  == beta_z  == alpha_z + d_z / K_z
     //                     == alpha_z + (d0_z * abscissa**2)
     //   beta_x == 0
-    alpha1 = ALPHA_MAX_PML * ( 1.f - abs_norm ) ;
-    beta1 =  alpha1 + d0  * abs_norm * abs_norm;}
-  else{
+    alpha1 = ALPHA_MAX_PML * (1.f - abs_norm) ;
+    beta1 =  alpha1 + d0  * abs_norm * abs_norm;  // instead of d0_x_left, d0_x_right, .. this takes d0_max
+  } else{
     // in CPML_XZ region
     alpha1 = alphaz_store[offset_local_pml];
     beta1  = betaz_store[offset_local_pml];
     alphax = alphax_store[offset_local_pml];
     betax  = betax_store[offset_local_pml];
   }
+
+  // Update memory variables of derivatives
+  //
+  // coefficients
+  // note: see file pml_compute_memory_variables.f90, routine pml_compute_memory_variables_elastic()
+  //       assumes Newmark time scheme updates (line ~433)
+  //         ! non-rotated, element aligns with x/y/z-coordinates
+  //         rmemory_dux_dx(i,j,ispec_PML,1) = coef0_zx_1 * rmemory_dux_dx(i,j,ispec_PML,1) + &
+  //                                           coef1_zx_1 * PML_dux_dxl(i,j) + coef2_zx_1 * PML_dux_dxl_old(i,j)
+  //         ..
+  //
+  //       with coefficients coef0_zx_1,.. computed by routine lik_parameter_computation()
+  //       and routine compute_coef_convolution() in file pml_compute.f90:
+  //         with  c1 == exp( - 1/2 * alpha1 * dt )     alpha1 being either alpha_x or alpha_z
+  //               c2 == exp( - 1/2 * beta1  * dt )     beta1  being either beta_x or beta_z
+  //
+  //         for CPML_X_ONLY region: alpha_x /= 0, alpha_z == 0, beta_x /= 0, beta_z == 0
+  //           coef0_zx_1 == exp( - alpha_x * dt ) == c1**2
+  //           coef0_zx_2 == exp( - beta_x  * dt ) == c2**2
+  //
+  //         for CPML_Z_ONLY region: alpha_x == 0, alpha_z /= 0, beta_x == 0, beta_z /= 0)
+  //           coef0_zx_1 == exp( - alpha_z * dt ) == c1**2
+  //           coef0_zx_2 == exp( - beta_z  * dt ) == c2**2
+  //
+  //         and
+  //           coef1_zx_1 == (1 - c1)/alpha1    (or 1/2 * dt, if alpha1 <= 10^-5)
+  //           coef1_zx_2 == (1 - c2)/beta1     (or 1/2 * dt, if beta1  <= 10^-5)
+  //
+  //           coef2_zx_1 == coef1_zx_1 * c1    (or coef1_zx_1, if alpha1 <= 10^-5)
+  //           coef2_zx_2 == coef1_zx_2 * c2    (or coef1_zx_2, if beta1  <= 10^-5)
+  //
+
+  // for all PML regions
+  c1 = __expf(-0.5f * deltat * alpha1);
+  c2 = __expf(-0.5f * deltat * beta1);
+
+  coef0_1 = c1 * c1;
+  if (abs(alpha1) > 0.00001){
+    // coef1_zx_1 == (1 - c1)/alpha1
+    // coef2_zx_1 == coef1 * c1
+    coef1_1 = (1.f - c1) / alpha1;
+    coef2_1 = coef1_1 * c1;
+  } else {
+    // coef1_zx_1 == 1/2 dt
+    // coef2_zx_1 == coef1_zx_1
+    coef1_1 = 0.5f * deltat;
+    coef2_1 = coef1_1;
+  }
+
+  coef0_2 = c2 * c2;
+  if (abs(beta1) > 0.00001){
+    // coef1_zx_2 == (1 - c2)/beta1
+    // coef2_zx_2 == coef1 * c2
+    coef1_2 = (1.f - c2) / beta1;
+    coef2_2 = coef1_2 * c2;
+  } else {
+    // coef1_zx_2 == 1/2 dt
+    // coef2_zx_2 == coef1_zx_2
+    coef1_2 = 0.5f * deltat;
+    coef2_2 = coef1_2;
+  }
+
+  if (ispec_pml >= (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_XZ region
+    realw c3 = __expf(-0.5f * deltat * betax);
+    realw c4 = __expf(-0.5f * deltat * alphax);
+
+    coef0_3 = c3 * c3;
+    if (abs(betax) > 0.00001){
+      // coef1_zx_2 == (1 - c3)/betax
+      // coef2_zx_2 == coef1 * c3
+      coef1_3 = (1.f - c3) / betax;
+      coef2_3 = coef1_3 * c3;
+    } else {
+      // coef1_zx_2 == 1/2 dt
+      // coef2_zx_2 == coef1_zx_2
+      coef1_3 = 0.5f * deltat;
+      coef2_3 = coef1_3;
+    }
+
+    coef0_4 = c4 * c4;
+    if (abs(alphax) > 0.00001){
+      // coef1_zx_1 == (1 - c4)/alphax
+      // coef2_zx_1 == coef1 * c4
+      coef1_4 = (1.f - c4) / alphax;
+      coef2_4 = coef1_4 * c4;
+    } else {
+      // coef1_zx_1 == 1/2 dt
+      // coef2_zx_1 == coef1_zx_1
+      coef1_4 = 0.5f * deltat;
+      coef2_4 = coef1_4;
+    }
+  } else {
+    coef0_3 = 0.f;
+    coef1_3 = 0.f;
+    coef2_3 = 0.f;
+
+    coef0_4 = 0.f;
+    coef1_4 = 0.f;
+    coef2_4 = 0.f;
+  }
+
+  // memory variables update
+  // see routine pml_compute_memory_variables_elastic() in file pml_compute_memory_variables.f90 (line ~433)
+  //   ! non-rotated, element aligns with x/y/z-coordinates
+  //   rmemory_dux_dx(i,j,ispec_PML,1) = coef0_zx_1 * rmemory_dux_dx(i,j,ispec_PML,1) + &
+  //                                          coef1_zx_1 * PML_dux_dxl(i,j) + coef2_zx_1 * PML_dux_dxl_old(i,j)
+  //   ..
+  //
+  if (ispec_pml < NSPEC_PML_X){
+    // in CPML_X_ONLY region
+    // rmemory dux_dx
+    r1 = coef0_2 * d_rmemory_dux_dx[offset_pml] + coef1_2 * duxdxl + coef2_2 * PML_dux_dxl_old[offset_pml];
+    // rmemory duz_dx
+    r2 = coef0_2 * d_rmemory_duz_dx[offset_pml] + coef1_2 * duzdxl + coef2_2 * PML_duz_dxl_old[offset_pml];
+
+    // rmemory dux_dz
+    r3 = coef0_1 * d_rmemory_dux_dz[offset_pml] + coef1_1 * duxdzl + coef2_1 * PML_dux_dzl_old[offset_pml];
+    // rmemory duz_dz
+    r4 = coef0_1 * d_rmemory_duz_dz[offset_pml] + coef1_1 * duzdzl + coef2_1 * PML_duz_dzl_old[offset_pml];
+  } else {
+    // in CPML_Z_ONLY or in CPML_XZ region
+    // rmemory dux_dx
+    r1 = coef0_1 * d_rmemory_dux_dx[offset_pml] + coef1_1 * duxdxl + coef2_1 * PML_dux_dxl_old[offset_pml];
+    // rmemory duz_dx
+    r2 = coef0_1 * d_rmemory_duz_dx[offset_pml] + coef1_1 * duzdxl + coef2_1 * PML_duz_dxl_old[offset_pml];
+
+    // rmemory dux_dz
+    r3 = coef0_2 * d_rmemory_dux_dz[offset_pml] + coef1_2 * duxdzl + coef2_2 * PML_dux_dzl_old[offset_pml];
+    // rmemory duz_dz
+    r4 = coef0_2 * d_rmemory_duz_dz[offset_pml] + coef1_2 * duzdzl + coef2_2 * PML_duz_dzl_old[offset_pml];
+  }
+  d_rmemory_dux_dx[offset_pml] = r1;
+  d_rmemory_duz_dx[offset_pml] = r2;
+  d_rmemory_dux_dz[offset_pml] = r3;
+  d_rmemory_duz_dz[offset_pml] = r4;
+
+  if (ispec_pml >= (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_XZ region
+    // rmemory dux_dx2
+    r5 = coef0_3 * d_rmemory_dux_dx2[offset_local_pml] + coef1_3 * duxdxl + coef2_3 * PML_dux_dxl_old[offset_pml];
+    // rmemory duz_dx2
+    r6 = coef0_3 * d_rmemory_duz_dx2[offset_local_pml] + coef1_3 * duzdxl + coef2_3 * PML_duz_dxl_old[offset_pml];
+    // rmemory dux_dz2
+    r7 = coef0_4 * d_rmemory_dux_dz2[offset_local_pml] + coef1_4 * duxdzl + coef2_4 * PML_dux_dzl_old[offset_pml];
+    // rmemory duz_dz2
+    r8 = coef0_4 * d_rmemory_duz_dz2[offset_local_pml] + coef1_4 * duzdzl + coef2_4 * PML_duz_dzl_old[offset_pml];
+    d_rmemory_dux_dx2[offset_local_pml] = r5;
+    d_rmemory_duz_dx2[offset_local_pml] = r6;
+    d_rmemory_dux_dz2[offset_local_pml] = r7;
+    d_rmemory_duz_dz2[offset_local_pml] = r8;
+  } else {
+    r5 = 0.f;
+    r6 = 0.f;
+    r7 = 0.f;
+    r8 = 0.f;
+  } // ispec \in REGION_XZ
+
+  // Update memory variables of displ
+  r9_x = coef0_1 * d_rmemory_displ_elastic[2*offset_pml] + coef1_1 * sh_tempx[tx] + coef2_1 * d_displ_elastic_old[2*offset_pml];
+  d_rmemory_displ_elastic[2*offset_pml] = r9_x;
+
+  r9_z = coef0_1 * d_rmemory_displ_elastic[2*offset_pml+1] + coef1_1 * sh_tempz[tx] + coef2_1 * d_displ_elastic_old[2*offset_pml+1];
+  d_rmemory_displ_elastic[2*offset_pml+1] = r9_z;
+
+  if (ispec_pml >= (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_XZ region
+    r10_x = coef0_4 * d_rmemory_displ_elastic2[2*offset_local_pml] + coef1_4 * sh_tempx[tx] + coef2_4 * d_displ_elastic_old[2*offset_pml];
+    d_rmemory_displ_elastic2[2*offset_local_pml] = r10_x;
+    r10_z = coef0_4 * d_rmemory_displ_elastic2[2*offset_local_pml+1] + coef1_4 * sh_tempz[tx] + coef2_4 * d_displ_elastic_old[2*offset_pml+1];
+    d_rmemory_displ_elastic2[2*offset_local_pml+1] = r10_z;
+  } else {
+    r10_x = 0.f;
+    r10_z = 0.f;
+  } // ispec \in REGION_XZ
+
+  // Update old derivatives
+  PML_dux_dxl_old[offset_pml] = duxdxl;
+  PML_dux_dzl_old[offset_pml] = duxdzl;
+  PML_duz_dxl_old[offset_pml] = duzdxl;
+  PML_duz_dzl_old[offset_pml] = duzdzl;
+
+  d_displ_elastic_old[2*offset_pml] = sh_tempx[tx];
+  d_displ_elastic_old[2*offset_pml+1] = sh_tempz[tx];
+
+  // Compute contribution of the PML
+  // note: compare to routine pml_compute_accel_contribution_elastic() (line ~323):
+  //         accel_elastic_PML(1,i,j) = wxgll(i) * wzgll(j) * fac * &
+  //            ( A1 * veloc_elastic(1,iglob) + A2 * dummy_loc(1,i,j) + &
+  //              A3 * rmemory_displ_elastic(1,1,i,j,ispec_PML) + A4 * rmemory_displ_elastic(2,1,i,j,ispec_PML))
+  //         accel_elastic_PML(2,i,j) = wxgll(i) * wzgll(j) * fac * &
+  //            ( A1 * veloc_elastic(2,iglob) + A2 * dummy_loc(2,i,j) + &
+  //              A3 * rmemory_displ_elastic(1,2,i,j,ispec_PML) + A4 * rmemory_displ_elastic(2,2,i,j,ispec_PML))
+  //
+  //       with factor fac == rhol * jacobianl
+  //
+  if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_X_ONLY or in CPML_Z_ONLY region
+    A1 = beta1 - alpha1;
+    A2 = - alpha1 * A1;     // - alpha1 * (beta1 - alpha1)
+    A3 = - alpha1 * A2;     // alpha1 * alpha1 * (beta1 - alpha1)
+    A4 = 0.f;
+  } else {
+    // in CPML_XZ region
+    realw fac1 = (alphax * alpha1 + alphax*alphax + 2.f * betax * beta1 - 2.f * alphax * (betax + beta1)) / (alpha1 - alphax);
+    realw fac2 = (alphax * alpha1 + alpha1*alpha1 + 2.f * betax * beta1 - 2.f * alpha1 * (betax + beta1)) / (alphax - alpha1);
+
+    A1 = 0.5f * (fac1 - alphax + fac2 - alpha1);
+    A2 = 0.5f * (alphax*alphax - fac1 * alphax + alpha1*alpha1 - fac2 * alpha1);
+    A3 = 0.5f * alpha1 * alpha1 * (fac2 - alpha1);
+    A4 = 0.5f * alphax * alphax * (fac1 - alphax);
+  }
+  pml_contrib_x = sh_wxgll[J] * sh_wxgll[I] * rho_times_jacobianl * (A1 * d_veloc[iglob*2] + A2 * sh_tempx[tx] + A3 * r9_x + A4 * r10_x);
+  pml_contrib_z = sh_wxgll[J] * sh_wxgll[I] * rho_times_jacobianl * (A1 * d_veloc[iglob*2+1] + A2 * sh_tempz[tx] + A3 * r9_z + A4 * r10_z);
+
+  // Update derivatives
+  // see routine pml_compute_memory_variables_elastic() in file pml_compute_memory_variables.f90 (line ~511):
+  //    dux_dxl(i,j) = A5 * PML_dux_dxl(i,j) + A6 * rmemory_dux_dx(i,j,ispec_PML,1) + A7 * rmemory_dux_dx(i,j,ispec_PML,2)
+  //    duz_dxl(i,j) = A5 * PML_duz_dxl(i,j) + A6 * rmemory_duz_dx(i,j,ispec_PML,1) + A7 * rmemory_duz_dx(i,j,ispec_PML,2)
+  //    dux_dzl(i,j) = A8 * PML_dux_dzl(i,j) + A9 * rmemory_dux_dz(i,j,ispec_PML,1) + A10 * rmemory_dux_dz(i,j,ispec_PML,2)
+  //    duz_dzl(i,j) = A8 * PML_duz_dzl(i,j) + A9 * rmemory_duz_dz(i,j,ispec_PML,1) + A10 * rmemory_duz_dz(i,j,ispec_PML,2)
+  //
+  //  with coefficients from routine lik_parameter_computation() in file pml_compute.f90 (line ~123):
+  //  for X_ONLY_TEMP:
+  //    A0 == A5  == Kx
+  //    A1 == A6  == - Kx * (alpha_x - beta_x)
+  //    A2 == A7  == 0
+  //  for Z_ONLY_TEMP:
+  //    A0 == A8  == 1/Kz
+  //    A1 == A9  == 0
+  //    A2 == A10 == - 1/Kz * (beta_z - alpha_z)
+  //  for XZ_TEMP:
+  //    A0 == Kx/Kz
+  //    A1 == 1/2 * Kx/Kz * (gamma_x - alpha_x)
+  //          where gamma_x == (alpha_x * beta_z + alpha_x**2 + 2 * beta_x * alpha_z - 2 * alpha_x * (beta_x + alpha_z)) / (beta_z - alpha_x)
+  //    A2 == 1/2 * Kx/Kz * (gamma_z - beta_z)
+  //          where gamma_z == (alpha_x * beta_z + beta_z**2 + 2 * beta_x * alpha_z - 2 * beta_z * (beta_x + alpha_z)) / (alpha_x - beta_z)
+  //
+  //  note: K_MIN_PML must be == 1.0 and K_MAX_PML == 1.0 for this implementation, thus Kx == Kz == 1
+  //
+  if (ispec_pml < NSPEC_PML_X){
+    // in CPML_X_ONLY region
+    // (alpha1 == alpha_x and beta1 == beta_x)
+    //
+    // dux_dx: uses coefficients for Z_ONLY_TEMP case
+    //         with arguments alpha_z -> alpha_x == alpha1, beta_z -> beta_x == beta1 (index_ik 31)
+    //         A5 == A0 == 1
+    //         A6 == A2 == - (beta_z - alpha_z) == (alpha_z - beta_z)
+    //         A7 == A1 == 0
+    realw bar_A = (alpha1-beta1);
+    duxdxl += bar_A * r1;
+    duzdxl += bar_A * r2;
+    // dux_dz: uses coefficients for X_ONLY_TEMP case
+    //         with arguments alpha_x -> alpha_x == alpha1, beta_x -> beta_x == beta1 (index_ik 13)
+    //         A8 == A0 == 1
+    //         A9 == A1 == - (alpha_x - beta_x)
+    //         A10 == A2 == 0
+    duxdzl -= bar_A * r3;
+    duzdzl -= bar_A * r4;
+  } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)) {
+    // in CPML_Z_ONLY region
+    // (alpha1 == alpha_z and beta1 == beta_z)
+    //
+    // dux_dx: uses coefficients for X_ONLY_TEMP case
+    //         with arguments alpha_x -> alpha_z == alpha1, beta_x -> beta_z == beta1 (index_ik 31)
+    //         A5 == A0 == 1
+    //         A6 == A1 == - (alpha_x - beta_x)
+    //         A7 == A2 == 0
+    realw bar_A = (alpha1-beta1);
+    duxdxl -= bar_A * r1;
+    duzdxl -= bar_A * r2;
+    // dux_dz: uses coefficients for Z_ONLY_TEMP case
+    //         with arguments alpha_z -> alpha_z == alpha1, beta_z -> beta_z == beta1 (index_ik 13)
+    //         A8 == A0 == 1
+    //         A9 == A2 == - (beta_z - alpha_z) == (alpha_z - beta_z)
+    //         A10 == A1 == 0
+    duxdzl += bar_A * r3;
+    duzdzl += bar_A * r4;
+  } else {
+    // in CPML_XZ region
+    // (alpha1 == alpha_z, beta1 == beta_z, and alphax == alpha_x, betax == beta_x)
+    //
+    // dux_dx: uses coefficients for XZ_TEMP case
+    //         with arguments alpha_x -> alpha_z == alpha1, beta_x -> beta_z == beta1 (index_ik 31)
+    //                        alpha_z -> alpha_x == alphax, beta_z -> beta_x == betax
+    //         A5 == A0 == 1
+    //         A6 == A1 == 1/2 * (gamma_x - alpha_x)
+    //                     gamma_x == (alpha_x * beta_z + alpha_x**2 + 2 * beta_x * alpha_z - 2 * alpha_x * (beta_x + alpha_z)) / (beta_z - alpha_x)
+    realw bar_A1 = 0.5f * ((alpha1 * betax + alpha1*alpha1 + 2.f * beta1 * alphax - 2.f * alpha1 * (beta1 + alphax)) / (betax - alpha1) - alpha1);
+    //         A7 == A2 == 1/2 * (gamma_z - beta_z)
+    //                     gamma_z == (alpha_x * beta_z + beta_z**2 + 2 * beta_x * alpha_z - 2 * beta_z * (beta_x + alpha_z)) / (alpha_x - beta_z)
+    realw bar_A2 = 0.5f * ((alpha1 * betax + betax*betax + 2.f * beta1 * alphax - 2.f * betax * ( beta1 + alphax)) / (alpha1 - betax) - betax);
+    duxdxl += bar_A1 * r1 + bar_A2 * r5;
+    duzdxl += bar_A1 * r2 + bar_A2 * r6;
+
+    // dux_dz: uses coefficients for XZ_TEMP case
+    //         with arguments alpha_x -> alpha_x == alphax, beta_x -> beta_x == betax (index_ik 13)
+    //                        alpha_z -> alpha_z == alpha1, beta_z -> beta_z == beta1
+    //         A8 == A0 == 1
+    //         A9 == A2 == 1/2 * (gamma_z - beta_z)
+    //                     gamma_z == (alpha_x * beta_z + beta_z**2 + 2 * beta_x * alpha_z - 2 * beta_z * (beta_x + alpha_z)) / (alpha_x - beta_z)
+    realw bar_A3 = 0.5f * ((alphax * beta1 + beta1*beta1 + 2.f * betax * alpha1 - 2.f * beta1 * (betax + alpha1)) / (alphax - beta1) - beta1);
+    //         A10 == A1 == 1/2 * (gamma_x - alpha_x)
+    //                     gamma_x == (alpha_x * beta_z + alpha_x**2 + 2 * beta_x * alpha_z - 2 * alpha_x * (beta_x + alpha_z)) / (beta_z - alpha_x)
+    realw bar_A4 = 0.5f * ((alphax * beta1 + alphax*alphax + 2.f * betax * alpha1 - 2.f * alphax * (betax + alpha1)) / (beta1 - alphax) - alphax);
+    duxdzl += bar_A3 * r3 + bar_A4 * r7;
+    duzdzl += bar_A3 * r4 + bar_A4 * r8;
+  }
+
+  // precompute some sums to save CPU time
+  //duzdxl_plus_duxdzl = duzdxl + duxdzl;
 
   // stress calculations
   // isotropic case
@@ -835,12 +1165,35 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   lambdal = kappal - mul;
   lambdalplus2mul = kappal + mul;
 
+  // see compute_forces_viscoelastic.F90 (line ~597):
+  //    ! stress components:
+  //    !   sigma_xx = (lambda+2mu) F^{-1}[s_z/s_x] * dux_dx + lambda duz_dz
+  //    !   sigma_zz = (lambda+2mu) F^{-1}[s_x/s_z] * duz_dz + lambda dux_dx
+  //    !
+  //    !   sigma_zx = mu duz_dx + mu F^{-1}[s_x/s_z] * dux_dz
+  //    !            = mu ( duz_dx + F^{-1}[s_x/s_z] * dux_dz)
+  //    !   sigma_xz = mu F^{-1}[s_z/s_x] * duz_dx + mu dux_dz
+  //    !            = mu ( dux_dz + F^{-1}[s_z/s_x] * duz_dx )
+  //    !
+  //    ! note that PML_dux_dxl,PML_dux_dzl,.. arrays contain the original, unmodified dux_dx,dux_dz,.. strain values.
+  //    !
+  //    sigma_xx = lambdaplus2mu_unrelaxed_elastic*dux_dxl(i,j) + lambdal_unrelaxed_elastic*PML_duz_dzl(i,j)
+  //    sigma_zz = lambdaplus2mu_unrelaxed_elastic*duz_dzl(i,j) + lambdal_unrelaxed_elastic*PML_dux_dxl(i,j)
+  //    sigma_zx = mul_unrelaxed_elastic * (PML_duz_dxl(i,j) + dux_dzl(i,j))
+  //    sigma_xz = mul_unrelaxed_elastic * (PML_dux_dzl(i,j) + duz_dxl(i,j))
+  //
   // compute the three components of the stress tensor sigma
   if (p_sv){
     // P_SV case
-    sigma_xx = lambdalplus2mul*duxdxl + lambdal*duzdzl;
-    sigma_zz = lambdalplus2mul*duzdzl + lambdal*duxdxl;
-    sigma_xz = mul*duzdxl_plus_duxdzl;
+    // note: for elements w/out PML
+    //       sigma_xx = lambdalplus2mul * duxdxl + lambdal * duzdzl;
+    //       sigma_zz = lambdalplus2mul * duzdzl + lambdal * duxdxl;
+    //       sigma_xz = mul * duzdxl_plus_duxdzl;
+    //       sigma_zx = sigma_xz;
+    sigma_xx = lambdalplus2mul * duxdxl + lambdal * PML_duz_dzl_old[offset_pml];
+    sigma_zz = lambdalplus2mul * duzdzl + lambdal * PML_dux_dxl_old[offset_pml];
+    sigma_zx = mul * (PML_duz_dxl_old[offset_pml] + duxdzl);
+    sigma_xz = mul * (PML_dux_dzl_old[offset_pml] + duzdxl);
   }else{
     // SH-case
     sigma_xx = mul * duxdxl;  // would be sigma_xy in CPU-version
@@ -853,11 +1206,11 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   if (threadIdx.x < NGLL2) {
     if (p_sv){
       // P_SV case
-      sh_tempx[tx] = sh_wxgll[J] *jacobianl * (sigma_xx*xixl + sigma_xz*xizl); // sh_tempx1
-      sh_tempz[tx] = sh_wxgll[J] *jacobianl * (sigma_xz*xixl + sigma_zz*xizl); // sh_tempz1
+      sh_tempx[tx] = sh_wxgll[J] * jacobianl * (sigma_xx * xixl + sigma_zx * xizl); // sh_tempx1
+      sh_tempz[tx] = sh_wxgll[J] * jacobianl * (sigma_xz * xixl + sigma_zz * xizl); // sh_tempz1
     }else{
       // SH-case
-      sh_tempx[tx] = sh_wxgll[J] *jacobianl * (sigma_xx*xixl + sigma_xz*xizl); // sh_tempx1
+      sh_tempx[tx] = sh_wxgll[J] * jacobianl * (sigma_xx * xixl + sigma_xz * xizl); // sh_tempx1
       sh_tempz[tx] = 0.f;
     }
   }
@@ -870,11 +1223,11 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   if (threadIdx.x < NGLL2) {
     if (p_sv){
       // P_SV case
-      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx*gammaxl +  sigma_xz*gammazl); // sh_tempx3
-      sh_tempz[tx] = sh_wxgll[I] * jacobianl * (sigma_xz*gammaxl +  sigma_zz*gammazl); // sh_tempz3
+      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx * gammaxl +  sigma_zx * gammazl); // sh_tempx3
+      sh_tempz[tx] = sh_wxgll[I] * jacobianl * (sigma_xz * gammaxl +  sigma_zz * gammazl); // sh_tempz3
     }else{
       // SH-case
-      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx*gammaxl +  sigma_xz*gammazl); // sh_tempx3
+      sh_tempx[tx] = sh_wxgll[I] * jacobianl * (sigma_xx * gammaxl +  sigma_xz * gammazl); // sh_tempx3
       sh_tempz[tx] = 0.f; // sh_tempz3
     }
   }
@@ -884,13 +1237,13 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   sum_hprimewgll_gamma(I,J,&tempx3l,&tempz3l,sh_tempx,sh_tempz,sh_hprimewgll_xx);
   __syncthreads();
 
-  sum_terms1= -tempx1l - tempx3l;
-  sum_terms3= -tempz1l - tempz3l;
+  sum_terms1 = -tempx1l - tempx3l;
+  sum_terms3 = -tempz1l - tempz3l;
 
   // assembles acceleration array
   if (threadIdx.x < NGLL2) {
-    atomicAdd(&d_accel[iglob*2], sum_terms1);
-    atomicAdd(&d_accel[iglob*2+1], sum_terms3);
+    atomicAdd(&d_accel[iglob*2], sum_terms1 - pml_contrib_x);
+    atomicAdd(&d_accel[iglob*2+1], sum_terms3 - pml_contrib_z);
   }
 }
 
@@ -1746,7 +2099,9 @@ template __global__ void Kernel_2_noatt_iso_PML_impl<1>(const int,const int*,con
                                                         realw_const_p,realw_const_p,realw_const_p,
                                                         realw*,realw*,const int,const int,const int*,
                                                         realw,realw,realw*,int,int,realw,
-                                                        //realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw_p,realw*,
+                                                        realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,
+                                                        realw*,realw*,realw*,realw*,realw*,
+                                                        realw_p,const realw*,
                                                         realw*,realw*,realw*,realw*);
 
 template __global__ void Kernel_2_noatt_iso_PML_impl<3>(const int,const int*,const int*,const int,const int,
@@ -1755,7 +2110,9 @@ template __global__ void Kernel_2_noatt_iso_PML_impl<3>(const int,const int*,con
                                                         realw_const_p,realw_const_p,realw_const_p,
                                                         realw*,realw*,const int,const int,const int*,
                                                         realw,realw,realw*,int,int,realw,
-                                                        //realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw_p,realw*,
+                                                        realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,
+                                                        realw*,realw*,realw*,realw*,realw*,
+                                                        realw_p,const realw*,
                                                         realw*,realw*,realw*,realw*);
 
 // anisotropic, no attenuation

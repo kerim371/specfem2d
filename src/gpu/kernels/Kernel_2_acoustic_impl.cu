@@ -463,7 +463,6 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
   rho_invl_times_jacobianl = 1.f /(rhol * (xixl*gammazl-gammaxl*xizl));
 
   // loads hprime into shared memory
-
 #ifdef USE_TEXTURES_CONSTANTS
   sh_hprime_xx[tx] = tex1Dfetch(d_hprime_xx_tex,tx);
 #else
@@ -767,13 +766,14 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
     //         A5 == A0 == 1
     //         A6 == A2 == - (beta_z - alpha_z) == (alpha_z - beta_z)
     //         A7 == A1 == 0
-    dpotentialdxl += (alpha1-beta1) * r1;
+    realw bar_A = (alpha1-beta1);
+    dpotentialdxl += bar_A * r1;
     // dux_dz: uses coefficients for X_ONLY_TEMP case
     //         with arguments alpha_x -> alpha_x == alpha1, beta_x -> beta_x == beta1 (index_ik 13)
     //         A8 == A0 == 1
     //         A9 == A1 == - (alpha_x - beta_x)
     //         A10 == A2 == 0
-    dpotentialdzl -= (alpha1-beta1) * r2;
+    dpotentialdzl -= bar_A * r2;
   } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)) {
     // in CPML_Z_ONLY region
     // (alpha1 == alpha_z and beta1 == beta_z)
@@ -783,13 +783,14 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
     //         A5 == A0 == 1
     //         A6 == A1 == - (alpha_x - beta_x)
     //         A7 == A2 == 0
-    dpotentialdxl -= (alpha1-beta1) * r1;
+    realw bar_A = (alpha1-beta1);
+    dpotentialdxl -= bar_A * r1;
     // dux_dz: uses coefficients for Z_ONLY_TEMP case
     //         with arguments alpha_z -> alpha_z == alpha1, beta_z -> beta_z == beta1 (index_ik 13)
     //         A8 == A0 == 1
     //         A9 == A2 == - (beta_z - alpha_z) == (alpha_z - beta_z)
     //         A10 == A1 == 0
-    dpotentialdzl += (alpha1-beta1) * r2;
+    dpotentialdzl += bar_A * r2;
   } else {
     // in CPML_XZ region
     // (alpha1 == alpha_z, beta1 == beta_z, and alphax == alpha_x, betax == beta_x)
@@ -800,24 +801,22 @@ Kernel_2_acoustic_PML_impl(const int nb_blocks_to_compute,
     //         A5 == A0 == 1
     //         A6 == A1 == 1/2 * (gamma_x - alpha_x)
     //                     gamma_x == (alpha_x * beta_z + alpha_x**2 + 2 * beta_x * alpha_z - 2 * alpha_x * (beta_x + alpha_z)) / (beta_z - alpha_x)
-    dpotentialdxl += 0.5f * ((alpha1 * betax + alpha1*alpha1 + 2.f * beta1 * alphax - 2.f * alpha1 * (beta1 + alphax)) / (betax - alpha1)
-                             - alpha1) * r1;
+    realw bar_A1 = 0.5f * ((alpha1 * betax + alpha1*alpha1 + 2.f * beta1 * alphax - 2.f * alpha1 * (beta1 + alphax)) / (betax - alpha1) - alpha1);
     //         A7 == A2 == 1/2 * (gamma_z - beta_z)
     //                     gamma_z == (alpha_x * beta_z + beta_z**2 + 2 * beta_x * alpha_z - 2 * beta_z * (beta_x + alpha_z)) / (alpha_x - beta_z)
-    dpotentialdxl += 0.5f * ((alpha1 * betax + betax*betax + 2.f * beta1 * alphax - 2.f * betax * ( beta1 + alphax)) / (alpha1 - betax)
-                             - betax) * r3;
+    realw bar_A2 = 0.5f * ((alpha1 * betax + betax*betax + 2.f * beta1 * alphax - 2.f * betax * ( beta1 + alphax)) / (alpha1 - betax) - betax);
+    dpotentialdxl += bar_A1 * r1 + bar_A2 * r3;
     // dux_dz: uses coefficients for XZ_TEMP case
     //         with arguments alpha_x -> alpha_x == alphax, beta_x -> beta_x == betax (index_ik 13)
     //                        alpha_z -> alpha_z == alpha1, beta_z -> beta_z == beta1
     //         A8 == A0 == 1
     //         A9 == A2 == 1/2 * (gamma_z - beta_z)
     //                     gamma_z == (alpha_x * beta_z + beta_z**2 + 2 * beta_x * alpha_z - 2 * beta_z * (beta_x + alpha_z)) / (alpha_x - beta_z)
-    dpotentialdzl += 0.5f * ((alphax * beta1 + beta1*beta1 + 2.f * betax * alpha1 - 2.f * beta1 * (betax + alpha1)) / (alphax - beta1)
-                             - beta1) * r2;
+    realw bar_A3 = 0.5f * ((alphax * beta1 + beta1*beta1 + 2.f * betax * alpha1 - 2.f * beta1 * (betax + alpha1)) / (alphax - beta1) - beta1);
     //         A10 == A1 == 1/2 * (gamma_x - alpha_x)
     //                     gamma_x == (alpha_x * beta_z + alpha_x**2 + 2 * beta_x * alpha_z - 2 * alpha_x * (beta_x + alpha_z)) / (beta_z - alpha_x)
-    dpotentialdzl += 0.5f * ((alphax * beta1 + alphax*alphax + 2.f * betax * alpha1 - 2.f * alphax * (betax + alpha1)) / (beta1 - alphax)
-                             - alphax) * r4;
+    realw bar_A4 = 0.5f * ((alphax * beta1 + alphax*alphax + 2.f * betax * alpha1 - 2.f * alphax * (betax + alpha1)) / (beta1 - alphax) - alphax);
+    dpotentialdzl += bar_A3 * r2 + bar_A4 * r4;
   }
   //__syncthreads();  // not needed... still everything thread local
 

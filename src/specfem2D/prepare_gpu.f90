@@ -76,6 +76,8 @@
       call stop_the_code('PML on GPU not supported yet for poroelastic cases')
     if (ATTENUATION_VISCOACOUSTIC) &
       call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
+    if (ATTENUATION_VISCOELASTIC) &
+      call stop_the_code('PML on GPU not supported yet for viscoelastic cases')
     if (SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
       call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
     if (K_MIN_PML /= 1.0d0 .or. K_MAX_PML /= 1.0d0) &
@@ -84,8 +86,12 @@
       call stop_the_code('PML on GPU for acoustic cases needs damping_change_factor_acoustic == 0.5 in Par_file')
     if (any_elastic .and. damping_change_factor_elastic /= 1.0d0) &
       call stop_the_code('PML on GPU for elastic cases needs damping_change_factor_elastic == 1.0 in Par_file')
+    if (any_elastic .and. ROTATE_PML_ACTIVATE) &
+      call stop_the_code('PML on GPU for elastic cases needs ROTATE_PML_ACTIVATE == .false. in Par_file')
     if (PML_PARAMETER_ADJUSTMENT) &
       call stop_the_code('PML on GPU needs PML_PARAMETER_ADJUSTMENT == .false. in Par_file')
+    if (time_stepping_scheme /= 1) &
+      call stop_the_code('PML on GPU only supported for Newmark time stepping scheme')
   endif
 
   ! initializes arrays
@@ -234,7 +240,8 @@
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
                             PML_nglob_abs_acoustic,PML_abs_points_acoustic, &
-                            PML_nglob_abs_elastic,PML_abs_points_elastic)
+                            PML_nglob_abs_elastic,PML_abs_points_elastic, &
+                            any_acoustic,rhostore)
   endif
 
 ! abs_boundary_ispec                     : Array containing spectral element indices in absorbing areas

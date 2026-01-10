@@ -598,7 +598,22 @@ typedef struct mesh_ {
   // elastic
   realw d0_max_elastic;
 
+  realw* PML_dux_dxl_old;
+  realw* PML_dux_dzl_old;
+  realw* PML_duz_dxl_old;
+  realw* PML_duz_dzl_old;
   realw* d_displ_elastic_old;
+
+  realw* d_rmemory_dux_dx;
+  realw* d_rmemory_dux_dx2;
+  realw* d_rmemory_duz_dx;
+  realw* d_rmemory_duz_dx2;
+  realw* d_rmemory_dux_dz;
+  realw* d_rmemory_dux_dz2;
+  realw* d_rmemory_duz_dz;
+  realw* d_rmemory_duz_dz2;
+  realw* d_rmemory_displ_elastic;
+  realw* d_rmemory_displ_elastic2;
 
   int pml_nglob_abs_elastic;
   int* d_pml_abs_points_elastic;
