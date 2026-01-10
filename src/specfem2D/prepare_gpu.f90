@@ -82,14 +82,8 @@
       call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
     if (K_MIN_PML /= 1.0d0 .or. K_MAX_PML /= 1.0d0) &
       call stop_the_code('PML on GPU needs K_MIN_PML == 1.0 and K_MAX_PML == 1.0 in Par_file')
-    if (any_acoustic .and. damping_change_factor_acoustic /= 0.5d0) &
-      call stop_the_code('PML on GPU for acoustic cases needs damping_change_factor_acoustic == 0.5 in Par_file')
-    if (any_elastic .and. damping_change_factor_elastic /= 1.0d0) &
-      call stop_the_code('PML on GPU for elastic cases needs damping_change_factor_elastic == 1.0 in Par_file')
     if (any_elastic .and. ROTATE_PML_ACTIVATE) &
       call stop_the_code('PML on GPU for elastic cases needs ROTATE_PML_ACTIVATE == .false. in Par_file')
-    if (PML_PARAMETER_ADJUSTMENT) &
-      call stop_the_code('PML on GPU needs PML_PARAMETER_ADJUSTMENT == .false. in Par_file')
     if (time_stepping_scheme /= 1) &
       call stop_the_code('PML on GPU only supported for Newmark time stepping scheme')
   endif
@@ -233,9 +227,6 @@
                             nspec_PML, &
                             NSPEC_PML_X,NSPEC_PML_Z,NSPEC_PML_XZ, &
                             spec_to_PML_GPU, &
-                            abs_normalized, &
-                            sngl(ALPHA_MAX_PML), &
-                            d0_max_acoustic,d0_max_elastic, &
                             deltat, &
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
@@ -383,7 +374,7 @@
   integer :: inum,ier
   real(kind=CUSTOM_REAL) :: zxi,xgamma,jacobian1D
   real(kind=CUSTOM_REAL) :: xxi,zgamma
-  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: abs_normalized_temp
+  double precision :: kappa_x,kappa_z,d_x,d_z,alpha_x,alpha_z,beta_x,beta_z
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Initialize variables for subroutine prepare_constants_device
@@ -458,41 +449,38 @@
       stop 'Error with the number of PML elements in GPU mode'
     endif
 
-    ! EB EB : We reorganize the arrays abs_normalized and abs_normalized2 that
-    ! don't have the correct dimension and new local element numbering
-    allocate(abs_normalized_temp(NGLLX,NGLLZ,NSPEC),stat=ier)
-    if (ier /= 0) stop 'Error allocating abs_normalized_temp array'
-    abs_normalized_temp(:,:,:) = abs_normalized(:,:,:)
-    deallocate(abs_normalized)
-
-    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC_PML),stat=ier)
-    if (ier /= 0) stop 'Error allocating abs_normalized array'
-    abs_normalized(:,:,:) = 0.0_CUSTOM_REAL
-    do ispec = 1,nspec
-      if (spec_to_PML_GPU(ispec) > 0) abs_normalized(:,:,spec_to_PML_GPU(ispec)) = abs_normalized_temp(:,:,ispec)
-    enddo
-    deallocate(abs_normalized_temp)
-
-    allocate(alphax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             alphaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             betax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             betaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),stat=ier)
+    ! coefficients storage for GPU routines
+    allocate(alphax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             alphaz_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             betax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             betaz_store_GPU(NGLLX,NGLLZ,nspec_PML),stat=ier)
     if (ier /= 0) stop 'Error allocating alphax_store_GPU,.. arrays'
     alphax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     alphaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     do ispec = 1,nspec
-      if (region_CPML(ispec) == CPML_XZ) then
+      if (ispec_is_PML(ispec)) then
         ispec_PML = spec_to_PML(ispec)
-        ! element index in range [1,NSPEC_PML_XZ]
-        ielem = spec_to_PML_GPU(ispec) - (nspec_PML_X + nspec_PML_Z)
+        ! checks index
+        if (ispec_PML <= 0) stop 'Error found invalid ispec_PML index in routine init_host_to_dev_variable()'
+        ielem = spec_to_PML_GPU(ispec)
         do j = 1,NGLLZ
           do i = 1,NGLLX
-            alphax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML))
-            alphaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML))
-            betax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML) + d_x_store(i,j,ispec_PML))
-            betaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML) + d_z_store(i,j,ispec_PML))
+            kappa_x = K_x_store(i,j,ispec_PML)
+            kappa_z = K_z_store(i,j,ispec_PML)
+            alpha_x = alpha_x_store(i,j,ispec_PML)
+            alpha_z = alpha_z_store(i,j,ispec_PML)
+            d_x = d_x_store(i,j,ispec_PML)
+            d_z = d_z_store(i,j,ispec_PML)
+
+            beta_x = alpha_x + d_x / kappa_x
+            beta_z = alpha_z + d_z / kappa_z
+
+            alphax_store_GPU(i,j,ielem) = real(alpha_x,kind=CUSTOM_REAL)
+            alphaz_store_GPU(i,j,ielem) = real(alpha_z,kind=CUSTOM_REAL)
+            betax_store_GPU(i,j,ielem) = real(beta_x,kind=CUSTOM_REAL)
+            betaz_store_GPU(i,j,ielem) = real(beta_z,kind=CUSTOM_REAL)
            enddo
          enddo
       endif

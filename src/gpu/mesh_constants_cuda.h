@@ -575,12 +575,7 @@ typedef struct mesh_ {
   realw* betax_store;
   realw* betaz_store;
 
-  realw* abscissa_norm;
-  realw ALPHA_MAX_PML;
-
   // acoustic
-  realw d0_max_acoustic;
-
   realw* PML_dpotentialdxl_old;
   realw* PML_dpotentialdzl_old;
   realw* d_potential_old;
@@ -596,8 +591,6 @@ typedef struct mesh_ {
   int* d_pml_abs_points_acoustic;
 
   // elastic
-  realw d0_max_elastic;
-
   realw* PML_dux_dxl_old;
   realw* PML_dux_dzl_old;
   realw* PML_duz_dxl_old;

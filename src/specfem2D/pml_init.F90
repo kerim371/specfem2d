@@ -559,7 +559,7 @@
   use specfem_par, only: ispec_is_PML,spec_to_PML,region_CPML,PML_PARAMETER_ADJUSTMENT, &
                          K_x_store,K_z_store,d_x_store,d_z_store,alpha_x_store,alpha_z_store, &
                          min_distance_between_CPML_parameter,damping_change_factor_acoustic,damping_change_factor_elastic, &
-                         K_MAX_PML,K_MIN_PML,GPU_MODE,abs_normalized,ALPHA_MAX_PML,d0_max_acoustic,d0_max_elastic
+                         K_MAX_PML,K_MIN_PML
 
   implicit none
 
@@ -590,6 +590,7 @@
   double precision :: d0_z_bottom_acoustic, d0_x_right_acoustic, d0_z_top_acoustic, d0_x_left_acoustic
   double precision :: d0_z_bottom_elastic, d0_x_right_elastic, d0_z_top_elastic, d0_x_left_elastic
   double precision :: abscissa_in_PML, abscissa_normalized
+  double precision :: ALPHA_MAX_PML
 
   double precision :: PML_z_min_bottom,PML_z_max_bottom, &
                       PML_x_min_right,PML_x_max_right, &
@@ -882,12 +883,6 @@
   alpha_x_store(:,:,:) = 0.d0
   alpha_z_store(:,:,:) = 0.d0
 
-  if (GPU_MODE) then
-   allocate(abs_normalized(NGLLX,NGLLZ,NSPEC))
-   d0_max_acoustic = sngl(max(d0_z_top_acoustic,d0_z_bottom_acoustic,d0_x_right_acoustic,d0_x_left_acoustic))
-   d0_max_elastic = sngl(max(d0_z_top_elastic,d0_z_bottom_elastic,d0_x_right_elastic,d0_x_left_elastic))
-  endif
-
 !!!----------------------------------------------------------------------------
 !!! without PML_PARAMETER_ADJUSTMENT
 !!!----------------------------------------------------------------------------
@@ -912,7 +907,6 @@
               abscissa_in_PML = zoriginbottom - zval
               if (abscissa_in_PML >= 0.d0) then
                 abscissa_normalized = abscissa_in_PML / thickness_PML_z_bottom
-                if (GPU_MODE) abs_normalized(i,j,ispec) = abscissa_normalized
 !ZN                d_z = d0_z_bottom / damping_modified_factor * abscissa_normalized**NPOWER
                 if (ispec_is_acoustic(ispec)) then
                   d_z = d0_z_bottom_acoustic / damping_change_factor_acoustic * abscissa_normalized**NPOWER
@@ -939,7 +933,6 @@
               abscissa_in_PML = zval - zorigintop
               if (abscissa_in_PML >= 0.d0) then
                 abscissa_normalized = abscissa_in_PML / thickness_PML_z_top
-                if (GPU_MODE) abs_normalized(i,j,ispec) = abscissa_normalized
 !ZN                d_z = d0_z_top / damping_modified_factor * abscissa_normalized**NPOWER
                 if (ispec_is_acoustic(ispec)) then
                   d_z = d0_z_top_acoustic / damping_change_factor_acoustic * abscissa_normalized**NPOWER
@@ -967,7 +960,6 @@
               abscissa_in_PML = xval - xoriginright
               if (abscissa_in_PML >= 0.d0) then
                 abscissa_normalized = abscissa_in_PML / thickness_PML_x_right
-                if (GPU_MODE) abs_normalized(i,j,ispec) = abscissa_normalized
 !ZN                d_x = d0_x_right / damping_modified_factor * abscissa_normalized**NPOWER
                 if (ispec_is_acoustic(ispec)) then
                   d_x = d0_x_right_acoustic / damping_change_factor_acoustic * abscissa_normalized**NPOWER
@@ -994,7 +986,6 @@
               abscissa_in_PML = xoriginleft - xval
               if (abscissa_in_PML >= 0.d0) then
                 abscissa_normalized = abscissa_in_PML / thickness_PML_x_left
-                if (GPU_MODE) abs_normalized(i,j,ispec) = abscissa_normalized
 !ZN                d_x = d0_x_left / damping_modified_factor * abscissa_normalized**NPOWER
                 if (ispec_is_acoustic(ispec)) then
                   d_x = d0_x_left_acoustic / damping_change_factor_acoustic * abscissa_normalized**NPOWER

@@ -859,10 +859,6 @@ void FC_FUNC_(prepare_pml_device,
                                   int* NSPEC_PML_Z,
                                   int* NSPEC_PML_XZ,
                                   int* h_spec_to_pml,
-                                  realw* h_abs_normalized,
-                                  realw* ALPHA_MAX_PML,
-                                  realw* d0_max_acoustic,
-                                  realw* d0_max_elastic,
                                   realw* deltat,
                                   realw* h_alphax_store,
                                   realw* h_alphaz_store,
@@ -883,23 +879,18 @@ void FC_FUNC_(prepare_pml_device,
     mp->nspec_pml    = *NSPEC_PML;
     mp->nspec_pml_x  = *NSPEC_PML_X;
     mp->nspec_pml_z  = *NSPEC_PML_Z;
-
-    mp->ALPHA_MAX_PML = *ALPHA_MAX_PML;
-    mp->d0_max_acoustic = *d0_max_acoustic;
-    mp->d0_max_elastic = *d0_max_elastic;
     mp->deltat = *deltat;
 
-    // PML coefficients
-    copy_todevice_realw((void**)&mp->alphax_store,h_alphax_store,NGLL2*(*NSPEC_PML_XZ));
-    copy_todevice_realw((void**)&mp->alphaz_store,h_alphaz_store,NGLL2*(*NSPEC_PML_XZ));
-    copy_todevice_realw((void**)&mp->betax_store,h_betax_store,NGLL2*(*NSPEC_PML_XZ));
-    copy_todevice_realw((void**)&mp->betaz_store,h_betaz_store,NGLL2*(*NSPEC_PML_XZ));
-
     copy_todevice_int((void**)&mp->d_spec_to_pml,h_spec_to_pml,mp->NSPEC_AB);
-    copy_todevice_realw((void**)&mp->abscissa_norm,h_abs_normalized,NGLL2*mp->nspec_pml);
 
     int size = NGLL2 * mp->nspec_pml;
     int size_xz = NGLL2 * (*NSPEC_PML_XZ);
+
+    // PML coefficients
+    copy_todevice_realw((void**)&mp->alphax_store,h_alphax_store,size);
+    copy_todevice_realw((void**)&mp->alphaz_store,h_alphaz_store,size);
+    copy_todevice_realw((void**)&mp->betax_store,h_betax_store,size);
+    copy_todevice_realw((void**)&mp->betaz_store,h_betaz_store,size);
 
     // acoustic PML
     if (mp->nspec_acoustic > 0) {
@@ -1304,7 +1295,10 @@ TRACE("prepare_cleanup_device");
   // PML
   if (mp->pml_boundary_conditions){
     cudaFree(mp->d_spec_to_pml);
-    cudaFree(mp->abscissa_norm);
+    cudaFree(mp->alphax_store);
+    cudaFree(mp->alphaz_store);
+    cudaFree(mp->betax_store);
+    cudaFree(mp->betaz_store);
     if (mp->nspec_acoustic > 0) {
       cudaFree(mp->PML_dpotentialdxl_old);
       cudaFree(mp->PML_dpotentialdzl_old);
@@ -1334,10 +1328,6 @@ TRACE("prepare_cleanup_device");
       cudaFree(mp->d_rmemory_displ_elastic2);
       if (! *ACOUSTIC_SIMULATION) cudaFree(mp->d_rhostore);
     }
-    cudaFree(mp->alphax_store);
-    cudaFree(mp->alphaz_store);
-    cudaFree(mp->betax_store);
-    cudaFree(mp->betaz_store);
     if (mp->pml_nglob_abs_acoustic > 0) {
       cudaFree(mp->d_pml_abs_points_acoustic);
     }

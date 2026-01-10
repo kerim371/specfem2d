@@ -652,9 +652,6 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
                             const int simulation_type,
                             const int p_sv,
                             const int* d_spec_to_pml,
-                            realw ALPHA_MAX_PML,
-                            realw d0,
-                            realw* abs_normalized,
                             int NSPEC_PML_X,
                             int NSPEC_PML_Z,
                             realw deltat,
@@ -713,7 +710,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   // PML
   int ispec_pml;
   int offset_pml,offset_local_pml;
-  realw alpha1,beta1,alphax,betax,abs_norm;
+  realw alpha1,beta1,alphax,betax,alphaz,betaz;
   realw c1,c2;
   realw r1,r2,r3,r4,r5,r6,r7,r8;
   realw r9_x,r9_z,r10_x,r10_z;
@@ -802,46 +799,53 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   offset_local_pml = (ispec_pml-(NSPEC_PML_X + NSPEC_PML_Z))*NGLL2 + tx; // local pml elements in range [0,NSPEC_PML_XZ-1]
 
   // coefficients
+  alphax = alphax_store[offset_pml];
+  betax  = betax_store[offset_pml];
+  alphaz = alphaz_store[offset_pml];
+  betaz  = betaz_store[offset_pml];
+
   // note: see pml_init.F90, compare to routine define_PML_coefficients()
   //       (starting around line 900);
-  //       assumes coefficients are calculated w/out PML_PARAMETER_ADJUSTMENT
-  if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
-    // in CPML_X_ONLY or in CPML_Z_ONLY region
-    abs_norm = abs_normalized[offset_pml];
+  //       K_MIN_PML must be == 1.0 and K_MAX_PML == 1.0,
+  //       thus, K_x == K_z == K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER == 1
+  if (ispec_pml < NSPEC_PML_X){
+    // in CPML_X_ONLY
+    //
     // for CPML_X_ONLY:
-    //   (see pml_init.F90, routine `define_PML_coefficients`)
-    //   alpha1  == alpha_x == ALPHA_MAX * (1 - abscissa)
+    //   alpha1  == alpha_x
     //   alpha_z == 0
     //
     //   beta1  == beta_x  == alpha_x + d_x / K_x
-    //                     == alpha_x + (d0_x / damping_change_factor_elastic * abscissa_normalized**NPOWER) /
+    //                        with d_x == d0_x / damping_change_factor_acoustic * abscissa_normalized**NPOWER
+    //                             K_x == K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER
+    //                     == alpha_x + (d0_x / damping_change_factor_acoustic * abscissa_normalized**NPOWER) /
     //                                  (K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER)
-    //   note: damping_change_factor_elastic must be == 1.0 for this implementation,
-    //         K_MIN_PML must be == 1.0 and K_MAX_PML == 1.0,
-    //         and NPOWER must be == 2 (see parameter defined in pml_init.F90)
-    //   Thus,
-    //   K_x == K_z == K_MIN_PML + (K_MAX_PML - 1.0d0) * abscissa_normalized**NPOWER == 1
-    //   d_x == d0_x / damping_change_factor_elastic * abscissa_normalized**NPOWER  == d0_x * abscissa**2
-    //
-    //   it follows, that
-    //   beta1  == beta_x  == alpha_x + (d0_x * abscissa**2)
     //   beta_z == 0
+    //
+    alpha1 = alphax;
+    beta1 = betax;
+    alphaz = 0.f;
+    betaz = 0.f;
+  } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+    // in CPML_Z_ONLY region
     //
     // for CPML_Z_ONLY:
     //   alpha1  == alpha_z == ALPHA_MAX * (1 - abscissa)
     //   alpha_x == 0
     //
     //   beta1  == beta_z  == alpha_z + d_z / K_z
-    //                     == alpha_z + (d0_z * abscissa**2)
+    //                     == alpha_z + (2 * d0_z * abscissa**2)
     //   beta_x == 0
-    alpha1 = ALPHA_MAX_PML * (1.f - abs_norm) ;
-    beta1 =  alpha1 + d0  * abs_norm * abs_norm;  // instead of d0_x_left, d0_x_right, .. this takes d0_max
-  } else{
+    alpha1 = alphaz;
+    beta1  = betaz;
+    alphax = 0.f;
+    betax = 0.f;
+  } else {
     // in CPML_XZ region
-    alpha1 = alphaz_store[offset_local_pml];
-    beta1  = betaz_store[offset_local_pml];
-    alphax = alphax_store[offset_local_pml];
-    betax  = betax_store[offset_local_pml];
+    alpha1 = alphaz;
+    beta1  = betaz;
+    //alphax = alphax;
+    //betax  = betax;
   }
 
   // Update memory variables of derivatives
@@ -880,7 +884,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   c2 = __expf(-0.5f * deltat * beta1);
 
   coef0_1 = c1 * c1;
-  if (abs(alpha1) > 0.00001){
+  if (abs(alpha1) > 0.00001f){
     // coef1_zx_1 == (1 - c1)/alpha1
     // coef2_zx_1 == coef1 * c1
     coef1_1 = (1.f - c1) / alpha1;
@@ -893,7 +897,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
   }
 
   coef0_2 = c2 * c2;
-  if (abs(beta1) > 0.00001){
+  if (abs(beta1) > 0.00001f){
     // coef1_zx_2 == (1 - c2)/beta1
     // coef2_zx_2 == coef1 * c2
     coef1_2 = (1.f - c2) / beta1;
@@ -911,7 +915,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
     realw c4 = __expf(-0.5f * deltat * alphax);
 
     coef0_3 = c3 * c3;
-    if (abs(betax) > 0.00001){
+    if (abs(betax) > 0.00001f){
       // coef1_zx_2 == (1 - c3)/betax
       // coef2_zx_2 == coef1 * c3
       coef1_3 = (1.f - c3) / betax;
@@ -924,7 +928,7 @@ Kernel_2_noatt_iso_PML_impl(const int nb_blocks_to_compute,
     }
 
     coef0_4 = c4 * c4;
-    if (abs(alphax) > 0.00001){
+    if (abs(alphax) > 0.00001f){
       // coef1_zx_1 == (1 - c4)/alphax
       // coef2_zx_1 == coef1 * c4
       coef1_4 = (1.f - c4) / alphax;
@@ -2097,8 +2101,7 @@ template __global__ void Kernel_2_noatt_iso_PML_impl<1>(const int,const int*,con
                                                         realw_const_p,realw_p,
                                                         realw*,realw*,realw*,realw*,
                                                         realw_const_p,realw_const_p,realw_const_p,
-                                                        realw*,realw*,const int,const int,const int*,
-                                                        realw,realw,realw*,int,int,realw,
+                                                        realw*,realw*,const int,const int,const int*,int,int,realw,
                                                         realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,
                                                         realw*,realw*,realw*,realw*,realw*,
                                                         realw_p,const realw*,
@@ -2108,8 +2111,7 @@ template __global__ void Kernel_2_noatt_iso_PML_impl<3>(const int,const int*,con
                                                         realw_const_p,realw_p,
                                                         realw*,realw*,realw*,realw*,
                                                         realw_const_p,realw_const_p,realw_const_p,
-                                                        realw*,realw*,const int,const int,const int*,
-                                                        realw,realw,realw*,int,int,realw,
+                                                        realw*,realw*,const int,const int,const int*,int,int,realw,
                                                         realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,realw*,
                                                         realw*,realw*,realw*,realw*,realw*,
                                                         realw_p,const realw*,
