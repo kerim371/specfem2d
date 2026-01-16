@@ -165,10 +165,11 @@
       beta_z = alpha_z + d_z / kappa_z
 
       ! gets PML coefficients
+      ! for dux_dx
       call lik_parameter_computation(DT,kappa_z,beta_z,alpha_z,kappa_x,beta_x,alpha_x, &
                                      CPML_region_local,31,A5,A6,A7,bb_zx_1,bb_zx_2, &
                                      coef0_zx_1,coef1_zx_1,coef2_zx_1,coef0_zx_2,coef1_zx_2,coef2_zx_2)
-
+      ! for dux_dz
       call lik_parameter_computation(DT,kappa_x,beta_x,alpha_x,kappa_z,beta_z,alpha_z, &
                                      CPML_region_local,13,A8,A9,A10,bb_xz_1,bb_xz_2, &
                                      coef0_xz_1,coef1_xz_1,coef2_xz_1,coef0_xz_2,coef1_xz_2,coef2_xz_2)
@@ -668,8 +669,8 @@
         PML_duz_dxl_old(i,j) = duz_dxi_old*xixl + duz_dgamma_old*gammaxl ! this is duz_dxl_old
         PML_duz_dzl_old(i,j) = duz_dxi_old*xizl + duz_dgamma_old*gammazl ! this is duz_dzl_old
       endif ! end of test on AXISYM
-        PML_dux_dxl_old(i,j) = dux_dxi_old*xixl + dux_dgamma_old*gammaxl ! this is dux_dxl_old
-        PML_dux_dzl_old(i,j) = dux_dxi_old*xizl + dux_dgamma_old*gammazl ! this is dux_dzl_old
+      PML_dux_dxl_old(i,j) = dux_dxi_old*xixl + dux_dgamma_old*gammaxl ! this is dux_dxl_old
+      PML_dux_dzl_old(i,j) = dux_dxi_old*xizl + dux_dgamma_old*gammazl ! this is dux_dzl_old
     enddo
   enddo
 
@@ -716,13 +717,10 @@
       sum_mu_dux_dz = 0._CUSTOM_REAL
       sum_mu_duz_dx = 0._CUSTOM_REAL
 
-      ! loop on all the standard linear solids
-
       call compute_coef_convolution(alpha_z,DT,coef0_zx_1,coef1_zx_1,coef2_zx_1)
       call compute_coef_convolution(beta_x,DT,coef0_zx_2,coef1_zx_2,coef2_zx_2)
       call compute_coef_convolution(alpha_x,DT,coef0_xz_1,coef1_xz_1,coef2_xz_1)
       call compute_coef_convolution(beta_z,DT,coef0_xz_2,coef1_xz_2,coef2_xz_2)
-
 
       select case (time_stepping_scheme)
       case (1)
@@ -759,7 +757,7 @@
         rmemory_duz_dz(i,j,ispec_PML,2) = coef0_xz_2 * rmemory_duz_dz(i,j,ispec_PML,2) + &
                                           coef1_xz_2 * PML_duz_dzl(i,j) + coef2_xz_2 * PML_duz_dzl_old(i,j)
       case (2)
-      ! LDDRK
+        ! LDDRK
         call stop_the_code('Time stepping scheme LDDRK not implemented yet for viscoelastic PML memory variable update')
 
       case default
@@ -767,6 +765,7 @@
 
       end select
 
+      ! loop on all the standard linear solids
       do i_sls = 1,N_SLS
         tauinv_kappa = inv_tau_sigma_nu1(i,j,ispec,i_sls)
         tauinv_mu = inv_tau_sigma_nu2(i,j,ispec,i_sls)
@@ -797,10 +796,8 @@
         call compute_coef_convolution(tauinv_mu,DT,coef0_l_mu,coef1_l_mu,coef2_l_mu)
 
         select case (time_stepping_scheme)
-
         case (1)
           ! Newmark
-
           ! inv_tau_sigma_nu1 convolve dux_dx
           kaPML_rmemory_dux_dxl(i,j,ispec_PML,i_sls) = coef0_l_ka * kaPML_rmemory_dux_dxl(i,j,ispec_PML,i_sls) + &
                                                        coef1_l_ka * PML_dux_dxl(i,j) + coef2_l_ka * PML_dux_dxl_old(i,j)

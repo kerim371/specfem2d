@@ -281,9 +281,9 @@
         if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_duz_dz')
         if (any_acoustic .and. num_fluid_solid_edges > 0) then
           allocate(rmemory_fsb_displ_elastic_LDDRK(1,NDIM,NGLLX,NGLLZ,num_fluid_solid_edges),stat=ier)
-          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_fsb_displ_elastic')
+          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_fsb_displ_elastic_LDDRK')
           allocate(rmemory_sfb_potential_ddot_acoustic_LDDRK(1,NGLLX,NGLLZ,num_fluid_solid_edges),stat=ier)
-          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_sfb_potential_ddot_acoustic')
+          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_sfb_potential_ddot_acoustic_LDDRK')
         endif
       else
         allocate(rmemory_displ_elastic_LDDRK(1,1,1,1,1),stat=ier)
@@ -355,7 +355,7 @@
       allocate(rmemory_duz_dz_LDDRK(1,1,1,1))
     endif
 
-    ! addtional variables needed for CPML in viscoelastic simulation
+    ! additional variables needed for CPML in viscoelastic simulation
     if (ATTENUATION_VISCOELASTIC) then
       if (PML_BOUNDARY_CONDITIONS) then
         if (nspec_PML > 0) then
@@ -389,8 +389,7 @@
       endif
     endif
 
-    !addtional variables needed for CPML in viscoelastic simulation
-
+    ! acoustic PML memory variables
     if (any_acoustic .and. nspec_PML > 0) then
       allocate(rmemory_potential_acoustic(2,NGLLX,NGLLZ,nspec_PML),stat=ier)
       if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_potential_acoustic')
@@ -405,11 +404,11 @@
 
       if (time_stepping_scheme == 2) then
         allocate(rmemory_potential_acoustic_LDDRK(2,NGLLX,NGLLZ,nspec_PML),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_potential_acoustic')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_potential_acoustic_LDDRK')
         allocate(rmemory_acoustic_dux_dx_LDDRK(NGLLX,NGLLZ,nspec_PML,2),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dx')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dx_LDDRK')
         allocate(rmemory_acoustic_dux_dz_LDDRK(NGLLX,NGLLZ,nspec_PML,2),stat=ier)
-        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dz')
+        if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_acoustic_dux_dz_LDDRK')
       else
         allocate(rmemory_potential_acoustic_LDDRK(1,1,1,1),stat=ier)
         allocate(rmemory_acoustic_dux_dx_LDDRK(1,1,1,1),stat=ier)

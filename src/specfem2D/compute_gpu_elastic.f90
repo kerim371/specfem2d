@@ -37,15 +37,15 @@
 
   use constants, only: CUSTOM_REAL,NGLLX,NDIM
 
-  use specfem_par, only: myrank,NPROC,ninterface,max_nibool_interfaces_ext_mesh,nibool_interfaces_ext_mesh, &
+  use specfem_par, only: NPROC,ninterface,max_nibool_interfaces_ext_mesh,nibool_interfaces_ext_mesh, &
     my_neighbors,ninterface_elastic,inum_interfaces_elastic,ibool_interfaces_ext_mesh, &
-    num_fluid_solid_edges,UNDO_ATTENUATION_AND_OR_PML, &
+    num_fluid_solid_edges, &
     STACEY_ABSORBING_CONDITIONS,PML_BOUNDARY_CONDITIONS, &
     coupled_acoustic_elastic,coupled_elastic_poro, &
-    SIMULATION_TYPE,ATTENUATION_VISCOELASTIC, &
+    ATTENUATION_VISCOELASTIC, &
     deltat,deltatover2,b_deltatover2
 
-  use specfem_par, only: nspec_outer_elastic,nspec_inner_elastic,any_anisotropy,NO_BACKWARD_RECONSTRUCTION
+  use specfem_par, only: nspec_outer_elastic,nspec_inner_elastic,any_anisotropy
 
   use specfem_par_gpu, only: Mesh_pointer, &
     buffer_send_vector_gpu,buffer_recv_vector_gpu, &
@@ -63,47 +63,10 @@
   logical :: compute_wavefield_2    ! backward/reconstructed wavefield (b_** arrays)
 
   ! determines which wavefields to compute
-  if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. (SIMULATION_TYPE == 1 .or. NO_BACKWARD_RECONSTRUCTION) ) then
-    ! forward wavefield only
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .false.
-  else if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. SIMULATION_TYPE == 3) then
-    ! forward & backward wavefields
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .true.
-  else if (UNDO_ATTENUATION_AND_OR_PML .and. compute_b_wavefield) then
-    ! only backward wavefield
-    compute_wavefield_1 = .false.
-    compute_wavefield_2 = .true.
-  else
-    ! default forward wavefield only
-    compute_wavefield_1 = .true.
-    compute_wavefield_2 = .false.
-  endif
-
-  ! coupled simulation
-  ! requires different coupling terms for forward/adjoint and backpropagated wavefields
-  if (coupled_acoustic_elastic) then
-    if (SIMULATION_TYPE == 3) then
-      if (compute_b_wavefield) then
-        ! only backward wavefield
-        compute_wavefield_1 = .false.
-        compute_wavefield_2 = .true.
-      else
-        ! only forward/adjoint wavefield
-        compute_wavefield_1 = .true.
-        compute_wavefield_2 = .false.
-      endif
-    endif
-  endif
-
-  ! check
-  if (PML_BOUNDARY_CONDITIONS ) &
-    call exit_MPI(myrank,'PML conditions not yet implemented for routine compute_forces_viscoelastic_GPU()')
+  call determine_wavefield_flags(compute_b_wavefield,compute_wavefield_1,compute_wavefield_2)
 
   ! distinguishes two runs: for points on MPI interfaces, and points within the partitions
   do iphase = 1,2
-
     ! elastic term
     ! contains both forward SIM_TYPE==1 and backward SIM_TYPE==3 simulations
     call compute_forces_viscoelastic_cuda(Mesh_pointer, iphase, deltat, &
@@ -143,6 +106,11 @@
       ! adds elastic absorbing boundary term to acceleration (Stacey conditions)
       if (STACEY_ABSORBING_CONDITIONS) then
         call compute_stacey_viscoelastic_GPU(iphase,compute_wavefield_1,compute_wavefield_2)
+      endif
+
+      ! PML boundary conditions enforces zero displ/veloc/accel on boundary
+      if (PML_BOUNDARY_CONDITIONS) then
+        call pml_boundary_elastic_cuda(Mesh_pointer,compute_wavefield_1,compute_wavefield_2)
       endif
 
       ! acoustic coupling
@@ -309,3 +277,55 @@
   if (compute_wavefield_2) call compute_add_sources_el_s3_cuda(Mesh_pointer, iphase, it_tmp)
 
   end subroutine compute_add_sources_viscoelastic_GPU
+
+!
+!---------------------------------------------------------------------------------------------
+!
+
+  subroutine determine_wavefield_flags(compute_b_wavefield,compute_wavefield_1,compute_wavefield_2)
+
+! determines which wavefields to compute
+
+  use specfem_par, only: SIMULATION_TYPE,UNDO_ATTENUATION_AND_OR_PML,NO_BACKWARD_RECONSTRUCTION, &
+                         coupled_acoustic_elastic
+
+  implicit none
+  logical, intent(in) :: compute_b_wavefield
+  logical, intent(out) :: compute_wavefield_1,compute_wavefield_2
+
+  ! sets flags
+  if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. (SIMULATION_TYPE == 1 .or. NO_BACKWARD_RECONSTRUCTION) ) then
+    ! forward wavefield only
+    compute_wavefield_1 = .true.
+    compute_wavefield_2 = .false.
+  else if ((.not. UNDO_ATTENUATION_AND_OR_PML) .and. SIMULATION_TYPE == 3) then
+    ! forward & backward wavefields
+    compute_wavefield_1 = .true.
+    compute_wavefield_2 = .true.
+  else if (UNDO_ATTENUATION_AND_OR_PML .and. compute_b_wavefield) then
+    ! only backward wavefield
+    compute_wavefield_1 = .false.
+    compute_wavefield_2 = .true.
+  else
+    ! default forward wavefield only
+    compute_wavefield_1 = .true.
+    compute_wavefield_2 = .false.
+  endif
+
+  ! coupled simulation
+  ! requires different coupling terms for forward/adjoint and backpropagated wavefields
+  if (coupled_acoustic_elastic) then
+    if (SIMULATION_TYPE == 3) then
+      if (compute_b_wavefield) then
+        ! only backward wavefield
+        compute_wavefield_1 = .false.
+        compute_wavefield_2 = .true.
+      else
+        ! only forward/adjoint wavefield
+        compute_wavefield_1 = .true.
+        compute_wavefield_2 = .false.
+      endif
+    endif
+  endif
+
+  end subroutine determine_wavefield_flags

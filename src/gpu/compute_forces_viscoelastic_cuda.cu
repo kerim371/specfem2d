@@ -275,7 +275,54 @@ TRACE("Kernel_2");
                                                                           mp->d_kappav,
                                                                           mp->d_muv,
                                                                           mp->simulation_type,
-                                                                          mp->p_sv);
+                                                                          mp->p_sv,
+                                                                          mp->pml_boundary_conditions,
+                                                                          mp->d_spec_to_pml);
+
+        // PML elements
+        if (mp->pml_boundary_conditions){
+          TRACE("\tKernel_2_noatt_iso_PML_impl 1");
+          Kernel_2_noatt_iso_PML_impl<1><<<grid,threads,0,mp->compute_stream>>>(nb_blocks_to_compute,
+                                                                                mp->d_ibool,
+                                                                                mp->d_phase_ispec_inner_elastic,mp->num_phase_ispec_elastic,
+                                                                                d_iphase,
+                                                                                mp->d_displ,
+                                                                                mp->d_accel,
+                                                                                mp->d_xix, mp->d_xiz,
+                                                                                mp->d_gammax, mp->d_gammaz,
+                                                                                mp->d_hprime_xx,
+                                                                                mp->d_hprimewgll_xx,
+                                                                                mp->d_wxgll,
+                                                                                mp->d_kappav,
+                                                                                mp->d_muv,
+                                                                                mp->simulation_type,
+                                                                                mp->p_sv,
+                                                                                mp->d_spec_to_pml,
+                                                                                mp->nspec_pml_x,
+                                                                                mp->nspec_pml_z,
+                                                                                mp->deltat,
+                                                                                mp->PML_dux_dxl_old,
+                                                                                mp->PML_dux_dzl_old,
+                                                                                mp->PML_duz_dxl_old,
+                                                                                mp->PML_duz_dzl_old,
+                                                                                mp->d_displ_elastic_old,
+                                                                                mp->d_rmemory_dux_dx,
+                                                                                mp->d_rmemory_dux_dx2,
+                                                                                mp->d_rmemory_duz_dx,
+                                                                                mp->d_rmemory_duz_dx2,
+                                                                                mp->d_rmemory_dux_dz,
+                                                                                mp->d_rmemory_dux_dz2,
+                                                                                mp->d_rmemory_duz_dz,
+                                                                                mp->d_rmemory_duz_dz2,
+                                                                                mp->d_rmemory_displ_elastic,
+                                                                                mp->d_rmemory_displ_elastic2,
+                                                                                mp->d_veloc,
+                                                                                mp->d_rhostore,
+                                                                                mp->alphax_store,
+                                                                                mp->alphaz_store,
+                                                                                mp->betax_store,
+                                                                                mp->betaz_store);
+        } // PML
       }
       // backward/reconstructed wavefield
       if (compute_wavefield_2){
@@ -295,7 +342,9 @@ TRACE("Kernel_2");
                                                                            mp->d_kappav,
                                                                            mp->d_muv,
                                                                            mp->simulation_type,
-                                                                           mp->p_sv);
+                                                                           mp->p_sv,
+                                                                           mp->pml_boundary_conditions,
+                                                                           mp->d_spec_to_pml);
       }
     }
   } // ANISOTROPY

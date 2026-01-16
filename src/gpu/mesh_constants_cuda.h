@@ -535,7 +535,7 @@ typedef struct mesh_ {
   realw* d_recv_accel_buffer;
   realw* d_b_recv_accel_buffer;
 
-  //used for absorbing stacey boundaries
+  // used for absorbing stacey boundaries
   int d_num_abs_boundary_faces;
   int* d_abs_boundary_ispec;
   int* d_abs_boundary_ijk;
@@ -568,26 +568,52 @@ typedef struct mesh_ {
   int nspec_pml_z;
 
   int* d_spec_to_pml;
-  realw* PML_dpotentialdxl_old;
-  realw* PML_dpotentialdzl_old;
-  realw* d_potential_old;
-  realw* abscissa_norm;
-  realw ALPHA_MAX_PML;
-  realw d0_max;
-  realw* rmemory_acoustic_dux_dx;
-  realw* rmemory_acoustic_dux_dz;
-  realw* rmemory_acoustic_dux_dx2;
-  realw* rmemory_acoustic_dux_dz2;
-  realw* rmemory_pot_acoustic;
-  realw* rmemory_pot_acoustic2;
+
   realw deltat;
   realw* alphax_store;
   realw* alphaz_store;
   realw* betax_store;
   realw* betaz_store;
 
+  // acoustic
+  realw* PML_dpotentialdxl_old;
+  realw* PML_dpotentialdzl_old;
+  realw* d_potential_old;
+
+  realw* d_rmemory_acoustic_dux_dx;
+  realw* d_rmemory_acoustic_dux_dz;
+  realw* d_rmemory_acoustic_dux_dx2;
+  realw* d_rmemory_acoustic_dux_dz2;
+  realw* d_rmemory_pot_acoustic;
+  realw* d_rmemory_pot_acoustic2;
+
   int pml_nglob_abs_acoustic;
   int* d_pml_abs_points_acoustic;
+
+  // elastic
+  realw* PML_dux_dxl_old;
+  realw* PML_dux_dzl_old;
+  realw* PML_duz_dxl_old;
+  realw* PML_duz_dzl_old;
+  realw* d_displ_elastic_old;
+
+  realw* d_rmemory_dux_dx;
+  realw* d_rmemory_dux_dx2;
+  realw* d_rmemory_duz_dx;
+  realw* d_rmemory_duz_dx2;
+  realw* d_rmemory_dux_dz;
+  realw* d_rmemory_dux_dz2;
+  realw* d_rmemory_duz_dz;
+  realw* d_rmemory_duz_dz2;
+  realw* d_rmemory_displ_elastic;
+  realw* d_rmemory_displ_elastic2;
+
+  int pml_nglob_abs_elastic;
+  int* d_pml_abs_points_elastic;
+
+  // coupling interface acoustic-elastic for PML elements
+  realw* d_rmemory_fsb_displ_elastic;
+  realw* d_rmemory_sfb_potential_ddot_acoustic;
 
   // surface elements (to save for noise tomography and acoustic simulations)
   int* d_free_surface_ispec;

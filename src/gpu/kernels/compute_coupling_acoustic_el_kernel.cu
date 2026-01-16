@@ -43,7 +43,18 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
                                                     realw* coupling_ac_el_jacobian1Dw,
                                                     int* d_ibool,
                                                     int simulation_type,
-                                                    int backward_simulation) {
+                                                    int backward_simulation,
+                                                    const int PML,
+                                                    const int* d_spec_to_pml,
+                                                    const int NSPEC_PML_X,
+                                                    const int NSPEC_PML_Z,
+                                                    const realw deltat,
+                                                    realw_const_p d_displ_elastic_old,
+                                                    realw* d_rmemory_fsb_displ_elastic,
+                                                    realw_const_p alphax_store,
+                                                    realw_const_p alphaz_store,
+                                                    realw_const_p betax_store,
+                                                    realw_const_p betaz_store) {
 
   int igll = threadIdx.x;
   int iface = blockIdx.x + gridDim.x*blockIdx.y;
@@ -54,11 +65,6 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
   realw jacobianw;
 
   if (iface < num_coupling_ac_el_faces){
-
-    // don't compute points outside NGLLSQUARE==NGLL2==25
-    // way 2: no further check needed since blocksize = 25
-    //  if (igll<NGLL2) {
-
     // "-1" from index values to convert from Fortran-> C indexing
     ispec = coupling_ac_el_ispec[iface] - 1;
 
@@ -79,13 +85,120 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
       displ_z = - displ_z;
     }
 
+    // PML
+    if (PML) {
+      // PML element index
+      int ispec_pml = d_spec_to_pml[ispec] - 1;
+      // checks if element is inside the PML
+      if (ispec_pml >= 0) {
+        realw alpha1,beta1;
+        realw coef0_1,coef1_1,coef2_1;
+        realw A9;
+
+        // to match offset for local (i,j) index to thread index (tx == i + j * NGLLX from I = (tx-J*NGLLX))
+        int tx = i + j * NGLLX;
+
+        // local PML array index
+        int offset_pml = ispec_pml * NGLL2 + tx;  // ispec_pml elements in range [0,NSPEC_PML-1]
+
+        // coefficients
+        if (ispec_pml < NSPEC_PML_X){
+          // in CPML_X_ONLY
+          //   alpha1  == alpha_x
+          //   alpha_z == 0
+          //
+          //   beta1  == beta_x  == alpha_x + d_x / K_x
+          //   beta_z == 0
+          //
+          alpha1 = alphax_store[offset_pml];
+          beta1 = betax_store[offset_pml];
+        } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+          // in CPML_Z_ONLY region
+          //   alpha1  == alpha_z
+          //   alpha_x == 0
+          //
+          //   beta1  == beta_z  == alpha_z + d_z / K_z
+          //   beta_x == 0
+          alpha1 = alphaz_store[offset_pml];
+          beta1  = betaz_store[offset_pml];
+        } else {
+          // not used, there should be no coupling interface in the CPML_XZ regions at the corners
+          alpha1 = 0.f;
+          beta1  = 0.f;
+        }
+
+        // for all PML regions
+        realw c1 = __expf(-0.5f * deltat * alpha1);
+
+        coef0_1 = c1 * c1;
+        if (abs(alpha1) > 0.00001f){
+          // coef1_zx_1 == (1 - c1)/alpha1
+          // coef2_zx_1 == coef1 * c1
+          coef1_1 = (1.f - c1) / alpha1;
+          coef2_1 = coef1_1 * c1;
+        } else {
+          // coef1_zx_1 == 1/2 dt
+          // coef2_zx_1 == coef1_zx_1
+          coef1_1 = 0.5f * deltat;
+          coef2_1 = coef1_1;
+        }
+
+        // memory variables update
+        // see compute_coupling_acoustic_el.f90 (line ~142):
+        //   ! Newmark
+        //   rmemory_fsb_displ_elastic(1,1,i,j,inum) = coef0_xz_1 * rmemory_fsb_displ_elastic(1,1,i,j,inum) + &
+        //                                             coef1_xz_1 * displ_elastic(1,iglob) + coef2_xz_1 * displ_elastic_old(1,iglob)
+        //   rmemory_fsb_displ_elastic(1,2,i,j,inum) = coef0_xz_1 * rmemory_fsb_displ_elastic(1,2,i,j,inum) + &
+        //                                             coef1_xz_1 * displ_elastic(2,iglob) + coef2_xz_1 * displ_elastic_old(2,iglob)
+        //
+        // x-comp
+        realw r_x = coef0_1 * d_rmemory_fsb_displ_elastic[INDEX3(NDIM,NGLLX,0,igll,iface)] + coef1_1 * displ_x + coef2_1 * d_displ_elastic_old[offset_pml*2];
+        // z-comp
+        realw r_z = coef0_1 * d_rmemory_fsb_displ_elastic[INDEX3(NDIM,NGLLX,1,igll,iface)] + coef1_1 * displ_z + coef2_1 * d_displ_elastic_old[offset_pml*2+1];
+
+        d_rmemory_fsb_displ_elastic[INDEX3(NDIM,NGLLX,0,igll,iface)] = r_x;  // (1,igll,iface)
+        d_rmemory_fsb_displ_elastic[INDEX3(NDIM,NGLLX,1,igll,iface)] = r_z;  // (2,igll,iface)
+
+        // displacement update
+        // see compute_coupling_acoustic_el.f90 (line ~166):
+        //    displ_x = A8 * displ_elastic(1,iglob) + A9 * rmemory_fsb_displ_elastic(1,1,i,j,inum)
+        //    displ_z = A8 * displ_elastic(2,iglob) + A9 * rmemory_fsb_displ_elastic(1,2,i,j,inum)
+        //
+        // with coefficients A8, A9 from routine lik_parameter_computation(..),
+        // note that we require K_x == K_z == 1:
+        // for CPML_X_ONLY_TEMP
+        //    A8 == A_0 == kappa_x == 1
+        //    A9 == - A_0 * (alpha_x - beta_x) == beta_x - alpha_x
+        // for CPML_Z_ONLY_TEMP
+        //    A8 == A_0 == 1 / kappa_z == 1
+        //    A9 == - A_0 * (beta_z - alpha_z) == alpha_z - beta_z
+        if (ispec_pml < NSPEC_PML_X){
+          // in CPML_X_ONLY region
+          //A8 = 1.0f;
+          A9 = beta1 - alpha1;
+        } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)) {
+          // in CPML_Z_ONLY region
+          //A8 = 1.0f;
+          A9 = alpha1 - beta1;
+        } else {
+          // in CPML_XZ region
+          // should not occur
+          //A8 = 1.0f; // keeps displ_x and displ_z as is
+          A9 = 0.f;
+        }
+        // overwrites displ_x and displ_z
+        displ_x += A9 * r_x;
+        displ_z += A9 * r_z;
+      }
+    } // PML
+
     // gets associated normal on GLL point
     nx = coupling_ac_el_normal[INDEX3(NDIM,NGLLX,0,igll,iface)]; // (1,igll,iface)
     nz = coupling_ac_el_normal[INDEX3(NDIM,NGLLX,1,igll,iface)]; // (2,igll,iface)
 
     // calculates displacement component along normal
     // (normal points outwards of acoustic element)
-    displ_n = displ_x*nx + displ_z*nz;
+    displ_n = displ_x * nx + displ_z * nz;
 
     // gets associated, weighted jacobian
     jacobianw = coupling_ac_el_jacobian1Dw[INDEX2(NGLLX,igll,iface)];
@@ -99,9 +212,7 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
     //          (see e.g. Chaljub & Vilotte, Nissen-Meyer thesis...)
     //          it also means you have to calculate and update this here first before
     //          calculating the coupling on the elastic side for the acceleration...
-    atomicAdd(&potential_dot_dot_acoustic[iglob],+ jacobianw*displ_n);
-
-    //  }
+    atomicAdd(&potential_dot_dot_acoustic[iglob],jacobianw * displ_n);
   }
 }
 

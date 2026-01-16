@@ -321,7 +321,14 @@ void FC_FUNC_(initialize_cuda_aware_mpi,
 //
 
 void FC_FUNC_(pml_boundary_acoustic_cuda,
-              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,int* compute_wavefield_1,int* compute_wavefield_2) {}
+              PML_BOUNDARY_ACOUSTIC_CUDA)(long* Mesh_pointer,
+                                          int* compute_wavefield_1,
+                                          int* compute_wavefield_2) {}
+
+void FC_FUNC_(pml_boundary_elastic_cuda,
+              PML_BOUNDARY_ELASTIC_CUDA)(long* Mesh_pointer,
+                                         int* compute_wavefield_1,
+                                         int* compute_wavefield_2) {}
 
 
 //
@@ -351,7 +358,7 @@ void FC_FUNC_(prepare_constants_device,
                                         realw * h_cosrot,realw * h_sinrot,
                                         int* SIMULATION_TYPE,
                                         int* P_SV,
-                                        int* nspec_acoustic,int* nspec_elastic,
+                                        int* nspec_acoustic, int* nspec_elastic,
                                         int* ispec_is_acoustic, int* ispec_is_elastic,
                                         int* h_myrank,
                                         int* SAVE_FORWARD,
@@ -421,16 +428,18 @@ void FC_FUNC_(prepare_pml_device,
                                   int* NSPEC_PML_Z,
                                   int* NSPEC_PML_XZ,
                                   int* h_spec_to_pml,
-                                  realw* h_abs_normalized,
-                                  realw* ALPHA_MAX_PML,
-                                  realw* d0_max,
                                   realw* deltat,
                                   realw* h_alphax_store,
                                   realw* h_alphaz_store,
                                   realw* h_betax_store,
                                   realw* h_betaz_store,
-                                  int *PML_nglob_abs_acoustic_f,
-                                  int *h_PML_abs_points_acoustic){}
+                                  int* PML_nglob_abs_acoustic_f,
+                                  int* h_PML_abs_points_acoustic,
+                                  int* PML_nglob_abs_elastic_f,
+                                  int* h_PML_abs_points_elastic,
+                                  int* ACOUSTIC_SIMULATION,
+                                  realw* rhostore,
+                                  int* h_num_fluid_solid_edges){}
 
 void FC_FUNC_(prepare_stacey_device,
               PREPARE_STACEY_DEVICE)(long* Mesh_pointer,

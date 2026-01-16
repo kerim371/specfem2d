@@ -71,12 +71,22 @@
   if ((ATTENUATION_VISCOACOUSTIC .or. ATTENUATION_VISCOELASTIC) .and. any_elastic .and. any_acoustic) &
     call stop_the_code('GPU_MODE not supported yet coupled fluid-solid simulations with attenuation')
 
-  if (PML_BOUNDARY_CONDITIONS .and. any_elastic) &
-    call stop_the_code('PML on GPU not supported yet for elastic cases')
-  if (PML_BOUNDARY_CONDITIONS .and. ATTENUATION_VISCOACOUSTIC) &
-    call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
-  if (PML_BOUNDARY_CONDITIONS .and. SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
-    call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
+  if (PML_BOUNDARY_CONDITIONS) then
+    if (any_poroelastic) &
+      call stop_the_code('PML on GPU not supported yet for poroelastic cases')
+    if (ATTENUATION_VISCOACOUSTIC) &
+      call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
+    if (ATTENUATION_VISCOELASTIC) &
+      call stop_the_code('PML on GPU not supported yet for viscoelastic cases')
+    if (SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
+      call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
+    if (K_MIN_PML /= 1.0d0 .or. K_MAX_PML /= 1.0d0) &
+      call stop_the_code('PML on GPU needs K_MIN_PML == 1.0 and K_MAX_PML == 1.0 in Par_file')
+    if (any_elastic .and. ROTATE_PML_ACTIVATE) &
+      call stop_the_code('PML on GPU for elastic cases needs ROTATE_PML_ACTIVATE == .false. in Par_file')
+    if (time_stepping_scheme /= 1) &
+      call stop_the_code('PML on GPU only supported for Newmark time stepping scheme')
+  endif
 
   ! initializes arrays
   call init_host_to_dev_variable()
@@ -217,13 +227,13 @@
                             nspec_PML, &
                             NSPEC_PML_X,NSPEC_PML_Z,NSPEC_PML_XZ, &
                             spec_to_PML_GPU, &
-                            abs_normalized, &
-                            sngl(ALPHA_MAX_PML), &
-                            d0_max, &
                             deltat, &
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
-                            PML_nglob_abs_acoustic,PML_abs_points_acoustic)
+                            PML_nglob_abs_acoustic,PML_abs_points_acoustic, &
+                            PML_nglob_abs_elastic,PML_abs_points_elastic, &
+                            any_acoustic,rhostore, &
+                            num_fluid_solid_edges)
   endif
 
 ! abs_boundary_ispec                     : Array containing spectral element indices in absorbing areas
@@ -365,7 +375,7 @@
   integer :: inum,ier
   real(kind=CUSTOM_REAL) :: zxi,xgamma,jacobian1D
   real(kind=CUSTOM_REAL) :: xxi,zgamma
-  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: abs_normalized_temp
+  double precision :: kappa_x,kappa_z,d_x,d_z,alpha_x,alpha_z,beta_x,beta_z
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Initialize variables for subroutine prepare_constants_device
@@ -392,7 +402,7 @@
   if (PML_BOUNDARY_CONDITIONS) then
     ! EB EB : We create spec_to_PML_GPU such that :
     ! spec_to_PML_GPU(ispec) = 0 indicates the element is not in the PML
-    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is not in the region CPML_X_ONLY
+    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is in the region CPML_X_ONLY
     ! spec_to_PML_GPU(ispec) \in [NSPEC_PML_X + 1, NSPEC_PML_X + NSPEC_PML_Z] indicates the element is in the region CPML_Z_ONLY
     ! spec_to_PML_GPU(ispec) >  NSPEC_PML_X + NSPEC_PML_Z indicates the element is in the region CPML_XZ
     ! Finally, spec_to_PML_GPU(ispec) = ielem, where ielem the local number of the element in the PML
@@ -440,41 +450,38 @@
       stop 'Error with the number of PML elements in GPU mode'
     endif
 
-    ! EB EB : We reorganize the arrays abs_normalized and abs_normalized2 that
-    ! don't have the correct dimension and new local element numbering
-    allocate(abs_normalized_temp(NGLLX,NGLLZ,NSPEC),stat=ier)
-    if (ier /= 0) stop 'Error allocating abs_normalized_temp array'
-    abs_normalized_temp(:,:,:) = abs_normalized(:,:,:)
-    deallocate(abs_normalized)
-
-    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC_PML),stat=ier)
-    if (ier /= 0) stop 'Error allocating abs_normalized array'
-    abs_normalized(:,:,:) = 0.0_CUSTOM_REAL
-    do ispec = 1,nspec
-      if (spec_to_PML_GPU(ispec) > 0) abs_normalized(:,:,spec_to_PML_GPU(ispec)) = abs_normalized_temp(:,:,ispec)
-    enddo
-    deallocate(abs_normalized_temp)
-
-    allocate(alphax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             alphaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             betax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
-             betaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),stat=ier)
+    ! coefficients storage for GPU routines
+    allocate(alphax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             alphaz_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             betax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
+             betaz_store_GPU(NGLLX,NGLLZ,nspec_PML),stat=ier)
     if (ier /= 0) stop 'Error allocating alphax_store_GPU,.. arrays'
     alphax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     alphaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     do ispec = 1,nspec
-      if (region_CPML(ispec) == CPML_XZ) then
+      if (ispec_is_PML(ispec)) then
         ispec_PML = spec_to_PML(ispec)
-        ! element index in range [1,NSPEC_PML_XZ]
-        ielem = spec_to_PML_GPU(ispec)-(nspec_PML_X + nspec_PML_Z)
+        ! checks index
+        if (ispec_PML <= 0) stop 'Error found invalid ispec_PML index in routine init_host_to_dev_variable()'
+        ielem = spec_to_PML_GPU(ispec)
         do j = 1,NGLLZ
           do i = 1,NGLLX
-            alphax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML))
-            alphaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML))
-            betax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML) + d_x_store(i,j,ispec_PML))
-            betaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML) + d_z_store(i,j,ispec_PML))
+            kappa_x = K_x_store(i,j,ispec_PML)
+            kappa_z = K_z_store(i,j,ispec_PML)
+            alpha_x = alpha_x_store(i,j,ispec_PML)
+            alpha_z = alpha_z_store(i,j,ispec_PML)
+            d_x = d_x_store(i,j,ispec_PML)
+            d_z = d_z_store(i,j,ispec_PML)
+
+            beta_x = alpha_x + d_x / kappa_x
+            beta_z = alpha_z + d_z / kappa_z
+
+            alphax_store_GPU(i,j,ielem) = real(alpha_x,kind=CUSTOM_REAL)
+            alphaz_store_GPU(i,j,ielem) = real(alpha_z,kind=CUSTOM_REAL)
+            betax_store_GPU(i,j,ielem) = real(beta_x,kind=CUSTOM_REAL)
+            betaz_store_GPU(i,j,ielem) = real(beta_z,kind=CUSTOM_REAL)
            enddo
          enddo
       endif
@@ -610,6 +617,7 @@
     ! get the edge of the acoustic element
     ispec_acoustic = fluid_solid_acoustic_ispec(inum)
     iedge_acoustic = fluid_solid_acoustic_iedge(inum)
+
     coupling_ac_el_ispec(inum) = ispec_acoustic
 
     ! get the corresponding edge of the elastic element
@@ -618,18 +626,18 @@
 
     ! implement 1D coupling along the edge
     do ipoint1D = 1,NGLLX
-
       ! get point values for the elastic side, which matches our side in the inverse direction
-      coupling_ac_el_ij(1,ipoint1D,inum) = ivalue(ipoint1D,iedge_acoustic)
-      coupling_ac_el_ij(2,ipoint1D,inum) = jvalue(ipoint1D,iedge_acoustic)
-
       i = ivalue(ipoint1D,iedge_acoustic)
       j = jvalue(ipoint1D,iedge_acoustic)
+      
+      coupling_ac_el_ij(1,ipoint1D,inum) = i
+      coupling_ac_el_ij(2,ipoint1D,inum) = j
 
       if (iedge_acoustic == ITOP) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = - zxi / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = + xxi / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
@@ -638,6 +646,7 @@
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = + zxi / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = - xxi / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
@@ -646,6 +655,7 @@
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = - zgamma / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = + xgamma / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
@@ -654,6 +664,7 @@
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = + zgamma / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = - xgamma / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)

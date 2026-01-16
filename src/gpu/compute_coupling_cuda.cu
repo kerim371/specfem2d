@@ -105,7 +105,18 @@ void FC_FUNC_(compute_coupling_ac_el_cuda,
                                                         mp->d_coupling_ac_el_jacobian2Dw,
                                                         mp->d_ibool,
                                                         mp->simulation_type,
-                                                        backward_simulation);
+                                                        backward_simulation,
+                                                        mp->pml_boundary_conditions,
+                                                        mp->d_spec_to_pml,
+                                                        mp->nspec_pml_x,
+                                                        mp->nspec_pml_z,
+                                                        mp->deltat,
+                                                        mp->d_displ_elastic_old,
+                                                        mp->d_rmemory_fsb_displ_elastic,
+                                                        mp->alphax_store,
+                                                        mp->alphaz_store,
+                                                        mp->betax_store,
+                                                        mp->betaz_store);
 
   //double end_time = get_time();
   //printf("Elapsed time: %e\n",end_time-start_time);
@@ -183,7 +194,20 @@ void FC_FUNC_(compute_coupling_el_ac_cuda,
                                                        mp->d_coupling_ac_el_jacobian2Dw,
                                                        mp->d_ibool,
                                                        mp->simulation_type,
-                                                       backward_simulation);
+                                                       backward_simulation,
+                                                       mp->pml_boundary_conditions,
+                                                       mp->d_spec_to_pml,
+                                                       mp->nspec_pml_x,
+                                                       mp->nspec_pml_z,
+                                                       mp->deltat,
+                                                       mp->d_potential_acoustic,
+                                                       mp->d_potential_dot_acoustic,
+                                                       mp->d_potential_old,
+                                                       mp->d_rmemory_sfb_potential_ddot_acoustic,
+                                                       mp->alphax_store,
+                                                       mp->alphaz_store,
+                                                       mp->betax_store,
+                                                       mp->betaz_store);
 
   //double end_time = get_time();
   //printf("Elapsed time: %e\n",end_time-start_time);

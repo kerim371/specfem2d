@@ -121,6 +121,7 @@ TRACE("Kernel_2_acoustic");
                                                                          mp->pml_boundary_conditions,
                                                                          mp->d_spec_to_pml);
 
+        // PML elements
         if (mp->pml_boundary_conditions){
           Kernel_2_acoustic_PML_impl<1><<<grid,threads,0,mp->compute_stream>>>(nb_blocks_to_compute,
                                                                                d_ibool,
@@ -136,28 +137,25 @@ TRACE("Kernel_2_acoustic");
                                                                                mp->d_wxgll,
                                                                                d_rhostore,
                                                                                mp->d_spec_to_pml,
-                                                                               mp->ALPHA_MAX_PML,
-                                                                               mp->d0_max,
-                                                                               mp->abscissa_norm,
                                                                                mp->nspec_pml_x,
                                                                                mp->nspec_pml_z,
                                                                                mp->deltat,
                                                                                mp->PML_dpotentialdxl_old,
                                                                                mp->PML_dpotentialdzl_old,
                                                                                mp->d_potential_old,
-                                                                               mp->rmemory_acoustic_dux_dx,
-                                                                               mp->rmemory_acoustic_dux_dz,
-                                                                               mp->rmemory_acoustic_dux_dx2,
-                                                                               mp->rmemory_acoustic_dux_dz2,
-                                                                               mp->rmemory_pot_acoustic,
-                                                                               mp->rmemory_pot_acoustic2,
+                                                                               mp->d_rmemory_acoustic_dux_dx,
+                                                                               mp->d_rmemory_acoustic_dux_dz,
+                                                                               mp->d_rmemory_acoustic_dux_dx2,
+                                                                               mp->d_rmemory_acoustic_dux_dz2,
+                                                                               mp->d_rmemory_pot_acoustic,
+                                                                               mp->d_rmemory_pot_acoustic2,
                                                                                mp->d_potential_dot_acoustic,
                                                                                mp->d_kappastore,
                                                                                mp->alphax_store,
                                                                                mp->alphaz_store,
                                                                                mp->betax_store,
                                                                                mp->betaz_store);
-        } //PML
+        } // PML
       } // compute_wavefield1
       if (compute_wavefield_2){
         // this run only happens with UNDO_ATTENUATION_AND_OR_PML on

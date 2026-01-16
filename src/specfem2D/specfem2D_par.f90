@@ -124,10 +124,6 @@ module specfem_par
 
   integer, dimension(:), allocatable :: region_CPML
   integer, dimension(:), allocatable :: spec_to_PML,spec_to_PML_GPU
-  double precision :: ALPHA_MAX_PML
-  real(kind=CUSTOM_REAL) :: d0_max
-
-  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: abs_normalized
 
   logical, dimension(:,:), allocatable :: which_PML_elem
   logical, dimension(:), allocatable  :: mask_ibool_PML

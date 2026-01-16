@@ -250,7 +250,6 @@
       if (ispec_is_PML(ispec)) then
         if (ATTENUATION_VISCOELASTIC) then
           if (qkappal < 9998.999d0 .and. qmul < 9998.999d0) then
-
             call pml_compute_memory_variables_viscoelastic(ispec,nglob,displ_elastic_old,dux_dxl,dux_dzl,duz_dxl,duz_dzl, &
                                                            kappa_pml_dux_dxl,kappa_pml_duz_dzl, &
                                                            mu_pml_dux_dxl,mu_pml_duz_dzl,mu_pml_dux_dzl, &
@@ -606,8 +605,8 @@
                 !
                 ! note that PML_dux_dxl,PML_dux_dzl,.. arrays contain the original, unmodified dux_dx,dux_dz,.. strain values.
                 !
-                sigma_xx = lambdaplus2mu_unrelaxed_elastic*dux_dxl(i,j) + lambdal_unrelaxed_elastic*PML_duz_dzl(i,j)
-                sigma_zz = lambdaplus2mu_unrelaxed_elastic*duz_dzl(i,j) + lambdal_unrelaxed_elastic*PML_dux_dxl(i,j)
+                sigma_xx = lambdaplus2mu_unrelaxed_elastic * dux_dxl(i,j) + lambdal_unrelaxed_elastic * PML_duz_dzl(i,j)
+                sigma_zz = lambdaplus2mu_unrelaxed_elastic * duz_dzl(i,j) + lambdal_unrelaxed_elastic * PML_dux_dxl(i,j)
                 sigma_zx = mul_unrelaxed_elastic * (PML_duz_dxl(i,j) + dux_dzl(i,j))
                 sigma_xz = mul_unrelaxed_elastic * (PML_dux_dzl(i,j) + duz_dxl(i,j))
               endif
