@@ -206,7 +206,7 @@ def get_fullspace_solution_time_domain(x, y, z,
     else:
         print(f"Error: Invalid source time function type {specfem2d_stf} - not implemented yet")
         sys.exit(1)
-    
+
     print("")
 
     # amplification

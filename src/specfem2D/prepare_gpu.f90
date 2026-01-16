@@ -629,7 +629,7 @@
       ! get point values for the elastic side, which matches our side in the inverse direction
       i = ivalue(ipoint1D,iedge_acoustic)
       j = jvalue(ipoint1D,iedge_acoustic)
-      
+
       coupling_ac_el_ij(1,ipoint1D,inum) = i
       coupling_ac_el_ij(2,ipoint1D,inum) = j
 
