@@ -281,9 +281,9 @@
         if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_duz_dz')
         if (any_acoustic .and. num_fluid_solid_edges > 0) then
           allocate(rmemory_fsb_displ_elastic_LDDRK(1,NDIM,NGLLX,NGLLZ,num_fluid_solid_edges),stat=ier)
-          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_fsb_displ_elastic')
+          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_fsb_displ_elastic_LDDRK')
           allocate(rmemory_sfb_potential_ddot_acoustic_LDDRK(1,NGLLX,NGLLZ,num_fluid_solid_edges),stat=ier)
-          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_sfb_potential_ddot_acoustic')
+          if (ier /= 0) call stop_the_code('error: not enough memory to allocate array rmemory_sfb_potential_ddot_acoustic_LDDRK')
         endif
       else
         allocate(rmemory_displ_elastic_LDDRK(1,1,1,1,1),stat=ier)

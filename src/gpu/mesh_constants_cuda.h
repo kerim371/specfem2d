@@ -611,6 +611,10 @@ typedef struct mesh_ {
   int pml_nglob_abs_elastic;
   int* d_pml_abs_points_elastic;
 
+  // coupling interface acoustic-elastic for PML elements
+  realw* d_rmemory_fsb_displ_elastic;
+  realw* d_rmemory_sfb_potential_ddot_acoustic;
+
   // surface elements (to save for noise tomography and acoustic simulations)
   int* d_free_surface_ispec;
   int* d_free_surface_ijk;

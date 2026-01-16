@@ -232,7 +232,8 @@
                             betax_store_GPU,betaz_store_GPU, &
                             PML_nglob_abs_acoustic,PML_abs_points_acoustic, &
                             PML_nglob_abs_elastic,PML_abs_points_elastic, &
-                            any_acoustic,rhostore)
+                            any_acoustic,rhostore, &
+                            num_fluid_solid_edges)
   endif
 
 ! abs_boundary_ispec                     : Array containing spectral element indices in absorbing areas
@@ -616,6 +617,7 @@
     ! get the edge of the acoustic element
     ispec_acoustic = fluid_solid_acoustic_ispec(inum)
     iedge_acoustic = fluid_solid_acoustic_iedge(inum)
+
     coupling_ac_el_ispec(inum) = ispec_acoustic
 
     ! get the corresponding edge of the elastic element
@@ -624,18 +626,18 @@
 
     ! implement 1D coupling along the edge
     do ipoint1D = 1,NGLLX
-
       ! get point values for the elastic side, which matches our side in the inverse direction
-      coupling_ac_el_ij(1,ipoint1D,inum) = ivalue(ipoint1D,iedge_acoustic)
-      coupling_ac_el_ij(2,ipoint1D,inum) = jvalue(ipoint1D,iedge_acoustic)
-
       i = ivalue(ipoint1D,iedge_acoustic)
       j = jvalue(ipoint1D,iedge_acoustic)
+      
+      coupling_ac_el_ij(1,ipoint1D,inum) = i
+      coupling_ac_el_ij(2,ipoint1D,inum) = j
 
       if (iedge_acoustic == ITOP) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = - zxi / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = + xxi / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
@@ -644,6 +646,7 @@
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = + zxi / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = - xxi / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
@@ -652,6 +655,7 @@
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = - zgamma / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = + xgamma / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
@@ -660,6 +664,7 @@
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
+
         coupling_ac_el_normal(1,ipoint1D,inum) = + zgamma / jacobian1D
         coupling_ac_el_normal(2,ipoint1D,inum) = - xgamma / jacobian1D
         coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)

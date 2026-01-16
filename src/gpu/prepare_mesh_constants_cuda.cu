@@ -864,123 +864,143 @@ void FC_FUNC_(prepare_pml_device,
                                   realw* h_alphaz_store,
                                   realw* h_betax_store,
                                   realw* h_betaz_store,
-                                  int *PML_nglob_abs_acoustic_f,
-                                  int *h_PML_abs_points_acoustic,
-                                  int *PML_nglob_abs_elastic_f,
-                                  int *h_PML_abs_points_elastic,
-                                  int *ACOUSTIC_SIMULATION,
-                                  realw* rhostore){
+                                  int* PML_nglob_abs_acoustic_f,
+                                  int* h_PML_abs_points_acoustic,
+                                  int* PML_nglob_abs_elastic_f,
+                                  int* h_PML_abs_points_elastic,
+                                  int* ACOUSTIC_SIMULATION,
+                                  realw* rhostore,
+                                  int* h_num_fluid_solid_edges){
 
   TRACE("prepare_PML_device");
 
   Mesh* mp = (Mesh*)(*Mesh_pointer);
+  int size,size_xz;
 
-  if (mp->pml_boundary_conditions){
-    mp->nspec_pml    = *NSPEC_PML;
-    mp->nspec_pml_x  = *NSPEC_PML_X;
-    mp->nspec_pml_z  = *NSPEC_PML_Z;
-    mp->deltat = *deltat;
+  // checks consistency
+  if (! mp->pml_boundary_conditions)
+    exit_on_error("PML absorbing condition flag inconsistent with prepare_PML_device() call");
 
-    copy_todevice_int((void**)&mp->d_spec_to_pml,h_spec_to_pml,mp->NSPEC_AB);
+  // PML elements
+  mp->nspec_pml    = *NSPEC_PML;
+  mp->nspec_pml_x  = *NSPEC_PML_X;
+  mp->nspec_pml_z  = *NSPEC_PML_Z;
+  mp->deltat = *deltat;
 
-    int size = NGLL2 * mp->nspec_pml;
-    int size_xz = NGLL2 * (*NSPEC_PML_XZ);
+  copy_todevice_int((void**)&mp->d_spec_to_pml,h_spec_to_pml,mp->NSPEC_AB);
 
-    // PML coefficients
-    copy_todevice_realw((void**)&mp->alphax_store,h_alphax_store,size);
-    copy_todevice_realw((void**)&mp->alphaz_store,h_alphaz_store,size);
-    copy_todevice_realw((void**)&mp->betax_store,h_betax_store,size);
-    copy_todevice_realw((void**)&mp->betaz_store,h_betaz_store,size);
+  // array size for all PML elements
+  size = NGLL2 * mp->nspec_pml;
+  // array size for PML elements in CPML_XZ region only
+  size_xz = NGLL2 * (*NSPEC_PML_XZ);
 
-    // acoustic PML
-    if (mp->nspec_acoustic > 0) {
-      // PML wavefields
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdxl_old,size*sizeof(realw)),1301);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdzl_old,size*sizeof(realw)),1302);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_potential_old,size*sizeof(realw)),1303);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdxl_old,0,size*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdzl_old,0,size*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_potential_old,0,size*sizeof(realw)),2007);
+  // PML coefficients
+  copy_todevice_realw((void**)&mp->alphax_store,h_alphax_store,size);
+  copy_todevice_realw((void**)&mp->alphaz_store,h_alphaz_store,size);
+  copy_todevice_realw((void**)&mp->betax_store,h_betax_store,size);
+  copy_todevice_realw((void**)&mp->betaz_store,h_betaz_store,size);
 
-      // PML memory variables
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx,size*sizeof(realw)),1290);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz,size*sizeof(realw)),1291);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx2,size_xz*sizeof(realw)),1292);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz2,size_xz*sizeof(realw)),1292);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic,size*sizeof(realw)),1293);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic2,size_xz*sizeof(realw)),1294);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx,0,size*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz,0,size*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx2,0,size_xz*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz2,0,size_xz*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic,0,size*sizeof(realw)),2007);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic2,0,size_xz*sizeof(realw)),2007);
+  // acoustic PML
+  if (mp->nspec_acoustic > 0) {
+    // PML wavefields
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdxl_old,size*sizeof(realw)),1301);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dpotentialdzl_old,size*sizeof(realw)),1302);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_potential_old,size*sizeof(realw)),1303);
+    // initializes
+    print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdxl_old,0,size*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->PML_dpotentialdzl_old,0,size*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_potential_old,0,size*sizeof(realw)),2007);
+
+    // PML memory variables
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx,size*sizeof(realw)),1290);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz,size*sizeof(realw)),1291);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dx2,size_xz*sizeof(realw)),1292);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_acoustic_dux_dz2,size_xz*sizeof(realw)),1292);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic,size*sizeof(realw)),1293);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_pot_acoustic2,size_xz*sizeof(realw)),1294);
+    // initializes
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx,0,size*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz,0,size*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dx2,0,size_xz*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_acoustic_dux_dz2,0,size_xz*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic,0,size*sizeof(realw)),2007);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_pot_acoustic2,0,size_xz*sizeof(realw)),2007);
+  }
+
+  // elastic PML
+  if (mp->nspec_elastic > 0){
+    // PML wavefields
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dux_dxl_old,size*sizeof(realw)),1301);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dux_dzl_old,size*sizeof(realw)),1302);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_duz_dxl_old,size*sizeof(realw)),1303);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_duz_dzl_old,size*sizeof(realw)),1304);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_displ_elastic_old,NDIM*size*sizeof(realw)),1305); // 2-dimensional (x,z)
+    // initializes
+    print_CUDA_error_if_any(cudaMemset(mp->PML_dux_dxl_old,0,size*sizeof(realw)),1401);
+    print_CUDA_error_if_any(cudaMemset(mp->PML_dux_dzl_old,0,size*sizeof(realw)),1402);
+    print_CUDA_error_if_any(cudaMemset(mp->PML_duz_dxl_old,0,size*sizeof(realw)),1403);
+    print_CUDA_error_if_any(cudaMemset(mp->PML_duz_dzl_old,0,size*sizeof(realw)),1404);
+    print_CUDA_error_if_any(cudaMemset(mp->d_displ_elastic_old,0,NDIM*size*sizeof(realw)),1405);
+
+    // PML memory variables
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dx,size*sizeof(realw)),1310);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dx2,size_xz*sizeof(realw)),1311);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dz,size*sizeof(realw)),1320);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dz2,size_xz*sizeof(realw)),1321);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dx,size*sizeof(realw)),1330);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dx2,size_xz*sizeof(realw)),1331);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dz,size*sizeof(realw)),1340);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dz2,size_xz*sizeof(realw)),1341);
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_displ_elastic,NDIM*size*sizeof(realw)),1350); // 2-dimensional (x,z)
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_displ_elastic2,NDIM*size_xz*sizeof(realw)),1351);
+    // initializes
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dx,0,size*sizeof(realw)),1410);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dx2,0,size_xz*sizeof(realw)),1411);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dz,0,size*sizeof(realw)),1420);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dz2,0,size_xz*sizeof(realw)),1421);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dx,0,size*sizeof(realw)),1430);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dx2,0,size_xz*sizeof(realw)),1431);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dz,0,size*sizeof(realw)),1440);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dz2,0,size_xz*sizeof(realw)),1441);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_displ_elastic,0,NDIM*size*sizeof(realw)),1450);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_displ_elastic2,0,NDIM*size_xz*sizeof(realw)),1451);
+
+    // rho required for contribution factor
+    // allocates only if not already done by acoustic simulation setup
+    if (! *ACOUSTIC_SIMULATION) {
+      // Assuming NGLLX==5. Padded is then 32 (5^2+3)
+      int size_padded = NGLL2_PADDED * mp->NSPEC_AB;
+      print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_rhostore),size_padded*sizeof(realw)),2006);
+      // transfer constant element data with padding
+      print_CUDA_error_if_any(cudaMemcpy2D(mp->d_rhostore, NGLL2_PADDED*sizeof(realw),
+                                           rhostore, NGLL2*sizeof(realw), NGLL2*sizeof(realw),
+                                           mp->NSPEC_AB, cudaMemcpyHostToDevice),2106);
     }
+  }
 
-    // elastic PML
-    if (mp->nspec_elastic > 0){
-      // PML wavefields
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dux_dxl_old,size*sizeof(realw)),1301);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_dux_dzl_old,size*sizeof(realw)),1302);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_duz_dxl_old,size*sizeof(realw)),1303);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->PML_duz_dzl_old,size*sizeof(realw)),1304);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_displ_elastic_old,NDIM*size*sizeof(realw)),1305); // 2-dimensional (x,z)
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dux_dxl_old,0,size*sizeof(realw)),1401);
-      print_CUDA_error_if_any(cudaMemset(mp->PML_dux_dzl_old,0,size*sizeof(realw)),1402);
-      print_CUDA_error_if_any(cudaMemset(mp->PML_duz_dxl_old,0,size*sizeof(realw)),1403);
-      print_CUDA_error_if_any(cudaMemset(mp->PML_duz_dzl_old,0,size*sizeof(realw)),1404);
-      print_CUDA_error_if_any(cudaMemset(mp->d_displ_elastic_old,0,NDIM*size*sizeof(realw)),1405);
+  // acoustic boundary
+  mp->pml_nglob_abs_acoustic = *PML_nglob_abs_acoustic_f;
+  if (mp->pml_nglob_abs_acoustic > 0) {
+    copy_todevice_int((void**)&mp->d_pml_abs_points_acoustic,h_PML_abs_points_acoustic,mp->pml_nglob_abs_acoustic);
+  }
 
-      // PML memory variables
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dx,size*sizeof(realw)),1310);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dx2,size_xz*sizeof(realw)),1311);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dz,size*sizeof(realw)),1320);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_dux_dz2,size_xz*sizeof(realw)),1321);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dx,size*sizeof(realw)),1330);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dx2,size_xz*sizeof(realw)),1331);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dz,size*sizeof(realw)),1340);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_duz_dz2,size_xz*sizeof(realw)),1341);
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_displ_elastic,NDIM*size*sizeof(realw)),1350); // 2-dimensional (x,z)
-      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_displ_elastic2,NDIM*size_xz*sizeof(realw)),1351);
-      // initializes
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dx,0,size*sizeof(realw)),1410);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dx2,0,size_xz*sizeof(realw)),1411);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dz,0,size*sizeof(realw)),1420);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_dux_dz2,0,size_xz*sizeof(realw)),1421);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dx,0,size*sizeof(realw)),1430);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dx2,0,size_xz*sizeof(realw)),1431);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dz,0,size*sizeof(realw)),1440);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_duz_dz2,0,size_xz*sizeof(realw)),1441);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_displ_elastic,0,NDIM*size*sizeof(realw)),1450);
-      print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_displ_elastic2,0,NDIM*size_xz*sizeof(realw)),1451);
+  // elastic boundary
+  mp->pml_nglob_abs_elastic = *PML_nglob_abs_elastic_f;
+  if (mp->pml_nglob_abs_elastic > 0) {
+    copy_todevice_int((void **)&mp->d_pml_abs_points_elastic,h_PML_abs_points_elastic,mp->pml_nglob_abs_elastic);
+  }
 
-      // rho required for contribution factor
-      // allocates only if not already done by acoustic simulation setup
-      if (! *ACOUSTIC_SIMULATION) {
-        // Assuming NGLLX==5. Padded is then 32 (5^2+3)
-        int size_padded = NGLL2_PADDED * mp->NSPEC_AB;
-        print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_rhostore),size_padded*sizeof(realw)),2006);
-        // transfer constant element data with padding
-        print_CUDA_error_if_any(cudaMemcpy2D(mp->d_rhostore, NGLL2_PADDED*sizeof(realw),
-                                             rhostore, NGLL2*sizeof(realw), NGLL2*sizeof(realw),
-                                             mp->NSPEC_AB, cudaMemcpyHostToDevice),2106);
-      }
-    }
-
-    // acoustic boundary
-    mp->pml_nglob_abs_acoustic = *PML_nglob_abs_acoustic_f;
-    if (mp->pml_nglob_abs_acoustic > 0) {
-      copy_todevice_int((void**)&mp->d_pml_abs_points_acoustic,h_PML_abs_points_acoustic,mp->pml_nglob_abs_acoustic);
-    }
-
-    // elastic boundary
-    mp->pml_nglob_abs_elastic = *PML_nglob_abs_elastic_f;
-    if (mp->pml_nglob_abs_elastic > 0) {
-      copy_todevice_int((void **)&mp->d_pml_abs_points_elastic,h_PML_abs_points_elastic,mp->pml_nglob_abs_elastic);
-    }
+  // coupling acoustic-elastic
+  int num_coupling_ac_el_faces = *h_num_fluid_solid_edges;
+  if (*ACOUSTIC_SIMULATION && num_coupling_ac_el_faces > 0) {
+    // size for edges on fluid-solid coupling interface
+    size = NGLLX * num_coupling_ac_el_faces;
+    // rmemory_fsb_displ_elastic
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_fsb_displ_elastic,NDIM*size*sizeof(realw)),1501);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_fsb_displ_elastic,0,NDIM*size*sizeof(realw)),1502);
+    // rmemory_sfb_potential_ddot_acoustic
+    print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_rmemory_sfb_potential_ddot_acoustic,size*sizeof(realw)),1511);
+    print_CUDA_error_if_any(cudaMemset(mp->d_rmemory_sfb_potential_ddot_acoustic,0,size*sizeof(realw)),1512);
   }
 
   GPU_ERROR_CHECKING ("prepare_PML_device");
@@ -1023,71 +1043,72 @@ void FC_FUNC_(prepare_stacey_device,
   // Stacey absorbing boundaries
   mp->d_num_abs_boundary_faces = *h_num_abs_boundary_faces;
 
+  // checks if anything to do
+  if (mp->d_num_abs_boundary_faces == 0) return;
+
   // Stacey absorbing conditions
-  if (mp->stacey_absorbing_conditions && mp->d_num_abs_boundary_faces > 0) {
-    mp->d_nspec_left = *h_nspec_left;
-    mp->d_nspec_right = *h_nspec_right;
-    mp->d_nspec_top = *h_nspec_top;
-    mp->d_nspec_bottom = *h_nspec_bottom;
+  mp->d_nspec_left = *h_nspec_left;
+  mp->d_nspec_right = *h_nspec_right;
+  mp->d_nspec_top = *h_nspec_top;
+  mp->d_nspec_bottom = *h_nspec_bottom;
 
+  // debug
+  //printf("debug: stacey prepare faces %d %d\n",mp->stacey_absorbing_conditions,mp->d_num_abs_boundary_faces);
+  //printf("debug: stacey prepare %d %d %d %d\n",mp->d_nspec_left,mp->d_nspec_right,mp->d_nspec_top,mp->d_nspec_bottom);
+
+  copy_todevice_int((void**)&mp->d_abs_boundary_ispec,h_abs_boundary_ispec,mp->d_num_abs_boundary_faces);
+  copy_todevice_int((void**)&mp->d_abs_boundary_ijk,h_abs_boundary_ij,
+                    2*NGLLX*(mp->d_num_abs_boundary_faces));
+  copy_todevice_realw((void**)&mp->d_abs_boundary_normal,h_abs_boundary_normal,
+                      NDIM*NGLLX*(mp->d_num_abs_boundary_faces));
+  copy_todevice_realw((void**)&mp->d_abs_boundary_jacobian2Dw,h_abs_boundary_jacobian1Dw,
+                      NGLLX*(mp->d_num_abs_boundary_faces));
+
+  copy_todevice_int((void**)&mp->d_edge_abs,h_edge_abs,(mp->d_num_abs_boundary_faces));
+  copy_todevice_int((void**)&mp->d_ib_left,h_ib_left,(mp->d_num_abs_boundary_faces));
+  copy_todevice_int((void**)&mp->d_ib_right,h_ib_right,(mp->d_num_abs_boundary_faces));
+  copy_todevice_int((void**)&mp->d_ib_top,h_ib_top,(mp->d_num_abs_boundary_faces));
+  copy_todevice_int((void**)&mp->d_ib_bottom,h_ib_bottom,(mp->d_num_abs_boundary_faces));
+
+  // elastic domains
+  if (*ELASTIC_SIMULATION){
     // debug
-    //printf("debug: stacey prepare faces %d %d\n",mp->stacey_absorbing_conditions,mp->d_num_abs_boundary_faces);
-    //printf("debug: stacey prepare %d %d %d %d\n",mp->d_nspec_left,mp->d_nspec_right,mp->d_nspec_top,mp->d_nspec_bottom);
+    //printf("prepare_fields_elastic_device: rank %d - absorbing boundary setup\n",mp->myrank);
 
-    copy_todevice_int((void**)&mp->d_abs_boundary_ispec,h_abs_boundary_ispec,mp->d_num_abs_boundary_faces);
-    copy_todevice_int((void**)&mp->d_abs_boundary_ijk,h_abs_boundary_ij,
-                      2*NGLLX*(mp->d_num_abs_boundary_faces));
-    copy_todevice_realw((void**)&mp->d_abs_boundary_normal,h_abs_boundary_normal,
-                        NDIM*NGLLX*(mp->d_num_abs_boundary_faces));
-    copy_todevice_realw((void**)&mp->d_abs_boundary_jacobian2Dw,h_abs_boundary_jacobian1Dw,
-                        NGLLX*(mp->d_num_abs_boundary_faces));
+    // non-padded arrays
+    // rho_vp, rho_vs non-padded; they are needed for stacey boundary condition
+    copy_todevice_realw((void**)&mp->d_rho_vp,rho_vp,NGLL2*mp->NSPEC_AB);
+    copy_todevice_realw((void**)&mp->d_rho_vs,rho_vs,NGLL2*mp->NSPEC_AB);
 
-    copy_todevice_int((void**)&mp->d_edge_abs,h_edge_abs,(mp->d_num_abs_boundary_faces));
-    copy_todevice_int((void**)&mp->d_ib_left,h_ib_left,(mp->d_num_abs_boundary_faces));
-    copy_todevice_int((void**)&mp->d_ib_right,h_ib_right,(mp->d_num_abs_boundary_faces));
-    copy_todevice_int((void**)&mp->d_ib_top,h_ib_top,(mp->d_num_abs_boundary_faces));
-    copy_todevice_int((void**)&mp->d_ib_bottom,h_ib_bottom,(mp->d_num_abs_boundary_faces));
+    // absorb_field array used for file i/o
+    if (mp->simulation_type == 3 || ( mp->simulation_type == 1 && mp->save_forward )){
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_left,NDIM*mp->d_nspec_left*sizeof(realw)*NGLLX),2201);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_right,NDIM*mp->d_nspec_right*sizeof(realw)*NGLLX),2202);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_top,NDIM*mp->d_nspec_top*sizeof(realw)*NGLLX),2203);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_bottom,NDIM*mp->d_nspec_bottom*sizeof(realw)*NGLLX),2204);
+      // initializes values to zero
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_left,0,NDIM*mp->d_nspec_left*sizeof(realw)*NGLLX),2221);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_right,0,NDIM*mp->d_nspec_right*sizeof(realw)*NGLLX),2222);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_top,0,NDIM*mp->d_nspec_top*sizeof(realw)*NGLLX),2223);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_bottom,0,NDIM*mp->d_nspec_bottom*sizeof(realw)*NGLLX),2224);
+    }
+  } // ELASTIC_SIMULATION
 
-    // elastic domains
-    if (*ELASTIC_SIMULATION){
-      // debug
-      //printf("prepare_fields_elastic_device: rank %d - absorbing boundary setup\n",mp->myrank);
-
-      // non-padded arrays
-      // rho_vp, rho_vs non-padded; they are needed for stacey boundary condition
-      copy_todevice_realw((void**)&mp->d_rho_vp,rho_vp,NGLL2*mp->NSPEC_AB);
-      copy_todevice_realw((void**)&mp->d_rho_vs,rho_vs,NGLL2*mp->NSPEC_AB);
-
-      // absorb_field array used for file i/o
-      if (mp->simulation_type == 3 || ( mp->simulation_type == 1 && mp->save_forward )){
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_left,NDIM*mp->d_nspec_left*sizeof(realw)*NGLLX),2201);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_right,NDIM*mp->d_nspec_right*sizeof(realw)*NGLLX),2202);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_top,NDIM*mp->d_nspec_top*sizeof(realw)*NGLLX),2203);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_elastic_bottom,NDIM*mp->d_nspec_bottom*sizeof(realw)*NGLLX),2204);
-        // initializes values to zero
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_left,0,NDIM*mp->d_nspec_left*sizeof(realw)*NGLLX),2221);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_right,0,NDIM*mp->d_nspec_right*sizeof(realw)*NGLLX),2222);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_top,0,NDIM*mp->d_nspec_top*sizeof(realw)*NGLLX),2223);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_elastic_bottom,0,NDIM*mp->d_nspec_bottom*sizeof(realw)*NGLLX),2224);
-      }
-    } // ELASTIC_SIMULATION
-
-    // acoustic domains
-    if (*ACOUSTIC_SIMULATION){
-      // absorb_field array used for file i/o
-      if (mp->simulation_type == 3 || ( mp->simulation_type == 1 && mp->save_forward )){
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_left,mp->d_nspec_left*sizeof(realw)*NGLLX),2211);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_right,mp->d_nspec_right*sizeof(realw)*NGLLX),2212);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_top,mp->d_nspec_top*sizeof(realw)*NGLLX),2213);
-        print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_bottom,mp->d_nspec_bottom*sizeof(realw)*NGLLX),2214);
-        // initializes values to zero
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_left,0,mp->d_nspec_left*sizeof(realw)*NGLLX),2221);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_right,0,mp->d_nspec_right*sizeof(realw)*NGLLX),2222);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_top,0,mp->d_nspec_top*sizeof(realw)*NGLLX),2223);
-        print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_bottom,0,mp->d_nspec_bottom*sizeof(realw)*NGLLX),2224);
-      }
-    } // ACOUSTIC_SIMULATION
-  }
+  // acoustic domains
+  if (*ACOUSTIC_SIMULATION){
+    // absorb_field array used for file i/o
+    if (mp->simulation_type == 3 || ( mp->simulation_type == 1 && mp->save_forward )){
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_left,mp->d_nspec_left*sizeof(realw)*NGLLX),2211);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_right,mp->d_nspec_right*sizeof(realw)*NGLLX),2212);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_top,mp->d_nspec_top*sizeof(realw)*NGLLX),2213);
+      print_CUDA_error_if_any(cudaMalloc((void**)&mp->d_b_absorb_potential_bottom,mp->d_nspec_bottom*sizeof(realw)*NGLLX),2214);
+      // initializes values to zero
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_left,0,mp->d_nspec_left*sizeof(realw)*NGLLX),2221);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_right,0,mp->d_nspec_right*sizeof(realw)*NGLLX),2222);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_top,0,mp->d_nspec_top*sizeof(realw)*NGLLX),2223);
+      print_CUDA_error_if_any(cudaMemset(mp->d_b_absorb_potential_bottom,0,mp->d_nspec_bottom*sizeof(realw)*NGLLX),2224);
+    }
+  } // ACOUSTIC_SIMULATION
 
   GPU_ERROR_CHECKING ("prepare_Stacey_device");
 }

@@ -186,7 +186,18 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
                                                     realw* coupling_ac_el_jacobian1Dw,
                                                     int* d_ibool,
                                                     int simulation_type,
-                                                    int backward_simulation) ;
+                                                    int backward_simulation,
+                                                    const int PML,
+                                                    const int* d_spec_to_pml,
+                                                    const int NSPEC_PML_X,
+                                                    const int NSPEC_PML_Z,
+                                                    const realw deltat,
+                                                    realw_const_p d_displ_elastic_old,
+                                                    realw* d_rmemory_fsb_displ_elastic,
+                                                    realw_const_p alphax_store,
+                                                    realw_const_p alphaz_store,
+                                                    realw_const_p betax_store,
+                                                    realw_const_p betaz_store) ;
 
 
 //
@@ -202,7 +213,20 @@ __global__ void compute_coupling_elastic_ac_kernel(realw* potential_dot_dot_acou
                                                     realw* coupling_ac_el_jacobian1Dw,
                                                     int* d_ibool,
                                                     int simulation_type,
-                                                    int backward_simulation) ;
+                                                    int backward_simulation,
+                                                    const int PML,
+                                                    const int* d_spec_to_pml,
+                                                    const int NSPEC_PML_X,
+                                                    const int NSPEC_PML_Z,
+                                                    const realw deltat,
+                                                    realw_const_p potential_acoustic,
+                                                    realw_const_p potential_dot_acoustic,
+                                                    realw_const_p d_potential_old,
+                                                    realw* d_rmemory_sfb_potential_ddot_acoustic,
+                                                    realw_const_p alphax_store,
+                                                    realw_const_p alphaz_store,
+                                                    realw_const_p betax_store,
+                                                    realw_const_p betaz_store) ;
 
 
 //

@@ -169,7 +169,6 @@
       endif
 
       if (iedge_acoustic == ITOP ) then
-
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
@@ -186,7 +185,6 @@
         endif
 
       else if (iedge_acoustic == IBOTTOM ) then
-
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
@@ -203,7 +201,6 @@
         endif
 
       else if (iedge_acoustic == ILEFT) then
-
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
@@ -220,7 +217,6 @@
         endif
 
       else if (iedge_acoustic == IRIGHT) then
-
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
@@ -235,7 +231,6 @@
         else
           weight = jacobian1D * wzgll(j)
         endif
-
       endif
 
 !! DK DK QUENTIN visco begin ici comme tu disais il faudrait coupler la composante tangentielle

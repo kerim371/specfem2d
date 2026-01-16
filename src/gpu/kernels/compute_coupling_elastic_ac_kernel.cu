@@ -43,7 +43,20 @@ __global__ void compute_coupling_elastic_ac_kernel(realw* potential_dot_dot_acou
                                                     realw* coupling_ac_el_jacobian1Dw,
                                                     int* d_ibool,
                                                     int simulation_type,
-                                                    int backward_simulation) {
+                                                    int backward_simulation,
+                                                    const int PML,
+                                                    const int* d_spec_to_pml,
+                                                    const int NSPEC_PML_X,
+                                                    const int NSPEC_PML_Z,
+                                                    const realw deltat,
+                                                    realw_const_p potential_acoustic,
+                                                    realw_const_p potential_dot_acoustic,
+                                                    realw_const_p d_potential_old,
+                                                    realw* d_rmemory_sfb_potential_ddot_acoustic,
+                                                    realw_const_p alphax_store,
+                                                    realw_const_p alphaz_store,
+                                                    realw_const_p betax_store,
+                                                    realw_const_p betaz_store) {
 
   int igll = threadIdx.x;
   int iface = blockIdx.x + gridDim.x*blockIdx.y;
@@ -53,13 +66,7 @@ __global__ void compute_coupling_elastic_ac_kernel(realw* potential_dot_dot_acou
   realw nx,nz;
   realw jacobianw;
 
-
   if (iface < num_coupling_ac_el_faces){
-
-    // don't compute points outside NGLLSQUARE==NGLL2==25
-    // way 2: no further check needed since blocksize = 25
-    //  if (igll<NGLL2) {
-
     // "-1" from index values to convert from Fortran-> C indexing
     ispec = coupling_ac_el_ispec[iface] - 1;
 
@@ -86,6 +93,127 @@ __global__ void compute_coupling_elastic_ac_kernel(realw* potential_dot_dot_acou
       pressure = - pressure;
     }
 
+    // PML
+    if (PML) {
+      // PML element index
+      int ispec_pml = d_spec_to_pml[ispec] - 1;
+      // checks if element is inside the PML
+      if (ispec_pml >= 0) {
+        realw alpha1,beta1;
+        realw coef0_1,coef1_1,coef2_1;
+        realw A1,A2,A3;
+
+        // to match offset for local (i,j) index to thread index (tx == i + j * NGLLX from I = (tx-J*NGLLX))
+        int tx = i + j * NGLLX;
+
+        // local PML array index (tx == igll)
+        int offset_pml = ispec_pml * NGLL2 + tx;  // ispec_pml elements in range [0,NSPEC_PML-1]
+
+        // coefficients
+        if (ispec_pml < NSPEC_PML_X){
+          // in CPML_X_ONLY
+          //   alpha1  == alpha_x
+          //   alpha_z == 0
+          //
+          //   beta1  == beta_x  == alpha_x + d_x / K_x
+          //   beta_z == 0
+          //
+          alpha1 = alphax_store[offset_pml];
+          beta1 = betax_store[offset_pml];
+        } else if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+          // in CPML_Z_ONLY region
+          //   alpha1  == alpha_z
+          //   alpha_x == 0
+          //
+          //   beta1  == beta_z  == alpha_z + d_z / K_z
+          //   beta_x == 0
+          alpha1 = alphaz_store[offset_pml];
+          beta1  = betaz_store[offset_pml];
+        } else {
+          // should not occur - there should be no coupling edge interfaces in the CPML_XZ regions at the corners
+          alpha1 = 0.f;
+          beta1  = 0.f;
+        }
+
+        // for all PML regions
+        realw c1 = __expf(-0.5f * deltat * alpha1);
+
+        coef0_1 = c1 * c1;
+        if (abs(alpha1) > 0.00001f){
+          // coef1_zx_1 == (1 - c1)/alpha1
+          // coef2_zx_1 == coef1 * c1
+          coef1_1 = (1.f - c1) / alpha1;
+          coef2_1 = coef1_1 * c1;
+        } else {
+          // coef1_zx_1 == 1/2 dt
+          // coef2_zx_1 == coef1_zx_1
+          coef1_1 = 0.5f * deltat;
+          coef2_1 = coef1_1;
+        }
+
+        // memory variables update
+        // see compute_coupling_viscoelastic_ac.f90 (line ~127):
+        //   ! Newmark
+        //   rmemory_sfb_potential_ddot_acoustic(1,i,j,inum) = &
+        //                coef0_1 * rmemory_sfb_potential_ddot_acoustic(1,i,j,inum) + &
+        //                coef1_1 * potential_acoustic(iglob) + coef2_1 * potential_acoustic_old(iglob)
+        //
+        realw rm = coef0_1 * d_rmemory_sfb_potential_ddot_acoustic[INDEX2(NGLLX,igll,iface)]
+                    + coef1_1 * potential_acoustic[iglob] + coef2_1 * d_potential_old[offset_pml];
+
+        d_rmemory_sfb_potential_ddot_acoustic[INDEX2(NGLLX,igll,iface)] = rm;
+
+        // potential update
+        // see compute_coupling_viscoelastic_ac.f90 (line ~144):
+        //   pressure = - (A0 * potential_dot_dot_acoustic(iglob) + A1 * potential_dot_acoustic(iglob) + &
+        //                A2 * potential_acoustic(iglob) + A3 * rmemory_sfb_potential_ddot_acoustic(1,i,j,inum))
+        //
+        // with coefficients A0,A1,A2,A3 from routine l_parameter_computation(..),
+        // note that we require K_x == K_z == 1:
+        // for CPML_X_ONLY
+        //    A_0 == kappa_x == 1
+        //    A_1 == A_0 * (beta_x - alpha_x)
+        //    A_2 == - A_0 * alpha_x * (beta_x - alpha_x)
+        //    A_3 == A_0 * alpha_x**2 * (beta_x - alpha_x)
+        //    A_4 == 0
+        // for CPML_Z_ONLY_TEMP
+        //    A_0 == kappa_z == 1
+        //    A_1 == A_0 * (beta_z - alpha_z)
+        //    A_2 == - A_0 * alpha_z * (beta_z - alpha_z)
+        //    A_3 == 0
+        //    A_4 == A_0 * alpha_z**2 * (beta_z - alpha_z)
+        if (ispec_pml < (NSPEC_PML_X + NSPEC_PML_Z)){
+          // in CPML_X_ONLY or in CPML_Z_ONLY region
+          //A0 = 1.0f;
+          A1 = beta1 - alpha1;
+          A2 = - alpha1 * A1;     // - alpha1 * (beta1 - alpha1)
+          A3 = - alpha1 * A2;     // alpha1 * alpha1 * (beta1 - alpha1)
+          //A4 = 0.f;
+
+          /*
+          // note: there might be some difference with the CPU update of routine compute_coupling_viscoelastic_ac(), i.e,
+          //       for CPML_X_ONLY the coefficient A4 == 0 and for CPML_Z_ONLY the coefficient A3 == 0
+          // thus, to match CPU implementation
+          if (ispec_pml < NSPEC_PML_X){
+            // in CPML_X_ONLY region
+            A3 = - alpha1 * A2;
+          } else {
+            // in CPML_Z_ONLY region
+            A3 = 0.f;
+          }
+          */
+        } else {
+          // in CPML_XZ region - should not occur
+          //A0 = 1.0f; // keeps pressure as is
+          A1 = 0.f;
+          A2 = 0.f;
+          A3 = 0.f;
+        }
+        // overwrites pressure value
+        pressure = - (potential_dot_dot_acoustic[iglob] + A1 * potential_dot_acoustic[iglob] + A2 * potential_acoustic[iglob] + A3 * rm);
+      }
+    } // PML
+
     // continuity of displacement and pressure on global point
     //
     // note: Newmark time scheme together with definition of scalar potential:
@@ -95,10 +223,8 @@ __global__ void compute_coupling_elastic_ac_kernel(realw* potential_dot_dot_acou
     //          (see e.g. Chaljub & Vilotte, Nissen-Meyer thesis...)
     //          it means you have to calculate and update the acoustic pressure first before
     //          calculating this term...
-    atomicAdd(&accel[iglob*2],+ jacobianw*nx*pressure);
-    atomicAdd(&accel[iglob*2+1],+ jacobianw*nz*pressure);
-
-    //  }
+    atomicAdd(&accel[iglob*2],jacobianw * nx * pressure);
+    atomicAdd(&accel[iglob*2+1],jacobianw * nz * pressure);
   }
 }
 
