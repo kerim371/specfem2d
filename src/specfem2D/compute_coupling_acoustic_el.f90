@@ -191,12 +191,12 @@
       endif
 
       if (iedge_acoustic == ITOP) then
-
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
         nx = - zxi / jacobian1D
         nz = + xxi / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
              weight = jacobian1D * wxglj(i) * r_xiplus1(i,j)
@@ -208,12 +208,12 @@
         endif
 
       else if (iedge_acoustic == IBOTTOM) then
-
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
         nx = + zxi / jacobian1D
         nz = - xxi / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             weight = jacobian1D * wxglj(i) * r_xiplus1(i,j)
@@ -225,12 +225,12 @@
         endif
 
       else if (iedge_acoustic == ILEFT) then
-
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
         nx = - zgamma / jacobian1D
         nz = + xgamma / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             call stop_the_code('error: rotated element detected on the symmetry axis, this should not happen')
@@ -242,12 +242,12 @@
         endif
 
       else if (iedge_acoustic == IRIGHT) then
-
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
         nx = + zgamma / jacobian1D
         nz = - xgamma / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             call stop_the_code('error: rotated element detected on the symmetry axis, this should not happen')
@@ -257,16 +257,15 @@
         else
           weight = jacobian1D * wzgll(j)
         endif
-
       endif
 
       ! compute dot product
-      displ_n = displ_x*nx + displ_z*nz
+      displ_n = displ_x * nx + displ_z * nz
 
 !! DK DK QUENTIN visco begin ici comme tu disais il faudrait coupler la composante tangentielle
 !! DK DK QUENTIN en plus de la composante normale je suppose
       if (.not. iglob_is_forced(iglob)) then
-        potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) + weight*displ_n
+        potential_dot_dot_acoustic(iglob) = potential_dot_dot_acoustic(iglob) + weight * displ_n
 
         if (ATTENUATION_VISCOACOUSTIC .and. .not. USE_A_STRONG_FORMULATION_FOR_E1 ) &
           dot_e1(iglob,:) = dot_e1(iglob,:) + weight*displ_n

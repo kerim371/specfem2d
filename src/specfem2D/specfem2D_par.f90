@@ -856,8 +856,8 @@ module specfem_par_gpu
   real(kind=CUSTOM_REAL), dimension(:,:), allocatable ::  source_time_function_loc
 
   ! coupling
-  integer, dimension(:), allocatable :: coupling_ac_el_ispec
-  integer, dimension(:,:,:), allocatable :: coupling_ac_el_ij
+  integer, dimension(:,:), allocatable :: coupling_ac_el_ispec
+  integer, dimension(:,:,:,:), allocatable :: coupling_ac_el_ij
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: coupling_ac_el_normal
   real(kind=CUSTOM_REAL), dimension(:,:), allocatable :: coupling_ac_el_jacobian1Dw
 

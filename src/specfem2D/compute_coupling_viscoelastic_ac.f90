@@ -174,6 +174,7 @@
         jacobian1D = sqrt(xxi**2 + zxi**2)
         nx = - zxi / jacobian1D
         nz = + xxi / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             weight = jacobian1D * wxglj(i) * r_xiplus1(i,j)
@@ -190,6 +191,7 @@
         jacobian1D = sqrt(xxi**2 + zxi**2)
         nx = + zxi / jacobian1D
         nz = - xxi / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             weight = jacobian1D * wxglj(i) * r_xiplus1(i,j)
@@ -206,6 +208,7 @@
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
         nx = - zgamma / jacobian1D
         nz = + xgamma / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             call stop_the_code('error: rotated element detected on the symmetry axis, this should not happen')
@@ -222,6 +225,7 @@
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
         nx = + zgamma / jacobian1D
         nz = - xgamma / jacobian1D
+
         if (AXISYM) then
           if (is_on_the_axis(ispec_acoustic)) then
             call stop_the_code('error: rotated element detected on the symmetry axis, this should not happen')

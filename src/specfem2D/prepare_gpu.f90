@@ -370,11 +370,13 @@
   implicit none
 
   ! local parameters
-  integer :: i_spec_free,ipoint1D,i,j,ispec,i_source,i_source_local,ispec_PML,ielem
+  integer :: i_spec_free,ispec,i_source,i_source_local,ispec_PML,ielem
+  integer :: i,j,ii,jj,ipoin1D
   integer :: ispec_acoustic,ispec_elastic,iedge_acoustic,iedge_elastic
   integer :: inum,ier
   real(kind=CUSTOM_REAL) :: zxi,xgamma,jacobian1D
   real(kind=CUSTOM_REAL) :: xxi,zgamma
+  real(kind=CUSTOM_REAL) :: nx,nz,weight
   double precision :: kappa_x,kappa_z,d_x,d_z,alpha_x,alpha_z,beta_x,beta_z
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -605,70 +607,89 @@
     write(IMAIN,*) '  number of coupled fluid-solid edges             = ',num_fluid_solid_edges
     call flush_IMAIN()
   endif
-  allocate(coupling_ac_el_ispec(num_fluid_solid_edges))
-  allocate(coupling_ac_el_ij(2,NGLLX,num_fluid_solid_edges))
-  allocate(coupling_ac_el_normal(2,NGLLX,num_fluid_solid_edges))
-  allocate(coupling_ac_el_jacobian1Dw(NGLLX,num_fluid_solid_edges))
-  coupling_ac_el_ispec(:) = 0
-  coupling_ac_el_ij(:,:,:) = 0
+  allocate(coupling_ac_el_ispec(2,num_fluid_solid_edges), &
+           coupling_ac_el_ij(2,2,NGLLX,num_fluid_solid_edges), &
+           coupling_ac_el_normal(2,NGLLX,num_fluid_solid_edges), &
+           coupling_ac_el_jacobian1Dw(NGLLX,num_fluid_solid_edges),stat=ier)
+  if (ier /= 0) stop 'Error allocating coupling_ac_el arrays'
+  coupling_ac_el_ispec(:,:) = 0
+  coupling_ac_el_ij(:,:,:,:) = 0
   coupling_ac_el_normal(:,:,:) = 0.0_CUSTOM_REAL
   coupling_ac_el_jacobian1Dw(:,:) = 0.00_CUSTOM_REAL
+
+  ! loop on all the coupling edges
   do inum = 1,num_fluid_solid_edges
     ! get the edge of the acoustic element
     ispec_acoustic = fluid_solid_acoustic_ispec(inum)
     iedge_acoustic = fluid_solid_acoustic_iedge(inum)
 
-    coupling_ac_el_ispec(inum) = ispec_acoustic
-
     ! get the corresponding edge of the elastic element
     ispec_elastic = fluid_solid_elastic_ispec(inum)
     iedge_elastic = fluid_solid_elastic_iedge(inum)
 
+    ! note: we store both, the acoustic and elastic element for the GPU routine
+    !       since PML coupling will require the local offset of the acoustic and elastic element
+    coupling_ac_el_ispec(1,inum) = ispec_acoustic
+    coupling_ac_el_ispec(2,inum) = ispec_elastic
+
     ! implement 1D coupling along the edge
-    do ipoint1D = 1,NGLLX
+    do ipoin1D = 1,NGLLX
+      ! get point values for the acoustic side
+      i = ivalue(ipoin1D,iedge_acoustic)
+      j = jvalue(ipoin1D,iedge_acoustic)
+
+      ! stores acoustic element (*,1,igll)
+      ! (needed for accessing acoustic side in elastic_ac coupling w/ PML)
+      coupling_ac_el_ij(1,1,ipoin1D,inum) = i
+      coupling_ac_el_ij(2,1,ipoin1D,inum) = j
+
       ! get point values for the elastic side, which matches our side in the inverse direction
-      i = ivalue(ipoint1D,iedge_acoustic)
-      j = jvalue(ipoint1D,iedge_acoustic)
+      ii = ivalue_inverse(ipoin1D,iedge_elastic)
+      jj = jvalue_inverse(ipoin1D,iedge_elastic)
 
-      coupling_ac_el_ij(1,ipoint1D,inum) = i
-      coupling_ac_el_ij(2,ipoint1D,inum) = j
+      ! stores elastic element (*,2,igll)
+      ! (needed for accessing elastic side in acoustic_el coupling w/ PML)
+      coupling_ac_el_ij(1,2,ipoin1D,inum) = ii
+      coupling_ac_el_ij(2,2,ipoin1D,inum) = jj
 
+      ! determines normal and jacobian weights on interface (using acoustic element)
       if (iedge_acoustic == ITOP) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
-
-        coupling_ac_el_normal(1,ipoint1D,inum) = - zxi / jacobian1D
-        coupling_ac_el_normal(2,ipoint1D,inum) = + xxi / jacobian1D
-        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
+        nx = - zxi / jacobian1D
+        nz = + xxi / jacobian1D
+        weight = jacobian1D * wxgll(i)
 
       else if (iedge_acoustic == IBOTTOM) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
-
-        coupling_ac_el_normal(1,ipoint1D,inum) = + zxi / jacobian1D
-        coupling_ac_el_normal(2,ipoint1D,inum) = - xxi / jacobian1D
-        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
+        nx = + zxi / jacobian1D
+        nz = - xxi / jacobian1D
+        weight = jacobian1D * wxgll(i)
 
       else if (iedge_acoustic == ILEFT) then
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
-
-        coupling_ac_el_normal(1,ipoint1D,inum) = - zgamma / jacobian1D
-        coupling_ac_el_normal(2,ipoint1D,inum) = + xgamma / jacobian1D
-        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
+        nx = - zgamma / jacobian1D
+        nz = + xgamma / jacobian1D
+        weight = jacobian1D * wzgll(j)
 
       else if (iedge_acoustic == IRIGHT) then
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
-
-        coupling_ac_el_normal(1,ipoint1D,inum) = + zgamma / jacobian1D
-        coupling_ac_el_normal(2,ipoint1D,inum) = - xgamma / jacobian1D
-        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
+        nx = + zgamma / jacobian1D
+        nz = - xgamma / jacobian1D
+        weight = jacobian1D * wzgll(j)
       endif
+
+      ! stores for GPU
+      coupling_ac_el_normal(1,ipoin1D,inum) = nx
+      coupling_ac_el_normal(2,ipoin1D,inum) = nz
+      coupling_ac_el_jacobian1Dw(ipoin1D,inum) = weight
     enddo
   enddo
 
