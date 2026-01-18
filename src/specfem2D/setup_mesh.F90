@@ -313,22 +313,25 @@
     write(IMAIN,*)
   endif
 
-  ! saves the grid of points in a file
-  if (output_grid_ASCII .and. myrank == 0) then
-     write(IMAIN,*)
-     write(IMAIN,*) 'Saving the grid in an ASCII text file...'
-     write(IMAIN,*)
-     open(unit=55,file=trim(OUTPUT_FILES)//'ASCII_dump_of_grid_points.txt',status='unknown')
-     write(55,*) nglob
-     do n = 1,nglob
-        write(55,*) (coord(i,n), i = 1,NDIM)
-     enddo
-     close(55)
-  endif
+  ! mesh file output for visualization
+  if (SAVE_MESH_FILES) then
+    ! saves the grid of points in a file
+    if (output_grid_ASCII .and. myrank == 0) then
+       write(IMAIN,*)
+       write(IMAIN,*) 'Saving the grid in an ASCII text file...'
+       write(IMAIN,*)
+       open(unit=55,file=trim(OUTPUT_FILES)//'ASCII_dump_of_grid_points.txt',status='unknown')
+       write(55,*) nglob
+       do n = 1,nglob
+          write(55,*) (coord(i,n), i = 1,NDIM)
+       enddo
+       close(55)
+    endif
 
-  ! plots the GLL mesh in a Gnuplot file
-  if (output_grid_Gnuplot .and. myrank == 0) then
-    call plot_gll()
+    ! plots the GLL mesh in a Gnuplot file
+    if (output_grid_Gnuplot .and. myrank == 0) then
+      call plot_gll()
+    endif
   endif
 
   ! synchronizes all processes
@@ -552,7 +555,7 @@
   use constants, only: IMAIN,FOUR_THIRDS,TWO_THIRDS,HUGEVAL
 
   ! vtk output
-  use constants, only: SAVE_MESHFILES_VTK_FORMAT,OUTPUT_FILES
+  use constants, only: OUTPUT_FILES
 
   use specfem_par
 
@@ -1222,7 +1225,7 @@
   endif
 
   ! VTK output
-  if (SAVE_MESHFILES_VTK_FORMAT) then
+  if (SAVE_MESH_FILES) then
     allocate(tmp_store(NGLLX,NGLLZ,nspec), &
              xstore(nglob), &
              zstore(nglob),stat=ier)

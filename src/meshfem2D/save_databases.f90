@@ -35,9 +35,9 @@
 
 ! generates the databases for the solver
 
-  use constants, only: IMAIN,IOUT,MAX_STRING_LEN,SAVE_MESHFILES_VTK_FORMAT,OUTPUT_FILES,myrank
+  use constants, only: IMAIN,IOUT,MAX_STRING_LEN,OUTPUT_FILES,myrank
   use part_unstruct_par, only: nspec,iproc
-  use shared_parameters, only: NPROC
+  use shared_parameters, only: NPROC,SAVE_MESH_FILES
 
   implicit none
 
@@ -110,7 +110,7 @@
   enddo
 
   ! mesh file output for visualization
-  if (SAVE_MESHFILES_VTK_FORMAT) call save_databases_VTK_files()
+  if (SAVE_MESH_FILES) call save_databases_VTK_files()
 
   end subroutine save_databases
 
@@ -728,9 +728,9 @@
 
 ! saves mesh files as VTK file
 
-  use constants, only: MAX_STRING_LEN,SAVE_MESHFILES_VTK_FORMAT,OUTPUT_FILES,IMAIN,myrank
+  use constants, only: MAX_STRING_LEN,OUTPUT_FILES,IMAIN,myrank
   use part_unstruct_par, only: part,elmnts,nodes_coords,nelmnts,nnodes
-  use shared_parameters, only: NGNOD,num_material,NPROC
+  use shared_parameters, only: NGNOD,num_material,NPROC,SAVE_MESH_FILES
 
   implicit none
 
@@ -742,7 +742,7 @@
   character(len=MAX_STRING_LEN) :: filename
 
   ! checks if anything to do
-  if (.not. SAVE_MESHFILES_VTK_FORMAT) return
+  if (.not. SAVE_MESH_FILES) return
 
   ! user output
   if (myrank == 0) then

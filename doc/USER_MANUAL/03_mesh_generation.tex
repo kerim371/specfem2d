@@ -507,7 +507,11 @@ This tool is useful to estimate the mesh quality and to see it evolve along the 
 \section{Controlling how the mesh samples the wave field}
 %------------------------------------------------------------------------------------------------%
 
-To examine (using Gnuplot) how the mesh samples the wave field, type
+To display mesh files, you can set the parameter \texttt{SAVE\_MESH\_FILES} in \texttt{DATA/Par\_file} to \texttt{.true.}
+to visualize related files. This will save VTK files, as well as ASCII and/or Gnuplot files,
+related to your simulation in folder \texttt{OUTPUT\_FILES}.
+
+For example, to examine (using Gnuplot) how the mesh samples the wave field, type
 %
 \begin{verbatim}
   gnuplot plot_points_per_wavelength_histogram.gnu

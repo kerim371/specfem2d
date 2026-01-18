@@ -325,6 +325,9 @@ nbregions                       = 1              # then set below the different 
 # (every how many time steps we display information about the simulation. costly, do not use a very small value)
 NTSTEP_BETWEEN_OUTPUT_INFO      = 2000
 
+# save mesh files (VTK, ASCII or Gnuplot) to check the mesh
+SAVE_MESH_FILES                 = .true.
+
 # meshing output
 output_grid_Gnuplot             = .false.        # generate a GNUPLOT file containing the grid, and a script to plot it
 output_grid_ASCII               = .false.        # dump the grid in an ASCII text file consisting of a set of X,Y,Z points or not

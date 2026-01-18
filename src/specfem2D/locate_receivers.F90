@@ -52,7 +52,7 @@
 
   use specfem_par, only: AXISYM,is_on_the_axis,xiglj
 
-  use specfem_par, only: USE_TRICK_FOR_BETTER_PRESSURE,NUMBER_OF_SIMULTANEOUS_RUNS,SU_FORMAT
+  use specfem_par, only: USE_TRICK_FOR_BETTER_PRESSURE,NUMBER_OF_SIMULTANEOUS_RUNS,SU_FORMAT,SAVE_MESH_FILES
 
   implicit none
 
@@ -467,7 +467,7 @@
           if (irec == 2) then
             write(IMAIN,*)
             write(IMAIN,*) ".. skipping station outputs .."
-            write(IMAIN,*) "(see output_list_stations.txt for full list)"
+            if (SAVE_MESH_FILES) write(IMAIN,*) "(see output_list_stations.txt for full list)"
             write(IMAIN,*)
           endif
           show_station_output = .false.
@@ -510,15 +510,17 @@
     write(IMAIN,*) 'maximum error in location of all the receivers: ',sngl(final_distance_max),' m'
 
     ! write the locations of stations, so that we can load them and write them to SU headers later
-    open(unit=IOUT,file=trim(OUTPUT_FILES)//'/output_list_stations.txt',status='unknown',action='write',iostat=ier)
-    if (ier /= 0) &
-      call exit_mpi(myrank,'error opening file '//trim(OUTPUT_FILES)//'/output_list_stations.txt')
-    ! writes station infos
-    do irec = 1,nrec
-      write(IOUT,'(a32,a8,2f24.12)') station_name(irec),network_name(irec),st_xval(irec),st_zval(irec)
-    enddo
-    ! closes output file
-    close(IOUT)
+    if (SAVE_MESH_FILES) then
+      open(unit=IOUT,file=trim(OUTPUT_FILES)//'/output_list_stations.txt',status='unknown',action='write',iostat=ier)
+      if (ier /= 0) &
+        call exit_mpi(myrank,'error opening file '//trim(OUTPUT_FILES)//'/output_list_stations.txt')
+      ! writes station infos
+      do irec = 1,nrec
+        write(IOUT,'(a32,a8,2f24.12)') station_name(irec),network_name(irec),st_xval(irec),st_zval(irec)
+      enddo
+      ! closes output file
+      close(IOUT)
+    endif
 
     write(IMAIN,*)
     write(IMAIN,*) 'end of receiver detection'

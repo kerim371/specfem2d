@@ -209,6 +209,7 @@
 
     ! display parameters
     call bcast_all_singlei(NTSTEP_BETWEEN_OUTPUT_INFO)
+    call bcast_all_singlel(SAVE_MESH_FILES)
     call bcast_all_singlel(output_grid_Gnuplot)
     call bcast_all_singlel(output_grid_ASCII)
     call bcast_all_singlel(OUTPUT_ENERGY)
@@ -1164,18 +1165,31 @@
     endif
   endif
 
-  call read_value_logical_p(output_grid_Gnuplot, 'output_grid_Gnuplot')
+  ! (optional) saves mesh files for visualization
+  call read_value_logical_p(SAVE_MESH_FILES, 'SAVE_MESH_FILES')
   if (err_occurred() /= 0) then
-    some_parameters_missing_from_Par_file = .true.
-    write(*,'(a)') 'output_grid_Gnuplot             = .false.'
-    write(*,*)
+    ! couldn't find entry
+    SAVE_MESH_FILES = .false.
   endif
 
-  call read_value_logical_p(output_grid_ASCII, 'output_grid_ASCII')
-  if (err_occurred() /= 0) then
-    some_parameters_missing_from_Par_file = .true.
-    write(*,'(a)') 'output_grid_ASCII               = .false.'
-    write(*,*)
+  ! reads in grid output parameters
+  if (SAVE_MESH_FILES) then
+    call read_value_logical_p(output_grid_Gnuplot, 'output_grid_Gnuplot')
+    if (err_occurred() /= 0) then
+      some_parameters_missing_from_Par_file = .true.
+      write(*,'(a)') 'output_grid_Gnuplot             = .false.'
+      write(*,*)
+    endif
+
+    call read_value_logical_p(output_grid_ASCII, 'output_grid_ASCII')
+    if (err_occurred() /= 0) then
+      some_parameters_missing_from_Par_file = .true.
+      write(*,'(a)') 'output_grid_ASCII               = .false.'
+      write(*,*)
+    endif
+  else
+    output_grid_Gnuplot = .false.
+    output_grid_ASCII = .false.
   endif
 
   call read_value_logical_p(OUTPUT_ENERGY, 'OUTPUT_ENERGY')
