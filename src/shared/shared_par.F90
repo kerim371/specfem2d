@@ -181,6 +181,9 @@ module shared_input_parameters
   ! Flag for writing moving source databases or not
   logical :: write_moving_sources_database
 
+  ! outputs source time function to file
+  logical :: PRINT_SOURCE_TIME_FUNCTION = .false.
+
   !#-----------------------------------------------------------------------------
   !#
   !# receivers

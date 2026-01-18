@@ -142,6 +142,9 @@ noise_source_time_function_type = 4
 # This is only useful for GPU version (for now)
 write_moving_sources_database   = .false.
 
+# print source time function
+PRINT_SOURCE_TIME_FUNCTION      = .true.
+
 #-----------------------------------------------------------
 #
 # Receivers

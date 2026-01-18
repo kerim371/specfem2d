@@ -99,9 +99,6 @@
 ! (for Marmousi2 modeling, dominant frequency must be 35 Hz)
   double precision, parameter :: F_ORMSBY = 35.0
 
-! outputs source time function to file
-  logical, parameter :: PRINT_SOURCE_TIME_FUNCTION = .true.
-
 !!-----------------------------------------------------------
 !!
 !! poroelasticity

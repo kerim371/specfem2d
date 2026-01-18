@@ -389,9 +389,9 @@
 !
 ! ----------------------------------------------------------------------------------
 
-  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NGLJ,IIN,IOUT,IMAIN,OUTPUT_FILES,PRINT_SOURCE_TIME_FUNCTION
+  use constants, only: CUSTOM_REAL,NGLLX,NGLLZ,NGLJ,IIN,IOUT,IMAIN,OUTPUT_FILES
 
-  use shared_parameters, only: noise_source_time_function_type
+  use shared_parameters, only: noise_source_time_function_type,PRINT_SOURCE_TIME_FUNCTION
 
   use specfem_par, only: AXISYM,is_on_the_axis,xiglj,P_SV,NSTEP,DT, &
                          xigll,zigll,myrank

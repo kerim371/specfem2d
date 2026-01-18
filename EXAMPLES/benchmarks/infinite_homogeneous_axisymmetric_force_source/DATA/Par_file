@@ -79,7 +79,7 @@ TOMOGRAPHY_FILE                 = dummy
 #-----------------------------------------------------------
 
 # attenuation parameters
-ATTENUATION_VISCOELASTIC        = .false.         # turn attenuation (viscoelasticity) on or off for non-poroelastic solid parts of the model
+ATTENUATION_VISCOELASTIC        = .false.        # turn attenuation (viscoelasticity) on or off for non-poroelastic solid parts of the model
 ATTENUATION_VISCOACOUSTIC       = .false.        # turn attenuation (viscoacousticity) on or off for non-poroelastic fluid parts of the model
 
 # for viscoelastic or viscoacoustic attenuation
@@ -142,6 +142,9 @@ noise_source_time_function_type = 4
 # This is only useful for GPU version (for now)
 write_moving_sources_database   = .false.
 
+# print source time function
+PRINT_SOURCE_TIME_FUNCTION      = .true.
+
 #-----------------------------------------------------------
 #
 # Receivers
@@ -150,7 +153,7 @@ write_moving_sources_database   = .false.
 
 # receiver set parameters for recording stations (i.e. recording points)
 # seismotype : record 1=displ 2=veloc 3=accel 4=pressure 5=curl of displ 6=the fluid potential 7=electric field
-seismotype                      = 1,4              # several values can be chosen. For example : 1,2,4
+seismotype                      = 1,4            # several values can be chosen. For example : 1,2,4
 
 # interval in time steps for writing of seismograms
 # every how many time steps we save the seismograms
@@ -306,7 +309,7 @@ nbmodels                        = 1
 #       Please also note that Qmu is always equal to Qs, but Qkappa is in general not equal to Qp.
 #       To convert one to the other see doc/Qkappa_Qmu_versus_Qp_Qs_relationship_in_2D_plane_strain.pdf and
 #       utils/attenuation/conversion_from_Qkappa_Qmu_to_Qp_Qs_from_Dahlen_Tromp_959_960.f90.
-1 1 2500.d0 3400.d0 1963.d0 0 0 9999 9999 0 0 0 0 0 0    # elastic
+1 1 2500.d0 3400.d0 1963.d0 0 0 9999 9999 0 0 0 0 0 0   # elastic
 
 # file containing interfaces for internal mesh
 interfacesfile                  = ./interfaces.dat

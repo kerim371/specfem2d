@@ -131,6 +131,7 @@
     call bcast_all_singlel(ACOUSTIC_FORCING)
     call bcast_all_singlei(noise_source_time_function_type)
     call bcast_all_singlel(write_moving_sources_database)
+    call bcast_all_singlel(PRINT_SOURCE_TIME_FUNCTION)
 
     ! receivers
     call bcast_all_string(seismotype)
@@ -672,6 +673,13 @@
     write(*,*)
   endif
 
+  ! (optional) print source time function to file
+  call read_value_logical_p(PRINT_SOURCE_TIME_FUNCTION, 'PRINT_SOURCE_TIME_FUNCTION')
+  if (err_occurred() /= 0) then
+    ! couldn't find entry
+    PRINT_SOURCE_TIME_FUNCTION = .false.
+  endif
+
   !--------------------------------------------------------------------
   !
   ! receivers
@@ -951,7 +959,6 @@
   ! external mesh parameters
 
   if (read_external_mesh) then
-
     ! read info about external mesh
     call read_value_string_p(mesh_file, 'mesh_file')
     if (err_occurred() /= 0) then
@@ -1052,7 +1059,6 @@
     endif
 
   else
-
     !-----------------
     ! internal mesh parameters
 
