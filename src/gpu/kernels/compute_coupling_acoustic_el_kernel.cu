@@ -65,11 +65,16 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
   realw jacobianw;
 
   if (iface < num_coupling_ac_el_faces){
-    // "-1" from index values to convert from Fortran-> C indexing
-    ispec = coupling_ac_el_ispec[iface] - 1;
+    // gets iglob index
+    // note: iglob is the same for displ(..) and potential_dot_dot(..)
+    //       we take iglob from the elastic element side, since for PML the indexing requires the elastic element.
+    //       however, the normal and jacobian weight are from the acoustic element side as in routine compute_coupling_acoustic_el().
 
-    i = coupling_ac_el_ijk[INDEX3(NDIM,NGLLX,0,igll,iface)] - 1;
-    j = coupling_ac_el_ijk[INDEX3(NDIM,NGLLX,1,igll,iface)] - 1;
+    // "-1" from index values to convert from Fortran-> C indexing
+    ispec = coupling_ac_el_ispec[iface*2+1] - 1;                      // ispec from elastic element
+
+    i = coupling_ac_el_ijk[INDEX4(NDIM,2,NGLLX,0,1,igll,iface)] - 1;  // (i,j) from elastic element
+    j = coupling_ac_el_ijk[INDEX4(NDIM,2,NGLLX,1,1,igll,iface)] - 1;
 
     iglob = d_ibool[INDEX3_PADDED(NGLLX,NGLLX,i,j,ispec)] - 1;
 
@@ -88,6 +93,7 @@ __global__ void compute_coupling_acoustic_el_kernel(realw* displ,
     // PML
     if (PML) {
       // PML element index
+      // takes elastic side since we access d_displ_elastic_old with offset_pml for local PML elements
       int ispec_pml = d_spec_to_pml[ispec] - 1;
       // checks if element is inside the PML
       if (ispec_pml >= 0) {

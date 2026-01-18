@@ -55,6 +55,11 @@ EXCLUDE_DIR_LIST = [ \
   "small_SEM_solvers_in_Fortran_and_C_without_MPI_to_learn" \
 ]
 
+# optional parameters in Par_file
+OPTIONAL_PARAMETERS = [
+  #"IS_WAVEFIELD_DISCONTINUITY"
+]
+
 #
 #----------------------------------------------------------------------------
 #
@@ -121,7 +126,7 @@ def read_Par_file_sections(parameters,file,verbose=False):
 
     for line in f:
         dataline = line.strip()
-        #print("line: ",dataline)
+        #print("debug: dataline = ",dataline)
 
         if dataline:
             # line with some data
@@ -132,6 +137,8 @@ def read_Par_file_sections(parameters,file,verbose=False):
             else:
                 # parameter line (eventually with comment appended)
                 # for example: SIMULATION_TYPE                 = 1  # or 2 # or 3
+                par_string = ""
+                app_string = ""
 
                 # separates parameter from appended comment(s)
                 index_app = dataline.find('#')
@@ -197,7 +204,7 @@ def read_Par_file_sections(parameters,file,verbose=False):
                     value = par_string
 
                 # appended comment
-                if index_app > 0:
+                if len(app_string) > 0:
                     appendix = app_string
                 else:
                     appendix = ''
@@ -285,9 +292,9 @@ def get_maximum_parameter_name_length(parameters,verbose=False):
         #print("parameter name: ",name)
         # exclude record_at_surface_same_vertical** with set number
         if "record_at_surface_same_vertical" in name:
-            if max_name_length < 31: max_name_length = 31
+            if 31 > max_name_length: max_name_length = 31
         else:
-            if max_name_length < len(name): max_name_length = len(name)
+            if len(name) > max_name_length: max_name_length = len(name)
 
     # user info
     if verbose:
@@ -295,15 +302,15 @@ def get_maximum_parameter_name_length(parameters,verbose=False):
         print("  maximum name length: ",max_name_length)
 
     # restrict to a minimum of 32 character until = sign, we will add 1 space when writing out line below
-    if max_name_length <= 31:
-      max_name_length = 31
+    if max_name_length <= 32-1:
+      max_name_length = 32-1
     else:
       # add additional white space
       max_name_length += 1
 
     # user info
     if verbose:
-        print("  using parameter format length: ",max_name_length)
+        print("  using parameter format length: ",max_name_length," + 1")
         print("")
 
     return max_name_length
@@ -407,7 +414,10 @@ def write_template_file(parameters,tmp_file,verbose=False):
                 f.write( "%s = %s\n" % (name.ljust(max_name_length),value) )
         else:
             # Mesh_Par_file data line
-            f.write( "%s\n" % value )
+            if appendix:
+                f.write( "%s   %s\n" % (value,appendix) )
+            else:
+                f.write( "%s\n" % value )
 
     f.write( "\n" )
     f.close()
@@ -492,20 +502,50 @@ def check_and_update_Par_file(my_parameters,file):
     """
     updates parameter entries
     """
-    global DEPRECATED_RENAMED_PARAMETERS
+    global DEPRECATED_RENAMED_PARAMETERS,OPTIONAL_PARAMETERS
     global main_parameters
     global is_Par_file_with_data
 
     # checks for old, deprecated parameters
     nold_parameters = 0
+    noptional_parameters = 0
     #print("  searching deprecated parameters...")
     my_parameters_new = my_parameters.copy()
+    main_parameters_new = main_parameters.copy()
 
     for name in my_parameters.keys():
         if not name in main_parameters.keys():
-            if (not "PAR_FILE_DATA" in name) and \
-               (not "NZ_DOUBLING" in name) and \
-               (not "PAR_FILE_RECEIVERSET_" in name):
+            if name in OPTIONAL_PARAMETERS:
+                print("  optional parameter: ",name)
+                noptional_parameters += 1
+                # adds optional parameter to main parameter list
+                is_found = True
+                (val,comment,appendix) = my_parameters[name]
+
+                # gets current index of item in parameter list
+                index = list(my_parameters.keys()).index(name)
+                index_previous = 0
+                if index > 0:
+                    # gets name from previous item
+                    previous = list(my_parameters.keys())[index-1]
+                    # gets index from previous item in main_parameter list
+                    index_previous = list(main_parameters_new.keys()).index(previous)
+
+                # adds to ordered dict
+                if index_previous > 0:
+                    # adds new item after previous
+                    keys = list(main_parameters_new.keys())[index_previous+1:]
+                    main_parameters_new[name] = (val,comment,appendix)
+                    # moves keys below current item
+                    for k in keys:
+                        main_parameters_new.move_to_end(k)
+                else:
+                    # adds item to the end
+                    main_parameters_new[name] = (val,comment,appendix)
+
+            elif (not "PAR_FILE_DATA" in name) and \
+                 (not "NZ_DOUBLING" in name) and \
+                 (not "PAR_FILE_RECEIVERSET_" in name):
                 print("  deprecated parameter: ",name)
                 nold_parameters += 1
 
@@ -546,20 +586,22 @@ def check_and_update_Par_file(my_parameters,file):
     # add missing main parameters and replaces comment lines to compare sections
     nmissing_parameters = 0
     #print("  searching missing parameters...")
-    for name in main_parameters.keys():
-        if (not "PAR_FILE_DATA" in name) and (not "PAR_FILE_RECEIVERSET_" in name):
+    for name in main_parameters_new.keys():
+        if (not "PAR_FILE_DATA" in name) and \
+           (not "PAR_FILE_RECEIVERSET_" in name):
             # checks if missing
             if not name in my_parameters.keys():
                 print("  misses parameter: ",name)
                 nmissing_parameters += 1
                 # adds from main template record
-                (val,comment,appendix) = main_parameters[name]
+                (val,comment,appendix) = main_parameters_new[name]
                 my_parameters[name] = (val,comment,appendix)
 
     # updates comments
     nold_comments = 0
-    for name in main_parameters.keys():
-        if (not "PAR_FILE_DATA" in name) and (not "PAR_FILE_RECEIVERSET_" in name):
+    for name in main_parameters_new.keys():
+        if (not "PAR_FILE_DATA" in name) and \
+           (not "PAR_FILE_RECEIVERSET_" in name):
             # checks we have this parameter
             if not name in my_parameters.keys():
                 print("Error comparing main with current file format parameter",name)
@@ -568,7 +610,7 @@ def check_and_update_Par_file(my_parameters,file):
 
             # compares and replaces comments and appendix
             (val_orig,comment_orig,appendix_orig) = my_parameters[name]
-            (val,comment,appendix) = main_parameters[name]
+            (val,comment,appendix) = main_parameters_new[name]
             if comment_orig != comment or appendix != appendix_orig:
                 nold_comments += 1
                 # replace with new comment/appendix and only keep original value
@@ -579,23 +621,29 @@ def check_and_update_Par_file(my_parameters,file):
     iorder_new = 0
     num_material_entries = 0
     num_region_entries = 0
-    for name in main_parameters.keys():
+    for name in main_parameters_new.keys():
         if not is_Par_file_with_data:
             # regular Par_file must have a one-to-one match
             # checks that name is available
-            if not name in my_parameters.keys():
+            if (not name in my_parameters.keys()) and (not name in OPTIONAL_PARAMETERS):
                 print("Error ordering with current file format parameter",name)
                 sys.tracebacklimit=0
                 raise Exception('parameter list invalid: %s' % file)
-            # get values
-            (val,comment,appendix) = my_parameters[name]
 
-            # put into same order of appearance
-            ordered_parameters[name] = (val,comment,appendix)
+            # adds parameter
+            if name in my_parameters.keys():
+                # get values
+                (val,comment,appendix) = my_parameters[name]
+
+                # put into same order of appearance
+                ordered_parameters[name] = (val,comment,appendix)
+                iorder_new += 1
         else:
             # Mesh_Par_file can have different number of lines for data ranges
             # new parameter file entry
-            if (not "PAR_FILE_DATA" in name) and (not "NZ_DOUBLING" in name) and (not "PAR_FILE_RECEIVERSET_" in name):
+            if (not "PAR_FILE_DATA" in name) and \
+               (not "NZ_DOUBLING" in name) and \
+               (not "PAR_FILE_RECEIVERSET_" in name):
                 # checks that name is available
                 if not name in my_parameters.keys():
                     print("Error ordering with current file format parameter",name)
@@ -689,8 +737,8 @@ def check_and_update_Par_file(my_parameters,file):
     if len(ordered_parameters.keys()) != len(my_parameters.keys()):
         print("Error ordering with parameters got different lengths:")
         print("new length is ",len(ordered_parameters.keys())," instead of ",len(my_parameters.keys()))
-        #sys.tracebacklimit=0
-        #raise Exception('parameter list invalid: %s' % file)
+        sys.tracebacklimit=0
+        raise Exception('parameter list invalid: %s' % file)
 
     # checks if order changed
     nold_order = 0
@@ -701,7 +749,9 @@ def check_and_update_Par_file(my_parameters,file):
         print("  needs re-ordering...",nold_order)
 
     # replace old file if necessary
-    if nold_parameters == 0 and nmissing_parameters == 0 and nold_comments == 0 and nold_order == 0:
+    if nold_parameters == 0 and nmissing_parameters == 0 and \
+       noptional_parameters == 0 and \
+       nold_comments == 0 and nold_order == 0:
         # user info
         print("  file is okay and up-to-date")
     else:
@@ -722,7 +772,8 @@ def check_and_update_Par_file(my_parameters,file):
 
     # frees new order
     del ordered_parameters
-
+    del my_parameters_new
+    del main_parameters_new
 
 def check_parameter_file_type(file):
     """
@@ -832,10 +883,10 @@ def update_Par_files(main_file,replace=False):
 
 def usage():
     print("usage:")
-    print("    ./process_DATA_Par_files_to_update_their_parameters_from_a_main.py Main-Par-file replace")
+    print("    ./process_DATA_Par_files_to_update_their_parameters_from_a_main_file.py Main-Par-file replace")
     print("  with")
     print("    Main-Par_file - Par_file which serves as main template (e.g. DATA/Par_file)")
-    print("    replace         = flag to force replacing of file [0==check-only/1==replace]")
+    print("    replace       - flag to force replacing of file [0==check-only/1==replace]")
 
 #
 #----------------------------------------------------------------------------

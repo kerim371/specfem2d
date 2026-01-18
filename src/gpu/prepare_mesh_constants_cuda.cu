@@ -406,12 +406,10 @@ void FC_FUNC_(prepare_fields_acoustic_device,
 
   // coupling with elastic parts
   if (*ELASTIC_SIMULATION && *num_coupling_ac_el_faces > 0) {
-    copy_todevice_int((void**)&mp->d_coupling_ac_el_ispec,coupling_ac_el_ispec,(*num_coupling_ac_el_faces));
-    copy_todevice_int((void**)&mp->d_coupling_ac_el_ijk,coupling_ac_el_ijk,2*NGLLX*(*num_coupling_ac_el_faces));
-    copy_todevice_realw((void**)&mp->d_coupling_ac_el_normal,coupling_ac_el_normal,
-                        2*NGLLX*(*num_coupling_ac_el_faces));
-    copy_todevice_realw((void**)&mp->d_coupling_ac_el_jacobian2Dw,coupling_ac_el_jacobian2Dw,
-                        NGLLX*(*num_coupling_ac_el_faces));
+    copy_todevice_int((void**)&mp->d_coupling_ac_el_ispec,coupling_ac_el_ispec,2*(*num_coupling_ac_el_faces));
+    copy_todevice_int((void**)&mp->d_coupling_ac_el_ijk,coupling_ac_el_ijk,2*2*NGLLX*(*num_coupling_ac_el_faces));
+    copy_todevice_realw((void**)&mp->d_coupling_ac_el_normal,coupling_ac_el_normal,2*NGLLX*(*num_coupling_ac_el_faces));
+    copy_todevice_realw((void**)&mp->d_coupling_ac_el_jacobian2Dw,coupling_ac_el_jacobian2Dw,NGLLX*(*num_coupling_ac_el_faces));
   }
 
   mp->ninterface_acoustic = *h_ninterface_acoustic;

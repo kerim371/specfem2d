@@ -33,7 +33,7 @@ cubit.cmd('set duplicate block elements on')
 # adds path to scripts (if not setup yet)
 sys.path.append('../../utils/cubit2specfem2d/')
 
-## This is boundary_definition.py 
+## This is boundary_definition.py
 # extracts the bounding edges and defines them into blocks
 import boundary_definition
 
@@ -45,7 +45,7 @@ boundary_definition.define_bc_edges()
 
 ## Define material properties for model
 cubit.cmd('#### DEFINE MATERIAL PROPERTIES #######################')
-#cubit.cmd('set duplicate block elements on') # allow for multiple occurrences of entities in different blocks 
+#cubit.cmd('set duplicate block elements on') # allow for multiple occurrences of entities in different blocks
 cubit.cmd('block 1 face in volume all')
 cubit.cmd('block 1 element type QUAD4')
 

@@ -181,6 +181,9 @@ module shared_input_parameters
   ! Flag for writing moving source databases or not
   logical :: write_moving_sources_database
 
+  ! outputs source time function to file
+  logical :: PRINT_SOURCE_TIME_FUNCTION = .false.
+
   !#-----------------------------------------------------------------------------
   !#
   !# receivers
@@ -315,8 +318,12 @@ module shared_input_parameters
   ! general information during the computation and for information of the stability behavior during the simulation
   integer :: NTSTEP_BETWEEN_OUTPUT_INFO
 
+  ! saves mesh files for visualization
+  logical :: SAVE_MESH_FILES = .false.
+
   ! for later check of the grid
-  logical :: output_grid_Gnuplot,output_grid_ASCII
+  logical :: output_grid_Gnuplot = .false.
+  logical :: output_grid_ASCII = .false.
 
   ! for plotting the curve of energy
   logical :: OUTPUT_ENERGY

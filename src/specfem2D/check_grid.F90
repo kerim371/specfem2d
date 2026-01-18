@@ -37,7 +37,7 @@
 
   use constants, only: IMAIN,HUGEVAL,TINYVAL,ZERO,myrank
   ! vtk output
-  use constants, only: SAVE_MESHFILES_VTK_FORMAT,OUTPUT_FILES
+  use constants, only: OUTPUT_FILES
 
   use specfem_par
   use specfem_par_movie
@@ -111,7 +111,7 @@
   endif
 
   ! for VTK file output
-  if (SAVE_MESHFILES_VTK_FORMAT) then
+  if (SAVE_MESH_FILES) then
     allocate(tmp_store1(nspec), &
              tmp_store2(nspec), &
              xstore(nglob), &
@@ -342,7 +342,7 @@
     pmax = max(pmax,p_elem)
 
     ! store for VTK file output
-    if (SAVE_MESHFILES_VTK_FORMAT) then
+    if (SAVE_MESH_FILES) then
       tmp_store1(ispec) = p_elem
     endif
 
@@ -359,7 +359,7 @@
     dt_suggested = min(dt_suggested,dt_elem)
 
     ! store for VTK file output
-    if (SAVE_MESHFILES_VTK_FORMAT) then
+    if (SAVE_MESH_FILES) then
       tmp_store2(ispec) = dt_elem
     endif
 
@@ -582,7 +582,7 @@
   endif
 
   ! VTK file output for visualization
-  if (SAVE_MESHFILES_VTK_FORMAT) then
+  if (SAVE_MESH_FILES) then
     if (myrank == 0) then
       write(IMAIN,*) 'mesh resolution output files:'
     endif
@@ -813,22 +813,35 @@
       scaling_factor = max_nb_of_points_per_wavelength - min_nb_of_points_per_wavelength
 
       if (ipass == 1) then
-        open(unit=14,file=trim(OUTPUT_FILES)//'points_per_wavelength_histogram_S_in_solid.txt',status='unknown')
         scaling_factor_S = scaling_factor
+        ! file output
+        if (SAVE_MESH_FILES) then
+          open(unit=14,file=trim(OUTPUT_FILES)//'points_per_wavelength_histogram_S_in_solid.txt',status='unknown')
+        endif
       else
-        open(unit=14,file=trim(OUTPUT_FILES)//'points_per_wavelength_histogram_P_in_fluid.txt',status='unknown')
         scaling_factor_P = scaling_factor
+        ! file output
+        if (SAVE_MESH_FILES) then
+          open(unit=14,file=trim(OUTPUT_FILES)//'points_per_wavelength_histogram_P_in_fluid.txt',status='unknown')
+        endif
       endif
+
       do iclass = 0,NCLASSES-1
         current_percent = 100.*dble(classes_wavelength_all(iclass))/dble(nspec_counted_all)
         total_percent = total_percent + current_percent
+        ! user output
         write(IMAIN,*) sngl(min_nb_of_points_per_wavelength + scaling_factor*iclass/dble(NCLASSES)),' - ', &
             sngl(min_nb_of_points_per_wavelength + scaling_factor*(iclass+1)/dble(NCLASSES)),classes_wavelength_all(iclass), &
             ' ',sngl(current_percent),' %'
-        write(14,*) 0.5*(sngl(min_nb_of_points_per_wavelength + scaling_factor*iclass/dble(NCLASSES)) + &
-            sngl(min_nb_of_points_per_wavelength + scaling_factor*(iclass+1)/dble(NCLASSES))),' ',sngl(current_percent)
+        ! file output
+        if (SAVE_MESH_FILES) then
+          write(14,*) 0.5*(sngl(min_nb_of_points_per_wavelength + scaling_factor*iclass/dble(NCLASSES)) + &
+              sngl(min_nb_of_points_per_wavelength + scaling_factor*(iclass+1)/dble(NCLASSES))),' ',sngl(current_percent)
+        endif
       enddo
-      close(14)
+
+      ! file output
+      if (SAVE_MESH_FILES) close(14)
 
       if (total_percent < 99.9d0 .or. total_percent > 100.1d0) then
         write(IMAIN,*) 'total percentage = ',total_percent,' %'
@@ -843,45 +856,44 @@
   enddo ! end of the two passes on S wavelength data and P wavelength data
 
   ! create script for Gnuplot histogram file
+  if (SAVE_MESH_FILES) then
+    if (myrank == 0) then
+      open(unit=14,file=trim(OUTPUT_FILES)//'plot_points_per_wavelength_histogram.gnu',status='unknown')
+      write(14,*) 'set term wxt'
+      if (nspec_counted_all_solid > 0) then
+        write(14,*) '#set term gif'
+        write(14,*) '#set output "points_per_wavelength_histogram_S_in_solid.gif"'
+        write(14,*)
+        write(14,*) 'set boxwidth ',real(scaling_factor_S/NCLASSES)
+        write(14,*) 'set xlabel "Range of min number of points per S wavelength in solid"'
+        write(14,*) 'set ylabel "Percentage of elements (%)"'
+        write(14,*) 'set loadpath "'//trim(OUTPUT_FILES)//'"'
+        write(14,*) 'plot "points_per_wavelength_histogram_S_in_solid.txt" with boxes'
+        write(14,*) 'pause -1 "hit any key..."'
+      endif
+      if (nspec_counted_all_fluid > 0) then
+        write(14,*) '#set term gif'
+        write(14,*) '#set output "points_per_wavelength_histogram_P_in_fluid.gif"'
+        write(14,*)
+        write(14,*) 'set boxwidth ',real(scaling_factor_P/NCLASSES)
+        write(14,*) 'set xlabel "Range of min number of points per P wavelength in fluid"'
+        write(14,*) 'set ylabel "Percentage of elements (%)"'
+        write(14,*) 'set loadpath "'//trim(OUTPUT_FILES)//'"'
+        write(14,*) 'plot "points_per_wavelength_histogram_P_in_fluid.txt" with boxes'
+        write(14,*) 'pause -1 "hit any key..."'
+      endif
+      close(14)
+    endif ! of if myrank == 0
+  endif
+
+  ! user output
   if (myrank == 0) then
-
-    open(unit=14,file=trim(OUTPUT_FILES)//'plot_points_per_wavelength_histogram.gnu',status='unknown')
-    write(14,*) 'set term wxt'
-
-    if (nspec_counted_all_solid > 0) then
-      write(14,*) '#set term gif'
-      write(14,*) '#set output "points_per_wavelength_histogram_S_in_solid.gif"'
-      write(14,*)
-      write(14,*) 'set boxwidth ',real(scaling_factor_S/NCLASSES)
-      write(14,*) 'set xlabel "Range of min number of points per S wavelength in solid"'
-      write(14,*) 'set ylabel "Percentage of elements (%)"'
-      write(14,*) 'set loadpath "'//trim(OUTPUT_FILES)//'"'
-      write(14,*) 'plot "points_per_wavelength_histogram_S_in_solid.txt" with boxes'
-      write(14,*) 'pause -1 "hit any key..."'
-    endif
-
-    if (nspec_counted_all_fluid > 0) then
-      write(14,*) '#set term gif'
-      write(14,*) '#set output "points_per_wavelength_histogram_P_in_fluid.gif"'
-      write(14,*)
-      write(14,*) 'set boxwidth ',real(scaling_factor_P/NCLASSES)
-      write(14,*) 'set xlabel "Range of min number of points per P wavelength in fluid"'
-      write(14,*) 'set ylabel "Percentage of elements (%)"'
-      write(14,*) 'set loadpath "'//trim(OUTPUT_FILES)//'"'
-      write(14,*) 'plot "points_per_wavelength_histogram_P_in_fluid.txt" with boxes'
-      write(14,*) 'pause -1 "hit any key..."'
-    endif
-
-    close(14)
-
     write(IMAIN,*)
     write(IMAIN,*)
     write(IMAIN,*) 'total number of elements in fluid and solid regions = ',nspec_all
     write(IMAIN,*)
     call flush_IMAIN()
-
-  endif ! of if myrank == 0
-
+  endif
 
   end subroutine check_grid_create_histogram
 

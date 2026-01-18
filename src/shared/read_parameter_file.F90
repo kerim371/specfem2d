@@ -131,6 +131,7 @@
     call bcast_all_singlel(ACOUSTIC_FORCING)
     call bcast_all_singlei(noise_source_time_function_type)
     call bcast_all_singlel(write_moving_sources_database)
+    call bcast_all_singlel(PRINT_SOURCE_TIME_FUNCTION)
 
     ! receivers
     call bcast_all_string(seismotype)
@@ -208,6 +209,7 @@
 
     ! display parameters
     call bcast_all_singlei(NTSTEP_BETWEEN_OUTPUT_INFO)
+    call bcast_all_singlel(SAVE_MESH_FILES)
     call bcast_all_singlel(output_grid_Gnuplot)
     call bcast_all_singlel(output_grid_ASCII)
     call bcast_all_singlel(OUTPUT_ENERGY)
@@ -672,6 +674,13 @@
     write(*,*)
   endif
 
+  ! (optional) print source time function to file
+  call read_value_logical_p(PRINT_SOURCE_TIME_FUNCTION, 'PRINT_SOURCE_TIME_FUNCTION')
+  if (err_occurred() /= 0) then
+    ! couldn't find entry
+    PRINT_SOURCE_TIME_FUNCTION = .false.
+  endif
+
   !--------------------------------------------------------------------
   !
   ! receivers
@@ -951,7 +960,6 @@
   ! external mesh parameters
 
   if (read_external_mesh) then
-
     ! read info about external mesh
     call read_value_string_p(mesh_file, 'mesh_file')
     if (err_occurred() /= 0) then
@@ -1052,7 +1060,6 @@
     endif
 
   else
-
     !-----------------
     ! internal mesh parameters
 
@@ -1158,18 +1165,31 @@
     endif
   endif
 
-  call read_value_logical_p(output_grid_Gnuplot, 'output_grid_Gnuplot')
+  ! (optional) saves mesh files for visualization
+  call read_value_logical_p(SAVE_MESH_FILES, 'SAVE_MESH_FILES')
   if (err_occurred() /= 0) then
-    some_parameters_missing_from_Par_file = .true.
-    write(*,'(a)') 'output_grid_Gnuplot             = .false.'
-    write(*,*)
+    ! couldn't find entry
+    SAVE_MESH_FILES = .false.
   endif
 
-  call read_value_logical_p(output_grid_ASCII, 'output_grid_ASCII')
-  if (err_occurred() /= 0) then
-    some_parameters_missing_from_Par_file = .true.
-    write(*,'(a)') 'output_grid_ASCII               = .false.'
-    write(*,*)
+  ! reads in grid output parameters
+  if (SAVE_MESH_FILES) then
+    call read_value_logical_p(output_grid_Gnuplot, 'output_grid_Gnuplot')
+    if (err_occurred() /= 0) then
+      some_parameters_missing_from_Par_file = .true.
+      write(*,'(a)') 'output_grid_Gnuplot             = .false.'
+      write(*,*)
+    endif
+
+    call read_value_logical_p(output_grid_ASCII, 'output_grid_ASCII')
+    if (err_occurred() /= 0) then
+      some_parameters_missing_from_Par_file = .true.
+      write(*,'(a)') 'output_grid_ASCII               = .false.'
+      write(*,*)
+    endif
+  else
+    output_grid_Gnuplot = .false.
+    output_grid_ASCII = .false.
   endif
 
   call read_value_logical_p(OUTPUT_ENERGY, 'OUTPUT_ENERGY')

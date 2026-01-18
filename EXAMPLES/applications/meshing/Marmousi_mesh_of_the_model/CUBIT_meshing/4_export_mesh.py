@@ -212,9 +212,9 @@ if 1 == 1:
     #       this will help when creating a new nummaterial_velocity_file for Marmousi2 with different properties for each surface.
     print("# each surface with its own block material definition")
     print("#")
-    print("# using elastic material definition")    
+    print("# using elastic material definition")
     print("#")
-    
+
     for i in surfaces:
         isurf = i  # surface ids start at 1
         print("# surface: ",isurf)

@@ -147,7 +147,7 @@ def load_marmousi2():
     # convert units
     vs *= 1000.0       # from km/s to m/s
     vp *= 1000.0
-    rho *= 1000.0      # from g/cm^3 to kg/m^3 
+    rho *= 1000.0      # from g/cm^3 to kg/m^3
 
     # determine grid spacing
     nx, nz = vp.shape
@@ -266,7 +266,7 @@ def modify_original_model(model):
             fluid_layer_depth = index_fluid * 1.25 # original grid sampling uses 1.25 m
             print("  fluid layer depth = {} (m)".format(fluid_layer_depth))
             print("")
-            
+
             # replaces fluid layer with extended solid domain velocities
             # takes top layer from solid domain
             vs_top_solid = vs[:,index_solid]
@@ -906,7 +906,7 @@ def create_tomography_file(model):
         # binary format
         print("  using binary file format")
         print("")
-        
+
         # collects header info
         output_header_data = np.array([ header_origin_x, header_origin_z, header_end_x, header_end_z, \
                                         header_dx, header_dz, \

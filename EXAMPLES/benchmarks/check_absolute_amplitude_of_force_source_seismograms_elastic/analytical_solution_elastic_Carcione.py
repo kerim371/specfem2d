@@ -88,52 +88,52 @@ def heaviside(t):
 
 def G1(r, t, v1, v2, do_not_compute_near_field=False):
     """
-    Green's function G1 from equation (B2a) of Carcione et al., Wave propagation simulation 
+    Green's function G1 from equation (B2a) of Carcione et al., Wave propagation simulation
     in a linear viscoelastic medium, Geophysical Journal, vol. 95, p. 597-611 (1988)
     """
     tau1 = r / v1
     tau2 = r / v2
-    
+
     heaviside_tau1 = heaviside(t - tau1)
     heaviside_tau2 = heaviside(t - tau2)
-    
+
     G1_val = 0.0
-    
+
     if heaviside_tau1 == 1:
         G1_val += 1.0 / (v1**2 * np.sqrt(t**2 - tau1**2))
-    
+
     if not do_not_compute_near_field:
         if heaviside_tau1 == 1:
             G1_val += np.sqrt(t**2 - tau1**2) / (r**2)
 
         if heaviside_tau2 == 1:
             G1_val -= np.sqrt(t**2 - tau2**2) / (r**2)
-    
+
     return G1_val
 
 def G2(r, t, v1, v2, do_not_compute_near_field=False):
     """
-    Green's function G2 from equation (B2a) of Carcione et al., Wave propagation simulation 
+    Green's function G2 from equation (B2a) of Carcione et al., Wave propagation simulation
     in a linear viscoelastic medium, Geophysical Journal, vol. 95, p. 597-611 (1988)
     """
     tau1 = r / v1
     tau2 = r / v2
-    
+
     heaviside_tau1 = heaviside(t - tau1)
     heaviside_tau2 = heaviside(t - tau2)
-    
+
     G2_val = 0.0
-    
+
     if heaviside_tau2 == 1:
         G2_val -= 1.0 / (v2**2 * np.sqrt(t**2 - tau2**2))
-    
+
     if not do_not_compute_near_field:
         if heaviside_tau1 == 1:
             G2_val += np.sqrt(t**2 - tau1**2) / (r**2)
 
         if heaviside_tau2 == 1:
             G2_val -= np.sqrt(t**2 - tau2**2) / (r**2)
-    
+
     return G2_val
 
 def u1(t, v1, v2, x1, x2, rho, F, do_not_compute_near_field=False):
@@ -141,7 +141,7 @@ def u1(t, v1, v2, x1, x2, rho, F, do_not_compute_near_field=False):
     # Source-receiver distance
     r = np.sqrt(x1**2 + x2**2)
 
-    return F * x1 * x2 * (G1(r, t, v1, v2, do_not_compute_near_field) + 
+    return F * x1 * x2 * (G1(r, t, v1, v2, do_not_compute_near_field) +
                           G2(r, t, v1, v2, do_not_compute_near_field)) / (2.0 * pi * rho * r**2)
 
 def u2(t, v1, v2, x1, x2, rho, F, do_not_compute_near_field=False):
@@ -149,7 +149,7 @@ def u2(t, v1, v2, x1, x2, rho, F, do_not_compute_near_field=False):
     # Source-receiver distance
     r = np.sqrt(x1**2 + x2**2)
 
-    return F * (x2*x2*G1(r, t, v1, v2, do_not_compute_near_field) - 
+    return F * (x2*x2*G1(r, t, v1, v2, do_not_compute_near_field) -
                 x1*x1*G2(r, t, v1, v2, do_not_compute_near_field)) / (2.0 * pi * rho * r**2)
 
 
@@ -298,7 +298,7 @@ def main():
     # **********
     # Compute Ux
     # **********
-    
+
     print("computing Ux component...")
 
     # Store the Green function (using 1-based indexing equivalent)
@@ -339,7 +339,7 @@ def main():
     # **********
     # Compute Uz
     # **********
-    
+
     print("computing Uz component...")
 
     # Store the Green function (using 1-based indexing equivalent)

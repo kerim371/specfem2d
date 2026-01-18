@@ -142,6 +142,9 @@ noise_source_time_function_type = 4
 # This is only useful for GPU version (for now)
 write_moving_sources_database   = .false.
 
+# print source time function
+PRINT_SOURCE_TIME_FUNCTION      = .true.
+
 #-----------------------------------------------------------
 #
 # Receivers
@@ -335,6 +338,9 @@ nbregions                       = 5              # then set below the different 
 # interval at which we output time step info and max of norm of displacement
 # (every how many time steps we display information about the simulation. costly, do not use a very small value)
 NTSTEP_BETWEEN_OUTPUT_INFO      = 100
+
+# save mesh files (VTK, ASCII or Gnuplot) to check the mesh
+SAVE_MESH_FILES                 = .true.
 
 # meshing output
 output_grid_Gnuplot             = .false.        # generate a GNUPLOT file containing the grid, and a script to plot it

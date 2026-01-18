@@ -36,14 +36,14 @@
   ! prepares source_time_function array
 
   use constants, only: CUSTOM_REAL,IMAIN,ZERO,ONE,TWO,HALF,PI,QUARTER, &
-                       SOURCE_DECAY_MIMIC_TRIANGLE,PRINT_SOURCE_TIME_FUNCTION, &
+                       SOURCE_DECAY_MIMIC_TRIANGLE, &
                        C_LDDRK,C_RK4,ALPHA_SYMPLECTIC
 
   use specfem_par, only: NSTEP, NSOURCES, source_time_function, &
                          time_function_type, burst_band_width, f0_source,tshift_src, &
                          factor, t0, DT, SOURCE_IS_MOVING, &
                          time_stepping_scheme, NSTAGE_TIME_SCHEME, islice_selected_source, &
-                         USE_TRICK_FOR_BETTER_PRESSURE, myrank, initialfield
+                         USE_TRICK_FOR_BETTER_PRESSURE, myrank, initialfield, PRINT_SOURCE_TIME_FUNCTION
 
   implicit none
 
