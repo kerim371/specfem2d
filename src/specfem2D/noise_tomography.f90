@@ -1070,7 +1070,7 @@
   use constants, only: CUSTOM_REAL,IIN,NGLLX,NGLLZ,MAX_STRING_LEN,OUTPUT_FILES, &
                        myrank,IMAIN
 
-  use specfem_par, only: nspec,save_ASCII_kernels,ibool,coord
+  use specfem_par, only: nspec,SAVE_ASCII_KERNELS,ibool,coord
 
   implicit none
 
@@ -1082,7 +1082,7 @@
   double precision :: xx,zz
   character(len=MAX_STRING_LEN) :: fname
 
-  if (save_ASCII_kernels) then
+  if (SAVE_ASCII_KERNELS) then
     write(fname,'(a,i6.6,a)') 'proc',myrank,'_sigma_kernel.dat'
     open(unit=IIN,file=trim(OUTPUT_FILES)//fname,status='unknown',iostat=ier)
     if (ier /= 0) call exit_mpi(myrank,'  error writing noise strength kernel')

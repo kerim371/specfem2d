@@ -38,7 +38,8 @@ DEPRECATED_RENAMED_PARAMETERS = [ \
   ("NSTEP_BETWEEN_OUTPUT_INFO","NTSTEP_BETWEEN_OUTPUT_INFO"), \
   ("NSTEP_BETWEEN_OUTPUT_IMAGES","NTSTEP_BETWEEN_OUTPUT_IMAGES"), \
   ("partitioning_method","PARTITIONING_TYPE"), \
-  ("ngnod","NGNOD") \
+  ("ngnod","NGNOD"), \
+  ("save_ASCII_kernels","SAVE_ASCII_KERNELS") \
 ]
 
 # exclude other possible files with similar name, but with different format

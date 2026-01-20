@@ -1006,7 +1006,7 @@
   ! poro-elastic domains
   if (any_poroelastic) then
     ! safety checks
-    if (.not. save_ASCII_kernels) call stop_the_code('poroelastic simulations must use save_ASCII_kernels')
+    if (.not. SAVE_ASCII_KERNELS) call stop_the_code('poroelastic simulations must use SAVE_ASCII_KERNELS')
     if (GPU_MODE) call stop_the_code('poroelastic kernel output not implemented on GPUs yet')
 
     ! initializes

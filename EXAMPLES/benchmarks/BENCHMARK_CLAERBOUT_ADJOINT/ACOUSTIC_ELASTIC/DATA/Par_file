@@ -195,7 +195,10 @@ rec_normal_to_surface           = .false.        # base anglerec normal to surfa
 #-----------------------------------------------------------
 
 # save sensitivity kernels in ASCII format (much bigger files, but compatible with current GMT scripts) or in binary format
-save_ASCII_kernels              = .false.
+SAVE_ASCII_KERNELS              = .false.
+
+# save GLL weights for kernel benchmarks
+SAVE_KERNEL_WEIGHTS             = .true.
 
 # since the accuracy of kernel integration may not need to respect the CFL, this option permits to save computing time, and memory with UNDO_ATTENUATION_AND_OR_PML mode
 NTSTEP_BETWEEN_COMPUTE_KERNELS  = 1

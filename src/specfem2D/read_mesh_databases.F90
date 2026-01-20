@@ -229,7 +229,7 @@
 
   read(IIN) local_l ! COMPUTE_INTEGRATED_ENERGY_FIELD
 
-  read(IIN) local_l ! save_ASCII_kernels
+  read(IIN) local_l ! SAVE_ASCII_KERNELS
 
   read(IIN) local_i ! NTSTEP_BETWEEN_COMPUTE_KERNELS
 
