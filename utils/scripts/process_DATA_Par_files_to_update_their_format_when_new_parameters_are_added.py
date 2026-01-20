@@ -537,11 +537,11 @@ def ProcessParfile_r21820(fic):
 
     # Test if already processed
     for lig in ligs:
-        if lig.startswith('save_ASCII_kernels'):
+        if lig.startswith('SAVE_ASCII_KERNELS'):
             print('----> '+fic+' already processed to '+release_number)
             return
     #
-    a1='save_ASCII_kernels              = .true.         # save sensitivity'+ \
+    a1='SAVE_ASCII_KERNELS              = .true.         # save sensitivity'+ \
            'kernels in ASCII format(much bigger files, but compatibles with'+ \
            ' current GMT scripts) or in binary format\n'
     #--------------------------------------------------------------------------
@@ -910,7 +910,7 @@ def ProcessParfile_NSTEP_BETWEEN_COMPUTE_KERNELS(fic):
     # Add new parameters
     #
     for ilg, lig in enumerate(ligs):
-        if lig.startswith('save_ASCII_kernels'):
+        if lig.startswith('SAVE_ASCII_KERNELS'):
             ligs.insert(ilg+1,a1)
             break
     #

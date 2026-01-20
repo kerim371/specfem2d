@@ -35,10 +35,10 @@
 
 ! saves adjoint sensitivity kernels to file
 
-  use constants, only: IMAIN,SAVE_WEIGHTS
+  use constants, only: IMAIN
 
   use specfem_par, only: myrank, any_acoustic, any_elastic, any_poroelastic, &
-                         NOISE_TOMOGRAPHY
+                         NOISE_TOMOGRAPHY,SAVE_KERNEL_WEIGHTS
 
   use specfem_par_noise, only: sigma_kl
 
@@ -63,7 +63,7 @@
 
   ! save weights for volume integration,
   ! in order to benchmark the kernels with analytical expressions
-  if (SAVE_WEIGHTS) call save_weights_kernel()
+  if (SAVE_KERNEL_WEIGHTS) call save_weights_kernel()
 
   ! for noise simulations -- noise strength kernel
   if (NOISE_TOMOGRAPHY == 3) then
@@ -81,7 +81,7 @@
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,FOUR_THIRDS,TWO_THIRDS,TWO,MAX_STRING_LEN, &
     OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
+  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
                          rho_kl, kappa_kl, mu_kl, rhop_kl, alpha_kl, beta_kl, &
                          bulk_c_kl, bulk_beta_kl, &
                          rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, &
@@ -220,7 +220,7 @@
   endif
 
   ! saves to files
-  if (save_ASCII_kernels) then
+  if (SAVE_ASCII_KERNELS) then
     ! ascii format
     if (count(ispec_is_anisotropic(:) .eqv. .true.) >= 1) then
       ! anisotropic
@@ -436,7 +436,7 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
+  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
                          rho_ac_kl, kappa_ac_kl, alpha_ac_kl, rhop_ac_kl, &
                          rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2, &
                          APPROXIMATE_HESS_KL
@@ -463,7 +463,7 @@
   endif
 
   ! saves to file
-  if (save_ASCII_kernels) then
+  if (SAVE_ASCII_KERNELS) then
     ! ascii format
     write(outputname,'(a,i6.6,a)') 'proc',myrank,'_rho_kappa_kernel.dat'
     open(unit = 95, file = trim(OUTPUT_FILES)//trim(outputname),status ='unknown',iostat=ier)
@@ -579,7 +579,7 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
+  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
                          rhot_kl, rhof_kl, sm_kl, eta_kl, mufr_kl, B_kl, &
                          C_kl, M_kl, rhob_kl, rhofb_kl, phi_kl, mufrb_kl, &
                          rhobb_kl, rhofbb_kl, phib_kl, cpI_kl, cpII_kl, cs_kl, ratio_kl, &
@@ -710,7 +710,7 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
+  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
                          jacobian,wxgll,wzgll
 
   implicit none
@@ -735,7 +735,7 @@
     enddo
   enddo
 
-  if (save_ASCII_kernels) then
+  if (SAVE_ASCII_KERNELS) then
     ! ascii format
     write(outputname,'(a,i6.6,a)') 'proc',myrank,'_weights_kernel.dat'
     open(unit = 144, file = trim(OUTPUT_FILES)//trim(outputname),status = 'unknown',iostat=ier)

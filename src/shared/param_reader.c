@@ -55,17 +55,32 @@
  ..
 */
 
+// strndup is non-standard C function
+// to avoid warning when compiling with -std=c99 flag
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <regex.h>
 
+// strcasecmp is non-standard C function
+// for windows
+#ifdef _WIN32
+#include <string.h>
+#define strcasecmp _stricmp
+#else // assuming POSIX or BSD compliant system
+#include <strings.h>
+#endif
+
 #ifndef LINE_MAX
 #define LINE_MAX 255
 #endif
 
+/*===============================================================*/
 /*
  * Mac OS X's gcc does not support strnlen and strndup.
  * So we define them here conditionally, to avoid duplicate definitions
@@ -107,7 +122,7 @@ FC_FUNC_(param_open,PARAM_OPEN)(char * filename, int * length, int * ierr)
     fncopy[blank - fncopy] = '\0';
   }
   if ((fid = fopen(fncopy, "r")) == NULL) {
-    // DK DK purposely suppressed this for NUMBER_OF_SIMULTANEOUS_RUNS     printf("Can't open '%s'\n", fncopy);
+// purposely suppressed this      printf("Can't open '%s'\n", fncopy);
     *ierr = 1;
     return;
   }
@@ -115,11 +130,15 @@ FC_FUNC_(param_open,PARAM_OPEN)(char * filename, int * length, int * ierr)
   *ierr = 0;
 }
 
+/* ----------------------------------------------------------------------------- */
+
 void
 FC_FUNC_(param_close,PARAM_CLOSE)()
 {
   fclose(fid);
 }
+
+/* ----------------------------------------------------------------------------- */
 
 void
 FC_FUNC_(param_read,PARAM_READ)(char * string_read, int * string_read_len, char * name, int * name_len, int * ierr)
@@ -175,6 +194,7 @@ FC_FUNC_(param_read,PARAM_READ)(char * string_read, int * string_read_len, char 
     regfree(&compiled_pattern);
     return;
   }
+
   // Read every line in the file.
   while (fgets(line, LINE_MAX, fid) != NULL) {
     // Get rid of the ending newline.
@@ -201,12 +221,14 @@ FC_FUNC_(param_read,PARAM_READ)(char * string_read, int * string_read_len, char 
     keyword = strndup(line+parameter[1].rm_so, parameter[1].rm_eo-parameter[1].rm_so);
 
     // If the keyword is not the one we're looking for, check the next line.
-    if (strcmp(keyword, namecopy2) != 0) {
+    // (case-insensitive comparison)
+    if (strcasecmp(keyword, namecopy2) != 0) {
       free(keyword);
       continue;
     }
     free(keyword);
     regfree(&compiled_pattern);
+
     // If it matches, extract the value from the line.
     value = strndup(line+parameter[2].rm_so, parameter[2].rm_eo-parameter[2].rm_so);
 
@@ -221,16 +243,20 @@ FC_FUNC_(param_read,PARAM_READ)(char * string_read, int * string_read_len, char 
 
     free(value);
     free(namecopy);
+
     *ierr = 0;
     return;
   }
+
   // If no keyword matches, set the error flag
+  //printf("No match in parameter file for keyword '%s'\n", namecopy);
   free(namecopy);
   regfree(&compiled_pattern);
   *ierr = 1;
   return;
 }
 
+/* ----------------------------------------------------------------------------- */
 
 // reads next line in file to read in parameter
 void
@@ -254,6 +280,7 @@ FC_FUNC_(param_read_nextparam,PARAM_READ_NEXTPARAM)(char * string_read, int * st
   if (blank != NULL) {
    namecopy[blank - namecopy] = '\0';
   }
+
   // Then get rid of any dot-terminated prefix.
   namecopy2 = strchr(namecopy, '.');
   if (namecopy2 != NULL) {
@@ -310,7 +337,8 @@ FC_FUNC_(param_read_nextparam,PARAM_READ_NEXTPARAM)(char * string_read, int * st
     //printf("keyword: %s\n", keyword);
 
     // If the keyword is not the one we're looking for, return with an error.
-    if (strcmp(keyword, namecopy2) != 0) {
+    // (case-insensitive comparison)
+    if (strcasecmp(keyword, namecopy2) != 0) {
       printf("keyword returned wrong parameter %s instead of %s \n", keyword,namecopy2);
       free(keyword);
       *ierr = 1;
@@ -336,9 +364,11 @@ FC_FUNC_(param_read_nextparam,PARAM_READ_NEXTPARAM)(char * string_read, int * st
 
     free(value);
     free(namecopy);
+
     *ierr = 0;
     return;
   }
+
   // If no next line matches, print out error and die.
   printf("No match in parameter file for keyword '%s' on next line\n", namecopy);
   free(namecopy);

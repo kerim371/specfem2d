@@ -149,7 +149,8 @@
     call bcast_all_singlel(rec_normal_to_surface)
 
     ! adjoint kernel
-    call bcast_all_singlel(save_ASCII_kernels)
+    call bcast_all_singlel(SAVE_ASCII_KERNELS)
+    call bcast_all_singlel(SAVE_KERNEL_WEIGHTS)
     call bcast_all_singlei(NTSTEP_BETWEEN_COMPUTE_KERNELS)
     call bcast_all_singlel(APPROXIMATE_HESS_KL)
     call bcast_all_singlel(NO_BACKWARD_RECONSTRUCTION)
@@ -805,11 +806,17 @@
   !
   !--------------------------------------------------------------------
 
-  call read_value_logical_p(save_ASCII_kernels, 'save_ASCII_kernels')
+  call read_value_logical_p(SAVE_ASCII_KERNELS, 'SAVE_ASCII_KERNELS')
   if (err_occurred() /= 0) then
     some_parameters_missing_from_Par_file = .true.
-    write(*,'(a)') 'save_ASCII_kernels                  = .true.'
+    write(*,'(a)') 'SAVE_ASCII_KERNELS                  = .true.'
     write(*,*)
+  endif
+
+  ! (optional) save kernel weights for benchmarking kernels
+  call read_value_logical_p(SAVE_KERNEL_WEIGHTS, 'SAVE_KERNEL_WEIGHTS')
+  if (err_occurred() /= 0) then
+    SAVE_KERNEL_WEIGHTS = .false.
   endif
 
   ! deprecated: call read_value_integer_p(NSTEP_BETWEEN_COMPUTE_KERNELS, 'NSTEP_BETWEEN_COMPUTE_KERNELS')
