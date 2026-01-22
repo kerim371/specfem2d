@@ -315,23 +315,29 @@ __global__ void compute_kernels_ani_cudakernel(int* ispec_is_elastic,
 // src/gpu/kernels/compute_kernels_hess_ac_cuda_kernel.cu
 //
 
-__global__ void compute_kernels_hess_el_cudakernel(int* ispec_is_elastic,
-                                                   int* d_ibool,
-                                                   realw* accel,
-                                                   realw* b_accel,
-                                                   realw* hess_kl,
-                                                   int NSPEC_AB) ;
+__global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
+                                                const int* ibool,
+                                                const realw* accel,
+                                                const realw* b_accel,
+                                                realw* hess_kl1,
+                                                realw* hess_kl2,
+                                                const int NSPEC_AB,
+                                                const realw dt_factor);
 
-__global__ void compute_kernels_hess_ac_cudakernel(int* ispec_is_acoustic,
-                                                   int* d_ibool,
-                                                   realw* potential_dot_dot_acoustic,
-                                                   realw* b_potential_dot_dot_acoustic,
-                                                   realw* rhostore,
-                                                   realw* d_hprime_xx,
-                                                   realw* d_xix,realw* d_xiz,
-                                                   realw* d_gammax,realw* d_gammaz,
-                                                   realw* hess_kl,
-                                                   int NSPEC_AB) ;
+__global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
+                                                const int* ibool,
+                                                const realw* potential,
+                                                const realw* b_potential,
+                                                const realw* rhostore,
+                                                const realw* hprime_xx,
+                                                const realw* xix,
+                                                const realw* xiz,
+                                                const realw* gammax,
+                                                const realw* gammaz,
+                                                realw* hess_kl1,
+                                                realw* hess_kl2,
+                                                const int NSPEC,
+                                                const realw dt_factor);
 
 
 //

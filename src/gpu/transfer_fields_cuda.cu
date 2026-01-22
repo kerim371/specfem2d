@@ -413,30 +413,34 @@ void FC_FUNC_(transfer_kernels_ac_to_host,
 
 extern "C"
 void FC_FUNC_(transfer_kernels_hess_el_tohost,
-              TRANSFER_KERNELS_HESS_EL_TOHOST)(long* Mesh_pointer,realw* h_hess_kl,int* NSPEC_AB) {
+              TRANSFER_KERNELS_HESS_EL_TOHOST)(long* Mesh_pointer,realw* h_hess_kl1,realw* h_hess_kl2,int* NSPEC_AB) {
 
   TRACE("transfer_kernels_hess_el_tohost");
 
   //get mesh pointer out of fortran integer container
   Mesh* mp = (Mesh*)(*Mesh_pointer);
 
-  print_CUDA_error_if_any(cudaMemcpy(h_hess_kl,mp->d_hess_el_kl,NGLL2*(*NSPEC_AB)*sizeof(realw),
+  print_CUDA_error_if_any(cudaMemcpy(h_hess_kl1,mp->d_hess_el_kl1,NGLL2*(*NSPEC_AB)*sizeof(realw),
                                      cudaMemcpyDeviceToHost),70201);
+  print_CUDA_error_if_any(cudaMemcpy(h_hess_kl2,mp->d_hess_el_kl2,NGLL2*(*NSPEC_AB)*sizeof(realw),
+                                     cudaMemcpyDeviceToHost),70202);
 }
 
 /* ----------------------------------------------------------------------------------------------- */
 
 extern "C"
 void FC_FUNC_(transfer_kernels_hess_ac_tohost,
-              TRANSFER_KERNELS_HESS_AC_TOHOST)(long* Mesh_pointer,realw* h_hess_ac_kl,int* NSPEC_AB) {
+              TRANSFER_KERNELS_HESS_AC_TOHOST)(long* Mesh_pointer,realw* h_hess_ac_kl1,realw* h_hess_ac_kl2,int* NSPEC_AB) {
 
   TRACE("transfer_kernels_hess_ac_tohost");
 
   //get mesh pointer out of fortran integer container
   Mesh* mp = (Mesh*)(*Mesh_pointer);
 
-  print_CUDA_error_if_any(cudaMemcpy(h_hess_ac_kl,mp->d_hess_ac_kl,NGLL2*(*NSPEC_AB)*sizeof(realw),
-                                     cudaMemcpyDeviceToHost),70202);
+  print_CUDA_error_if_any(cudaMemcpy(h_hess_ac_kl1,mp->d_hess_ac_kl1,NGLL2*(*NSPEC_AB)*sizeof(realw),
+                                     cudaMemcpyDeviceToHost),70203);
+  print_CUDA_error_if_any(cudaMemcpy(h_hess_ac_kl2,mp->d_hess_ac_kl2,NGLL2*(*NSPEC_AB)*sizeof(realw),
+                                     cudaMemcpyDeviceToHost),70204);
 }
 
 //For UNDO_ATTENUATION
@@ -661,3 +665,46 @@ TRACE("transfer_compute_kernel_fields_from_device");
 }
 */
 
+/*
+ * C wrappers for Hessian kernel transfer (Fortran -> CUDA)
+ */
+
+// Wrapper for elastic Hessian (single precision)
+extern "C"
+void FC_FUNC(transfer_hess_el_wrapper,
+              TRANSFER_HESS_EL_WRAPPER)(long* Mesh_pointer,
+                                        float* hess1,
+                                        float* hess2,
+                                        int* nspec) {
+  transfer_kernels_hess_el_tohost_(Mesh_pointer, hess1, hess2, nspec);
+}
+
+// Wrapper for elastic Hessian (double precision)
+extern "C"
+void FC_FUNC_(transfer_hess_el_wrapper_,
+              TRANSFER_HESS_EL_WRAPPER_)(long* Mesh_pointer,
+                                         double* hess1,
+                                         double* hess2,
+                                         int* nspec) {
+  transfer_kernels_hess_el_tohost_(Mesh_pointer, (float*)hess1, (float*)hess2, nspec);
+}
+
+// Wrapper for acoustic Hessian (single precision)
+extern "C"
+void FC_FUNC(transfer_hess_ac_wrapper,
+              TRANSFER_HESS_AC_WRAPPER)(long* Mesh_pointer,
+                                        float* hess1,
+                                        float* hess2,
+                                        int* nspec) {
+  transfer_kernels_hess_ac_tohost_(Mesh_pointer, hess1, hess2, nspec);
+}
+
+// Wrapper for acoustic Hessian (double precision)
+extern "C"
+void FC_FUNC_(transfer_hess_ac_wrapper_,
+              TRANSFER_HESS_AC_WRAPPER_)(long* Mesh_pointer,
+                                         double* hess1,
+                                         double* hess2,
+                                         int* nspec) {
+  transfer_kernels_hess_ac_tohost_(Mesh_pointer, (float*)hess1, (float*)hess2, nspec);
+}

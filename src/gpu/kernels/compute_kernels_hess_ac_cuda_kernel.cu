@@ -34,12 +34,14 @@
 */
 
 
-__global__ void compute_kernels_hess_el_cudakernel(int* ispec_is_elastic,
-                                                   int* d_ibool,
-                                                   realw* accel,
-                                                   realw* b_accel,
-                                                   realw* hess_kl,
-                                                   int NSPEC_AB) {
+__global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
+                                                   const int* ibool,
+                                                   const realw* accel,
+                                                   const realw* b_accel,
+                                                   realw* hess_kl1,
+                                                   realw* hess_kl2,
+                                                   const int NSPEC_AB,
+                                                   const realw dt_factor) {
 
   int ispec = blockIdx.x + blockIdx.y*gridDim.x;
   int ij = threadIdx.x;
@@ -49,81 +51,89 @@ __global__ void compute_kernels_hess_el_cudakernel(int* ispec_is_elastic,
 
     // elastic elements only
     if (ispec_is_elastic[ispec]) {
-      int iglob = d_ibool[ij + NGLL2_PADDED*ispec] - 1;
+      int iglob = ibool[ij + NGLL2_PADDED*ispec] - 1;
 
-      // approximate hessian
-      hess_kl[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
+      realw acc_x = accel[2 * iglob];
+      realw acc_z = accel[2 * iglob + 1];
+      realw b_acc_x = b_accel[2 * iglob];
+      realw b_acc_z = b_accel[2 * iglob + 1];
+
+        // approximate hessian
+      hess_kl1[ij + NGLL2*ispec] +=  b_acc_x * b_acc_x + b_acc_z * b_acc_z;
+      hess_kl2[ij + NGLL2*ispec] +=  acc_x * b_acc_x + acc_z * b_acc_z;
+      // hess_kl1[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
+      // hess_kl2[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
     }
   }
 }
 
 /* ----------------------------------------------------------------------------------------------- */
 
-__global__ void compute_kernels_hess_ac_cudakernel(int* ispec_is_acoustic,
-                                                   int* d_ibool,
-                                                   realw* potential_dot_dot_acoustic,
-                                                   realw* b_potential_dot_dot_acoustic,
-                                                   realw* rhostore,
-                                                   realw* d_hprime_xx,
-                                                   realw* d_xix,realw* d_xiz,
-                                                   realw* d_gammax,realw* d_gammaz,
-                                                   realw* hess_kl,
-                                                   int NSPEC_AB) {
+__global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
+                                                   const int* d_ibool,
+                                                   const realw* potential_acoustic,
+                                                   const realw* b_potential_acoustic,
+                                                   const realw* rhostore,
+                                                   const realw* d_hprime_xx,
+                                                   const realw* d_xix,
+                                                   const realw* d_xiz,
+                                                   const realw* d_gammax,
+                                                   const realw* d_gammaz,
+                                                   realw* hess_kl1,
+                                                   realw* hess_kl2,
+                                                   const int NSPEC_AB,
+                                                   const realw dt_factor) {
 
-  int ispec = blockIdx.x + blockIdx.y*gridDim.x;
+  int ispec = blockIdx.x + blockIdx.y * gridDim.x;
   int ij = threadIdx.x;
-  int ij_ispec_padded = ij + NGLL2_PADDED*ispec;
-  int iglob;
 
-  // shared memory between all threads within this block
-  __shared__ realw scalar_field_accel[NGLL2];
-  __shared__ realw scalar_field_b_accel[NGLL2];
+  if (ispec >= NSPEC_AB) return;
+  if (!ispec_is_acoustic[ispec]) return;
 
-  int active = 0;
+  int i = ij % NGLLX;
+  int j = ij / NGLLX;
 
-  // handles case when there is 1 extra block (due to rectangular grid)
-  if (ispec < NSPEC_AB) {
+  // Вычисляем градиент потенциала (forward)
+  realw tempx1l = 0.0f;
+  realw tempx2l = 0.0f;
+  for (int k = 0; k < NGLLX; k++) {
+    int iglob_kj = d_ibool[k + j * NGLLX + NGLL2_PADDED * ispec] - 1; // (k, j)
+    int iglob_ik = d_ibool[i + k * NGLLX + NGLL2_PADDED * ispec] - 1; // (i, k)
 
-    // acoustic elements only
-    if (ispec_is_acoustic[ispec]) {
-      active = 1;
-
-      // global indices
-      iglob = d_ibool[ij_ispec_padded] - 1;
-
-      // copy field values
-      scalar_field_accel[ij] = potential_dot_dot_acoustic[iglob];
-      scalar_field_b_accel[ij] = b_potential_dot_dot_acoustic[iglob];
-    }
+    tempx1l += potential_acoustic[iglob_kj] * d_hprime_xx[i + k * NGLLX];
+    tempx2l += potential_acoustic[iglob_ik] * d_hprime_xx[j + k * NGLLX]; // hprime_zz == hprime_xx
   }
 
-  // synchronizes threads
-  __syncthreads();
+  // То же для adjoint
+  realw b_tempx1l = 0.0f;
+  realw b_tempx2l = 0.0f;
+  for (int k = 0; k < NGLLX; k++) {
+    int iglob_kj = d_ibool[k + j * NGLLX + NGLL2_PADDED * ispec] - 1;
+    int iglob_ik = d_ibool[i + k * NGLLX + NGLL2_PADDED * ispec] - 1;
 
-  if (active) {
-    realw accel_elm[2];
-    realw b_accel_elm[2];
-    realw rhol;
+    b_tempx1l += b_potential_acoustic[iglob_kj] * d_hprime_xx[i + k * NGLLX];
+    b_tempx2l += b_potential_acoustic[iglob_ik] * d_hprime_xx[j + k * NGLLX];
+  }
 
-    // gets material parameter
-    rhol = rhostore[ij_ispec_padded];
+  // Метрика и плотность
+  int idx = ij + NGLL2 * ispec;
+  realw rhol = rhostore[idx];
+  realw xixl = d_xix[idx];
+  realw xizl = d_xiz[idx];
+  realw gammaxl = d_gammax[idx];
+  realw gammazl = d_gammaz[idx];
 
-    // acceleration vector
-    compute_gradient_kernel(ij,ispec,
-                            scalar_field_accel,accel_elm,
-                            d_hprime_xx,
-                            d_xix,d_xiz,d_gammax,d_gammaz,
-                            rhol);
+  // Локальное "ускорение" (на самом деле смещение, но так в CPU)
+  realw accel_loc_x = (tempx1l * xixl + tempx2l * gammaxl) / rhol;
+  realw accel_loc_z = (tempx1l * xizl + tempx2l * gammazl) / rhol;
 
-    // acceleration vector from backward field
-    compute_gradient_kernel(ij,ispec,
-                            scalar_field_b_accel,b_accel_elm,
-                            d_hprime_xx,
-                            d_xix,d_xiz,d_gammax,d_gammaz,
-                            rhol);
-    // approximates hessian
-    hess_kl[ij + NGLL2*ispec] +=  (accel_elm[0]*b_accel_elm[0] + accel_elm[1]*b_accel_elm[1]);
+  realw b_accel_loc_x = (b_tempx1l * xixl + b_tempx2l * gammaxl) / rhol;
+  realw b_accel_loc_z = (b_tempx1l * xizl + b_tempx2l * gammazl) / rhol;
 
-  } // active
+  // Гессиан
+  realw dot1 = accel_loc_x * accel_loc_x + accel_loc_z * accel_loc_z;
+  realw dot2 = accel_loc_x * b_accel_loc_x + accel_loc_z * b_accel_loc_z;
+
+  hess_kl1[idx] += dot1 * dt_factor;
+  hess_kl2[idx] += dot2 * dt_factor;
 }
-

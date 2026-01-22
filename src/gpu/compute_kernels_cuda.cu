@@ -134,9 +134,9 @@ void FC_FUNC_(compute_kernels_hess_cuda,
               COMPUTE_KERNELS_HESS_CUDA)(long* Mesh_pointer,
                                          int* ELASTIC_SIMULATION,
                                          int* ACOUSTIC_SIMULATION) {
-  TRACE("compute_kernels_hess_cuda");
 
-  Mesh* mp = (Mesh*)(*Mesh_pointer); //get mesh pointer out of fortran integer container
+  Mesh* mp = (Mesh*)(*Mesh_pointer);
+  realw dt_factor = mp->deltat * (realw)(mp->NTSTEP_BETWEEN_COMPUTE_KERNELS);
 
   int blocksize = NGLL2; // NGLLX*NGLLZ
 
@@ -151,24 +151,27 @@ void FC_FUNC_(compute_kernels_hess_cuda,
                                                                               mp->d_ibool,
                                                                               mp->d_accel,
                                                                               mp->d_b_accel,
-                                                                              mp->d_hess_el_kl,
-                                                                              mp->NSPEC_AB);
+                                                                              mp->d_hess_el_kl1,
+                                                                              mp->d_hess_el_kl2,
+                                                                              mp->NSPEC_AB,
+                                                                              dt_factor);
   }
 
   if (*ACOUSTIC_SIMULATION) {
     compute_kernels_hess_ac_cudakernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_ispec_is_acoustic,
                                                                               mp->d_ibool,
-                                                                              mp->d_potential_dot_dot_acoustic,
-                                                                              mp->d_b_potential_dot_dot_acoustic,
+                                                                              mp->d_potential_acoustic,
+                                                                              mp->d_b_potential_acoustic,
                                                                               mp->d_rhostore,
                                                                               mp->d_hprime_xx,
                                                                               mp->d_xix,mp->d_xiz,
                                                                               mp->d_gammax,mp->d_gammaz,
-                                                                              mp->d_hess_ac_kl,
-                                                                              mp->NSPEC_AB);
+                                                                              mp->d_hess_ac_kl1,
+                                                                              mp->d_hess_ac_kl2,
+                                                                              mp->NSPEC_AB,
+                                                                              dt_factor);
   }
 
 
   GPU_ERROR_CHECKING ("compute_kernels_hess_cuda");
 }
-

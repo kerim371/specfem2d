@@ -71,22 +71,12 @@
   if ((ATTENUATION_VISCOACOUSTIC .or. ATTENUATION_VISCOELASTIC) .and. any_elastic .and. any_acoustic) &
     call stop_the_code('GPU_MODE not supported yet coupled fluid-solid simulations with attenuation')
 
-  if (PML_BOUNDARY_CONDITIONS) then
-    if (any_poroelastic) &
-      call stop_the_code('PML on GPU not supported yet for poroelastic cases')
-    if (ATTENUATION_VISCOACOUSTIC) &
-      call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
-    if (ATTENUATION_VISCOELASTIC) &
-      call stop_the_code('PML on GPU not supported yet for viscoelastic cases')
-    if (SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
-      call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
-    if (K_MIN_PML /= 1.0d0 .or. K_MAX_PML /= 1.0d0) &
-      call stop_the_code('PML on GPU needs K_MIN_PML == 1.0 and K_MAX_PML == 1.0 in Par_file')
-    if (any_elastic .and. ROTATE_PML_ACTIVATE) &
-      call stop_the_code('PML on GPU for elastic cases needs ROTATE_PML_ACTIVATE == .false. in Par_file')
-    if (time_stepping_scheme /= 1) &
-      call stop_the_code('PML on GPU only supported for Newmark time stepping scheme')
-  endif
+  if (PML_BOUNDARY_CONDITIONS .and. any_elastic) &
+    call stop_the_code('PML on GPU not supported yet for elastic cases')
+  if (PML_BOUNDARY_CONDITIONS .and. ATTENUATION_VISCOACOUSTIC) &
+    call stop_the_code('PML on GPU not supported yet for viscoacoustic cases')
+  if (PML_BOUNDARY_CONDITIONS .and. SIMULATION_TYPE == 3 .and. (.not. NO_BACKWARD_RECONSTRUCTION) ) &
+    call stop_the_code('PML on GPU in adjoint mode only work using NO_BACKWARD_RECONSTRUCTION flag')
 
   ! initializes arrays
   call init_host_to_dev_variable()
@@ -174,6 +164,10 @@
 
     if (SIMULATION_TYPE == 3) then
       ! safety check
+      ! KERIM MODIFIED
+      ! if (APPROXIMATE_HESS_KL) then
+      !   call stop_the_code('Sorry, approximate acoustic Hessian kernels not yet fully implemented for GPU simulations!')
+      ! endif
       call prepare_fields_acoustic_adj_dev(Mesh_pointer,APPROXIMATE_HESS_KL, &
                                            ATTENUATION_VISCOACOUSTIC,NO_BACKWARD_RECONSTRUCTION)
     endif
@@ -209,6 +203,10 @@
 
     if (SIMULATION_TYPE == 3) then
       ! safety check
+      ! KERIM MODIFIED
+      ! if (APPROXIMATE_HESS_KL) then
+      !   call stop_the_code('Sorry, approximate elastic Hessian kernels not yet fully implemented for GPU simulations!')
+      ! endif
       call prepare_fields_elastic_adj_dev(Mesh_pointer,NDIM*NGLOB_AB,APPROXIMATE_HESS_KL, &
                                           ATTENUATION_VISCOELASTIC,NO_BACKWARD_RECONSTRUCTION)
     endif
@@ -222,13 +220,13 @@
                             nspec_PML, &
                             NSPEC_PML_X,NSPEC_PML_Z,NSPEC_PML_XZ, &
                             spec_to_PML_GPU, &
+                            abs_normalized, &
+                            sngl(ALPHA_MAX_PML), &
+                            d0_max, &
                             deltat, &
                             alphax_store_GPU,alphaz_store_GPU, &
                             betax_store_GPU,betaz_store_GPU, &
-                            PML_nglob_abs_acoustic,PML_abs_points_acoustic, &
-                            PML_nglob_abs_elastic,PML_abs_points_elastic, &
-                            any_acoustic,rhostore, &
-                            num_fluid_solid_edges)
+                            PML_nglob_abs_acoustic,PML_abs_points_acoustic)
   endif
 
 ! abs_boundary_ispec                     : Array containing spectral element indices in absorbing areas
@@ -365,14 +363,12 @@
   implicit none
 
   ! local parameters
-  integer :: i_spec_free,ispec,i_source,i_source_local,ispec_PML,ielem
-  integer :: i,j,ii,jj,ipoin1D
+  integer :: i_spec_free,ipoint1D,i,j,ispec,i_source,i_source_local,ispec_PML,ielem
   integer :: ispec_acoustic,ispec_elastic,iedge_acoustic,iedge_elastic
-  integer :: inum,ier
+  integer :: inum
   real(kind=CUSTOM_REAL) :: zxi,xgamma,jacobian1D
   real(kind=CUSTOM_REAL) :: xxi,zgamma
-  real(kind=CUSTOM_REAL) :: nx,nz,weight
-  double precision :: kappa_x,kappa_z,d_x,d_z,alpha_x,alpha_z,beta_x,beta_z
+  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: abs_normalized_temp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Initialize variables for subroutine prepare_constants_device
@@ -399,14 +395,12 @@
   if (PML_BOUNDARY_CONDITIONS) then
     ! EB EB : We create spec_to_PML_GPU such that :
     ! spec_to_PML_GPU(ispec) = 0 indicates the element is not in the PML
-    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is in the region CPML_X_ONLY
+    ! spec_to_PML_GPU(ispec) \in [1, NSPEC_PML_X] indicates the element is not in the region CPML_X_ONLY
     ! spec_to_PML_GPU(ispec) \in [NSPEC_PML_X + 1, NSPEC_PML_X + NSPEC_PML_Z] indicates the element is in the region CPML_Z_ONLY
     ! spec_to_PML_GPU(ispec) >  NSPEC_PML_X + NSPEC_PML_Z indicates the element is in the region CPML_XZ
     ! Finally, spec_to_PML_GPU(ispec) = ielem, where ielem the local number of the element in the PML
-    allocate(spec_to_PML_GPU(nspec),stat=ier)
-    if (ier /= 0) stop 'Error allocating spec_to_PML_GPU array'
+    allocate(spec_to_PML_GPU(nspec))
     spec_to_PML_GPU(:) = 0
-
     nspec_PML_X = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_X_ONLY ) then
@@ -414,7 +408,6 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X
       endif
     enddo
-
     nspec_PML_Z = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_Z_ONLY ) then
@@ -422,7 +415,6 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X + nspec_PML_Z
       endif
     enddo
-
     nspec_PML_XZ = 0
     do ispec = 1,nspec
       if (region_CPML(ispec) == CPML_XZ ) then
@@ -430,7 +422,6 @@
         spec_to_PML_GPU(ispec) = nspec_PML_X + nspec_PML_Z + nspec_PML_XZ
       endif
     enddo
-
     ! user output
     if (myrank == 0) then
       write(IMAIN,*) '  number of PML elements in this process slice    = ',nspec_PML
@@ -447,38 +438,34 @@
       stop 'Error with the number of PML elements in GPU mode'
     endif
 
-    ! coefficients storage for GPU routines
-    allocate(alphax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
-             alphaz_store_GPU(NGLLX,NGLLZ,nspec_PML), &
-             betax_store_GPU(NGLLX,NGLLZ,nspec_PML), &
-             betaz_store_GPU(NGLLX,NGLLZ,nspec_PML),stat=ier)
-    if (ier /= 0) stop 'Error allocating alphax_store_GPU,.. arrays'
+    ! EB EB : We reorganize the arrays abs_normalized and abs_normalized2 that
+    ! don't have the correct dimension and new local element numbering
+    allocate(abs_normalized_temp(NGLLX,NGLLZ,NSPEC))
+    abs_normalized_temp(:,:,:) = abs_normalized(:,:,:)
+    deallocate(abs_normalized)
+    allocate(abs_normalized(NGLLX,NGLLZ,NSPEC_PML))
+    do ispec = 1,nspec
+      if (spec_to_PML_GPU(ispec) > 0) abs_normalized(:,:,spec_to_PML_GPU(ispec)) = abs_normalized_temp(:,:,ispec)
+    enddo
+    deallocate(abs_normalized_temp)
+
+    allocate(alphax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),alphaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ), &
+             betax_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ),betaz_store_GPU(NGLLX,NGLLZ,NSPEC_PML_XZ))
     alphax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     alphaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betax_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     betaz_store_GPU(:,:,:) = 0.0_CUSTOM_REAL
     do ispec = 1,nspec
-      if (ispec_is_PML(ispec)) then
+      if (region_CPML(ispec) == CPML_XZ) then
         ispec_PML = spec_to_PML(ispec)
-        ! checks index
-        if (ispec_PML <= 0) stop 'Error found invalid ispec_PML index in routine init_host_to_dev_variable()'
-        ielem = spec_to_PML_GPU(ispec)
+        ! element index in range [1,NSPEC_PML_XZ]
+        ielem = spec_to_PML_GPU(ispec)-(nspec_PML_X + nspec_PML_Z)
         do j = 1,NGLLZ
           do i = 1,NGLLX
-            kappa_x = K_x_store(i,j,ispec_PML)
-            kappa_z = K_z_store(i,j,ispec_PML)
-            alpha_x = alpha_x_store(i,j,ispec_PML)
-            alpha_z = alpha_z_store(i,j,ispec_PML)
-            d_x = d_x_store(i,j,ispec_PML)
-            d_z = d_z_store(i,j,ispec_PML)
-
-            beta_x = alpha_x + d_x / kappa_x
-            beta_z = alpha_z + d_z / kappa_z
-
-            alphax_store_GPU(i,j,ielem) = real(alpha_x,kind=CUSTOM_REAL)
-            alphaz_store_GPU(i,j,ielem) = real(alpha_z,kind=CUSTOM_REAL)
-            betax_store_GPU(i,j,ielem) = real(beta_x,kind=CUSTOM_REAL)
-            betaz_store_GPU(i,j,ielem) = real(beta_z,kind=CUSTOM_REAL)
+            alphax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML))
+            alphaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML))
+            betax_store_GPU(i,j,ielem) = sngl(alpha_x_store(i,j,ispec_PML) + d_x_store(i,j,ispec_PML))
+            betaz_store_GPU(i,j,ielem) = sngl(alpha_z_store(i,j,ispec_PML) + d_z_store(i,j,ispec_PML))
            enddo
          enddo
       endif
@@ -602,89 +589,66 @@
     write(IMAIN,*) '  number of coupled fluid-solid edges             = ',num_fluid_solid_edges
     call flush_IMAIN()
   endif
-  allocate(coupling_ac_el_ispec(2,num_fluid_solid_edges), &
-           coupling_ac_el_ij(2,2,NGLLX,num_fluid_solid_edges), &
-           coupling_ac_el_normal(2,NGLLX,num_fluid_solid_edges), &
-           coupling_ac_el_jacobian1Dw(NGLLX,num_fluid_solid_edges),stat=ier)
-  if (ier /= 0) stop 'Error allocating coupling_ac_el arrays'
-  coupling_ac_el_ispec(:,:) = 0
-  coupling_ac_el_ij(:,:,:,:) = 0
+  allocate(coupling_ac_el_ispec(num_fluid_solid_edges))
+  allocate(coupling_ac_el_ij(2,NGLLX,num_fluid_solid_edges))
+  allocate(coupling_ac_el_normal(2,NGLLX,num_fluid_solid_edges))
+  allocate(coupling_ac_el_jacobian1Dw(NGLLX,num_fluid_solid_edges))
+  coupling_ac_el_ispec(:) = 0
+  coupling_ac_el_ij(:,:,:) = 0
   coupling_ac_el_normal(:,:,:) = 0.0_CUSTOM_REAL
   coupling_ac_el_jacobian1Dw(:,:) = 0.00_CUSTOM_REAL
-
-  ! loop on all the coupling edges
   do inum = 1,num_fluid_solid_edges
     ! get the edge of the acoustic element
     ispec_acoustic = fluid_solid_acoustic_ispec(inum)
     iedge_acoustic = fluid_solid_acoustic_iedge(inum)
+    coupling_ac_el_ispec(inum) = ispec_acoustic
 
     ! get the corresponding edge of the elastic element
     ispec_elastic = fluid_solid_elastic_ispec(inum)
     iedge_elastic = fluid_solid_elastic_iedge(inum)
 
-    ! note: we store both, the acoustic and elastic element for the GPU routine
-    !       since PML coupling will require the local offset of the acoustic and elastic element
-    coupling_ac_el_ispec(1,inum) = ispec_acoustic
-    coupling_ac_el_ispec(2,inum) = ispec_elastic
-
     ! implement 1D coupling along the edge
-    do ipoin1D = 1,NGLLX
-      ! get point values for the acoustic side
-      i = ivalue(ipoin1D,iedge_acoustic)
-      j = jvalue(ipoin1D,iedge_acoustic)
-
-      ! stores acoustic element (*,1,igll)
-      ! (needed for accessing acoustic side in elastic_ac coupling w/ PML)
-      coupling_ac_el_ij(1,1,ipoin1D,inum) = i
-      coupling_ac_el_ij(2,1,ipoin1D,inum) = j
+    do ipoint1D = 1,NGLLX
 
       ! get point values for the elastic side, which matches our side in the inverse direction
-      ii = ivalue_inverse(ipoin1D,iedge_elastic)
-      jj = jvalue_inverse(ipoin1D,iedge_elastic)
+      coupling_ac_el_ij(1,ipoint1D,inum) = ivalue(ipoint1D,iedge_acoustic)
+      coupling_ac_el_ij(2,ipoint1D,inum) = jvalue(ipoint1D,iedge_acoustic)
 
-      ! stores elastic element (*,2,igll)
-      ! (needed for accessing elastic side in acoustic_el coupling w/ PML)
-      coupling_ac_el_ij(1,2,ipoin1D,inum) = ii
-      coupling_ac_el_ij(2,2,ipoin1D,inum) = jj
+      i = ivalue(ipoint1D,iedge_acoustic)
+      j = jvalue(ipoint1D,iedge_acoustic)
 
-      ! determines normal and jacobian weights on interface (using acoustic element)
       if (iedge_acoustic == ITOP) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
-        nx = - zxi / jacobian1D
-        nz = + xxi / jacobian1D
-        weight = jacobian1D * wxgll(i)
+        coupling_ac_el_normal(1,ipoint1D,inum) = - zxi / jacobian1D
+        coupling_ac_el_normal(2,ipoint1D,inum) = + xxi / jacobian1D
+        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
 
       else if (iedge_acoustic == IBOTTOM) then
         xxi = + gammaz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zxi = - gammax(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xxi**2 + zxi**2)
-        nx = + zxi / jacobian1D
-        nz = - xxi / jacobian1D
-        weight = jacobian1D * wxgll(i)
+        coupling_ac_el_normal(1,ipoint1D,inum) = + zxi / jacobian1D
+        coupling_ac_el_normal(2,ipoint1D,inum) = - xxi / jacobian1D
+        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wxgll(i)
 
       else if (iedge_acoustic == ILEFT) then
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
-        nx = - zgamma / jacobian1D
-        nz = + xgamma / jacobian1D
-        weight = jacobian1D * wzgll(j)
+        coupling_ac_el_normal(1,ipoint1D,inum) = - zgamma / jacobian1D
+        coupling_ac_el_normal(2,ipoint1D,inum) = + xgamma / jacobian1D
+        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
 
       else if (iedge_acoustic == IRIGHT) then
         xgamma = - xiz(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         zgamma = + xix(i,j,ispec_acoustic) * jacobian(i,j,ispec_acoustic)
         jacobian1D = sqrt(xgamma**2 + zgamma**2)
-        nx = + zgamma / jacobian1D
-        nz = - xgamma / jacobian1D
-        weight = jacobian1D * wzgll(j)
+        coupling_ac_el_normal(1,ipoint1D,inum) = + zgamma / jacobian1D
+        coupling_ac_el_normal(2,ipoint1D,inum) = - xgamma / jacobian1D
+        coupling_ac_el_jacobian1Dw(ipoint1D,inum) = jacobian1D * wzgll(j)
       endif
-
-      ! stores for GPU
-      coupling_ac_el_normal(1,ipoin1D,inum) = nx
-      coupling_ac_el_normal(2,ipoin1D,inum) = nz
-      coupling_ac_el_jacobian1Dw(ipoin1D,inum) = weight
     enddo
   enddo
 

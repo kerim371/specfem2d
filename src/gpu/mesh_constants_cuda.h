@@ -635,7 +635,8 @@ typedef struct mesh_ {
   realw* d_rho_kl;
   realw* d_mu_kl;
   realw* d_kappa_kl;
-  realw* d_hess_el_kl;
+  realw* d_hess_el_kl1;
+  realw* d_hess_el_kl2;
 
   // ------------------------------------------------------------------ //
   // acoustic wavefield
@@ -680,7 +681,8 @@ typedef struct mesh_ {
   realw* d_kappa_ac_kl;
 
   // approximative hessian for preconditioning kernels
-  realw* d_hess_ac_kl;
+  realw* d_hess_ac_kl1;
+  realw* d_hess_ac_kl2;
 
   // coupling acoustic-elastic
   int* d_coupling_ac_el_ispec;
@@ -688,6 +690,8 @@ typedef struct mesh_ {
   realw* d_coupling_ac_el_normal;
   realw* d_coupling_ac_el_jacobian2Dw;
 
+  // For Hessian and other
+  int NTSTEP_BETWEEN_COMPUTE_KERNELS;
 } Mesh;
 
 

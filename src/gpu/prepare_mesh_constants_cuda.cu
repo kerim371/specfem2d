@@ -109,7 +109,8 @@ void FC_FUNC_(prepare_constants_device,
                                         int* SAVE_FORWARD,
                                         realw* h_xir_store, realw* h_gammar_store,
                                         int* h_NSIGTYPE, int* h_seismotypeVec,
-                                        int* nlength_seismogram) {
+                                        int* nlength_seismogram,
+                                        int* NTSTEP_BETWEEN_COMPUTE_KERNELS) {
 
   TRACE("prepare_constants_device");
 
@@ -131,6 +132,7 @@ void FC_FUNC_(prepare_constants_device,
   mp->pml_boundary_conditions = *PML_BOUNDARY_CONDITIONS;
   mp->save_forward = *SAVE_FORWARD;
   mp->p_sv = *P_SV;
+  mp->NTSTEP_BETWEEN_COMPUTE_KERNELS = *NTSTEP_BETWEEN_COMPUTE_KERNELS;
 
   // safety check
   if (*h_NGLLX != NGLLX) {
@@ -502,9 +504,12 @@ void FC_FUNC_(prepare_fields_acoustic_adj_dev,
 
   // preconditioner
   if (*APPROXIMATE_HESS_KL) {
-    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl),size),3030);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl1),size),3030);
     // initializes with zeros
-    print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl,0,size),3031);
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl1,0,size),3031);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl2),size),3030);
+    // initializes with zeros
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl2,0,size),3031);
   }
 
   if (*ATTENUATION_VISCOACOUSTIC && (! *NO_BACKWARD_RECONSTRUCTION) ) {
@@ -788,8 +793,10 @@ void FC_FUNC_(prepare_fields_elastic_adj_dev,
     //synchronize_mpi();
 
     size = NGLL2 * mp->NSPEC_AB; // note: non-aligned; if align, check memcpy below and indexing
-    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl),size*sizeof(realw)),5450);
-    print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl,0,size*sizeof(realw)),5451);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl1),size*sizeof(realw)),5450);
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl1,0,size*sizeof(realw)),5451);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl2),size*sizeof(realw)),5452);
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl2,0,size*sizeof(realw)),5453);
   }
 
   // attenuation
@@ -1382,7 +1389,9 @@ TRACE("prepare_cleanup_device");
       }
       cudaFree(mp->d_rho_ac_kl);
       cudaFree(mp->d_kappa_ac_kl);
-      if (*APPROXIMATE_HESS_KL) cudaFree(mp->d_hess_ac_kl);
+      if (*APPROXIMATE_HESS_KL)
+        cudaFree(mp->d_hess_ac_kl1);
+        cudaFree(mp->d_hess_ac_kl2);
       if (mp->size_mpi_buffer_potential > 0 && ! *NO_BACKWARD_RECONSTRUCTION) cudaFree(mp->d_b_send_potential_dot_dot_buffer);
       if (*ATTENUATION_VISCOACOUSTIC && ! *NO_BACKWARD_RECONSTRUCTION) {
         cudaFree(mp->d_b_sum_forces_old);
@@ -1448,7 +1457,9 @@ TRACE("prepare_cleanup_device");
       cudaFree(mp->d_rho_kl);
       cudaFree(mp->d_mu_kl);
       cudaFree(mp->d_kappa_kl);
-      if (*APPROXIMATE_HESS_KL ) cudaFree(mp->d_hess_el_kl);
+      if (*APPROXIMATE_HESS_KL ) 
+        cudaFree(mp->d_hess_el_kl1);
+        cudaFree(mp->d_hess_el_kl2);
       if (*ATTENUATION_VISCOELASTIC && ! *NO_BACKWARD_RECONSTRUCTION) {
         cudaFree(mp->d_b_e1);
         cudaFree(mp->d_b_e11);
