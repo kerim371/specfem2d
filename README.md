@@ -33,6 +33,17 @@ and check the output files in `./OUTPUT_FILES/`
     'configure.ac' file instead, and generate a new 'configure' script with 
     the command: `autoreconf -i`
 
+Build with MPI (with OpenMPI 5 doesn't work, need to test with OpenMPI 4):
+```
+./configure FC=gfortran CC=/home/kerim.khemraev/app/openmpi/5.0.3/bin/mpicc MPIFC=/home/kerim.khemraev/app/openmpi/5.0.3/bin/mpif90 --with-mpi CPPFLAGS="-I/home/kerim.khemraev/app/openmpi/5.0.3/include"
+make -j
+```
+
+Build with CUDA:
+```
+./configure --with-cuda=cuda11 CUDA_LIB="/mnt/DATA/hpc/kerim.khemraev/app/cuda-11.8/lib64"
+make -j
+```
 
 ## Development
 

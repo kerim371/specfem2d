@@ -4,7 +4,8 @@
 SOURCE_BIN="./bin"
 
 # Целевые машины
-TARGET_HOSTS=("10.239.30.30" "10.239.30.32" "10.239.30.33")
+# TARGET_HOSTS=("10.239.30.30" "10.239.30.32" "10.239.30.33")
+TARGET_HOSTS=("10.239.30.32")
 
 # Путь на удалённых машинах
 REMOTE_PATH="/home/kerim.khemraev/app/specfem2D_mrc-hpc-cuda-editorig/bin"
