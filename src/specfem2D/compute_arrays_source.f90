@@ -381,7 +381,7 @@
 
   subroutine read_adj_source_SU(seismotype_adj)
 
-! reads in all adjoint sources in SU-file format
+  ! reads in all adjoint sources in SU-file format
 
   use constants, only: CUSTOM_REAL, MAX_STRING_LEN, NDIM
 
@@ -400,9 +400,11 @@
   real(kind=CUSTOM_REAL), dimension(NSTEP) :: temp
   character(len=MAX_STRING_LEN) :: filename
 
-  ! SU
-  integer(kind=4) :: r4head(60)
-  integer(kind=2) :: header2(2)
+  ! SU header: 60 integers (4 bytes each) = 240 bytes
+  integer(kind=4) :: r4head(60)   ! unchanged — удобно для direct access чтения
+
+  ! Теперь ns и dt читаются из r4head(27) и r4head(28) — см. пояснение ниже
+  integer(kind=4) :: ns_read, dt_read   ! 4-byte integers
 
   real(kind=4),dimension(:,:),allocatable :: adj_src_s
 
@@ -429,7 +431,6 @@
       open(112,file=trim(filename),access='direct',recl=240+4*NSTEP,iostat = ier)
       if (ier /= 0) call exit_MPI(myrank,'file '//trim(filename)//' does not exist')
     endif
-
   endif
 
   ! allocates temporary array
@@ -467,6 +468,15 @@
         endif
       endif
 
+      ! === ИЗМЕНЕНИЕ: извлекаем ns и dt как 4-байтовые целые из позиций 27 и 28 ===
+      ns_read = r4head(27)   ! было: header2 = int(r4head(29), kind=2) — теперь не нужно
+      dt_read = r4head(28)   ! шаг по времени в МИКРОСЕКУНДАХ
+
+      ! Можно добавить проверку (опционально):
+      ! if (ns_read /= NSTEP) then
+      !   write(*,*) 'Warning: ns in header =', ns_read, 'but NSTEP =', NSTEP
+      ! endif
+
       if (SOURCE_IS_MOVING) then
         ! In this case high frequency noise is produced. We have to filter it out before sending it at the receivers
         irek = 1
@@ -485,8 +495,7 @@
         endif
       endif
 
-      header2 = int(r4head(29), kind=2)
-
+      ! Записываем в source_adjoint
       if (P_SV) then
         ! P_SV-case
         source_adjoint(irec_local,:,1) = real(adj_src_s(:,1),kind=CUSTOM_REAL)
@@ -500,7 +509,7 @@
   enddo ! irec
 
   ! closes files
-  if (seismotype_adj == 4) then
+  if (seismotype_adj == 4 .or. seismotype_adj == 6) then
     close(111)
   else
     if (P_SV) then
