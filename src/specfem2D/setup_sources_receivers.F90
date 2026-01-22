@@ -1128,14 +1128,6 @@
   sisuz(:,:,:) = ZERO
   siscurl(:,:,:) = ZERO
 
-  ! checks SU_FORMAT output length
-  if (SU_FORMAT .and. (NSTEP/NTSTEP_BETWEEN_OUTPUT_SAMPLE > 32768)) then
-    print *
-    print *,"!!! BEWARE !!! Two many samples for SU format ! The .su file created won't be usable"
-    print *
-    call stop_the_code('Error allocating seismogram arrays')
-  endif
-
   ! synchronizes all processes
   call synchronize_all()
 
