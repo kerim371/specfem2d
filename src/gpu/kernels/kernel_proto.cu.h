@@ -321,6 +321,8 @@ __global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
                                                 const realw* b_accel,
                                                 realw* hess_kl1,
                                                 realw* hess_kl2,
+                                                realw* hess_kl3,
+                                                realw* hess_kl4,
                                                 const int NSPEC_AB,
                                                 const realw dt_factor);
 
@@ -336,6 +338,8 @@ __global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
                                                 const realw* gammaz,
                                                 realw* hess_kl1,
                                                 realw* hess_kl2,
+                                                realw* hess_kl3,
+                                                realw* hess_kl4,
                                                 const int NSPEC,
                                                 const realw dt_factor);
 

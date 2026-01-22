@@ -507,9 +507,18 @@ void FC_FUNC_(prepare_fields_acoustic_adj_dev,
     print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl1),size),3030);
     // initializes with zeros
     print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl1,0,size),3031);
+
     print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl2),size),3030);
     // initializes with zeros
     print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl2,0,size),3031);
+
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl3),size),3030);
+    // initializes with zeros
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl3,0,size),3031);
+
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_ac_kl4),size),3030);
+    // initializes with zeros
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_ac_kl4,0,size),3031);
   }
 
   if (*ATTENUATION_VISCOACOUSTIC && (! *NO_BACKWARD_RECONSTRUCTION) ) {
@@ -797,6 +806,10 @@ void FC_FUNC_(prepare_fields_elastic_adj_dev,
     print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl1,0,size*sizeof(realw)),5451);
     print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl2),size*sizeof(realw)),5452);
     print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl2,0,size*sizeof(realw)),5453);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl3),size*sizeof(realw)),5454);
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl3,0,size*sizeof(realw)),5455);
+    print_CUDA_error_if_any(cudaMalloc((void**)&(mp->d_hess_el_kl4),size*sizeof(realw)),5456);
+    print_CUDA_error_if_any(cudaMemset(mp->d_hess_el_kl4,0,size*sizeof(realw)),5457);
   }
 
   // attenuation
@@ -1392,6 +1405,8 @@ TRACE("prepare_cleanup_device");
       if (*APPROXIMATE_HESS_KL)
         cudaFree(mp->d_hess_ac_kl1);
         cudaFree(mp->d_hess_ac_kl2);
+        cudaFree(mp->d_hess_ac_kl3);
+        cudaFree(mp->d_hess_ac_kl4);
       if (mp->size_mpi_buffer_potential > 0 && ! *NO_BACKWARD_RECONSTRUCTION) cudaFree(mp->d_b_send_potential_dot_dot_buffer);
       if (*ATTENUATION_VISCOACOUSTIC && ! *NO_BACKWARD_RECONSTRUCTION) {
         cudaFree(mp->d_b_sum_forces_old);
@@ -1460,6 +1475,8 @@ TRACE("prepare_cleanup_device");
       if (*APPROXIMATE_HESS_KL ) 
         cudaFree(mp->d_hess_el_kl1);
         cudaFree(mp->d_hess_el_kl2);
+        cudaFree(mp->d_hess_el_kl3);
+        cudaFree(mp->d_hess_el_kl4);
       if (*ATTENUATION_VISCOELASTIC && ! *NO_BACKWARD_RECONSTRUCTION) {
         cudaFree(mp->d_b_e1);
         cudaFree(mp->d_b_e11);

@@ -662,9 +662,11 @@ module specfem_par
 
   double precision, dimension(:,:,:),allocatable:: rho_local,vp_local,vs_local
 
-  ! approximate Hessians
+  ! approximate Hessians (Dont forget about Fortran max line length = 132 symbols)
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: rhorho_el_Hessian_final1, rhorho_el_Hessian_final2
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2
+  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: rhorho_el_Hessian_final3, rhorho_el_Hessian_final4
+  real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: rhorho_ac_Hessian_final3, rhorho_ac_Hessian_final4
 
   ! poro-elastic kernels
   real(kind=CUSTOM_REAL), dimension(:,:,:), allocatable :: rhot_kl, rhof_kl, sm_kl, eta_kl, mufr_kl, B_kl, &

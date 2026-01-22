@@ -756,8 +756,8 @@
                          any_elastic,any_acoustic, &
                          accel_elastic,b_accel_elastic, &
                          potential_acoustic,b_potential_acoustic, &
-                         rhorho_el_Hessian_final1,rhorho_el_Hessian_final2, &
-                         rhorho_ac_Hessian_final1,rhorho_ac_Hessian_final2, &
+                         rhorho_el_Hessian_final1,rhorho_el_Hessian_final2,rhorho_el_Hessian_final3,rhorho_el_Hessian_final4, &
+                         rhorho_ac_Hessian_final1,rhorho_ac_Hessian_final2,rhorho_ac_Hessian_final3,rhorho_ac_Hessian_final4, &
                          deltat,GPU_MODE,NTSTEP_BETWEEN_COMPUTE_KERNELS, &
                          APPROXIMATE_HESS_KL
 
@@ -767,6 +767,7 @@
 
   !local variables
   real(kind=CUSTOM_REAL), dimension(nglob) :: rhorho_el_Hessian_temp1, rhorho_el_Hessian_temp2
+  real(kind=CUSTOM_REAL), dimension(nglob) :: rhorho_el_Hessian_temp3, rhorho_el_Hessian_temp4
   real(kind=CUSTOM_REAL) :: tempx1l,tempx2l,b_tempx1l,b_tempx2l
   real(kind=CUSTOM_REAL) :: rhol
   real(kind=CUSTOM_REAL) :: b_accel_loc(2),accel_loc(2)
@@ -787,6 +788,10 @@
                                          b_accel_elastic(2,iglob)*b_accel_elastic(2,iglob)
         rhorho_el_Hessian_temp2(iglob) = accel_elastic(1,iglob)*b_accel_elastic(1,iglob) + &
                                          accel_elastic(2,iglob)*b_accel_elastic(2,iglob)
+        rhorho_el_Hessian_temp3(iglob) = accel_elastic(1,iglob)*b_accel_elastic(1,iglob) + &
+                                         accel_elastic(2,iglob)*b_accel_elastic(2,iglob)
+        rhorho_el_Hessian_temp4(iglob) = accel_elastic(1,iglob)*b_accel_elastic(1,iglob) + &
+                                         accel_elastic(2,iglob)*b_accel_elastic(2,iglob)
       enddo
 
       ! on local GLL basis
@@ -799,6 +804,10 @@
                                                     rhorho_el_Hessian_temp1(iglob) * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
               rhorho_el_Hessian_final2(i,j,ispec) = rhorho_el_Hessian_final2(i,j,ispec) + &
                                                     rhorho_el_Hessian_temp2(iglob) * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
+              rhorho_el_Hessian_final3(i,j,ispec) = rhorho_el_Hessian_final3(i,j,ispec) + &
+                                                    rhorho_el_Hessian_temp3(iglob) * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
+              rhorho_el_Hessian_final4(i,j,ispec) = rhorho_el_Hessian_final4(i,j,ispec) + &
+                                                    rhorho_el_Hessian_temp4(iglob) * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
             enddo
           enddo
         endif
@@ -867,6 +876,14 @@
                                                     * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
 
               rhorho_ac_Hessian_final2(i,j,ispec) = rhorho_ac_Hessian_final2(i,j,ispec) &
+                                                  + dot_product(accel_loc(:),b_accel_loc(:)) &
+                                                    * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
+
+              rhorho_ac_Hessian_final3(i,j,ispec) = rhorho_ac_Hessian_final3(i,j,ispec) &
+                                                  + dot_product(accel_loc(:),b_accel_loc(:)) &
+                                                    * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
+
+              rhorho_ac_Hessian_final4(i,j,ispec) = rhorho_ac_Hessian_final4(i,j,ispec) &
                                                   + dot_product(accel_loc(:),b_accel_loc(:)) &
                                                     * (deltat * NTSTEP_BETWEEN_COMPUTE_KERNELS)
             enddo

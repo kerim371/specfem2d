@@ -31,24 +31,36 @@
 !
 !========================================================================
 
+
+! KERIM EDIT START
+!   subroutine save_adjoint_kernels()
+
+! ! saves adjoint sensitivity kernels to file
+
+!   use constants, only: IMAIN,SAVE_WEIGHTS
+
+!   use specfem_par, only: myrank, any_acoustic, any_elastic, any_poroelastic, &
+!                          NOISE_TOMOGRAPHY
+
+!   use specfem_par_noise, only: sigma_kl
+
+!   implicit none
+
+
+
   subroutine save_adjoint_kernels()
 
-! saves adjoint sensitivity kernels to file
-
-  use constants, only: IMAIN, CUSTOM_REAL, NGLLX, NGLLZ, MAX_STRING_LEN, OUTPUT_FILES
-
+  use constants, only: IMAIN, SAVE_WEIGHTS, CUSTOM_REAL, NGLLX, NGLLZ, MAX_STRING_LEN, OUTPUT_FILES
   use specfem_par, only: myrank, any_acoustic, any_elastic, any_poroelastic, &
-                         NOISE_TOMOGRAPHY,SAVE_KERNEL_WEIGHTS, GPU_MODE, nspec
+                         NOISE_TOMOGRAPHY, GPU_MODE, nspec
   use specfem_par_gpu, only: Mesh_pointer  ! <--- Mesh_pointer здесь!
-  use specfem_par, only: APPROXIMATE_HESS_KL, &
-                         rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, &
-                         rhorho_el_Hessian_final3, rhorho_el_Hessian_final4, &
-                         rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2, &
-                         rhorho_ac_Hessian_final3, rhorho_ac_Hessian_final4
+  use specfem_par, only: APPROXIMATE_HESS_KL, rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, &
+                         rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2
 
   use specfem_par_noise, only: sigma_kl
 
   implicit none
+  ! KERIM EDIT END
 
   ! user output
   if (myrank == 0) then
@@ -58,16 +70,17 @@
     call flush_IMAIN()
   endif
 
+  ! KERIM EDIT START
+  ! Transfer Hessian kernels from GPU to CPU
   if (APPROXIMATE_HESS_KL .and. GPU_MODE) then
     if (any_elastic) then
-      call transfer_hess_el_wrapper(Mesh_pointer, rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, &
-                                    rhorho_el_Hessian_final3, rhorho_el_Hessian_final4, nspec)
+      call transfer_hess_el_wrapper(Mesh_pointer, rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, nspec)
     endif
     if (any_acoustic) then
-      call transfer_hess_ac_wrapper(Mesh_pointer, rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2, &
-                                    rhorho_ac_Hessian_final3, rhorho_ac_Hessian_final4, nspec)
+      call transfer_hess_ac_wrapper(Mesh_pointer, rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2, nspec)
     endif
   endif
+  ! KERIM EDIT END
 
   ! elastic kernels
   if (any_elastic) call save_kernels_elastic()
@@ -80,7 +93,7 @@
 
   ! save weights for volume integration,
   ! in order to benchmark the kernels with analytical expressions
-  if (SAVE_KERNEL_WEIGHTS) call save_weights_kernel()
+  if (SAVE_WEIGHTS) call save_weights_kernel()
 
   ! for noise simulations -- noise strength kernel
   if (NOISE_TOMOGRAPHY == 3) then
@@ -98,11 +111,10 @@
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,FOUR_THIRDS,TWO_THIRDS,TWO,MAX_STRING_LEN, &
     OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
+  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
                          rho_kl, kappa_kl, mu_kl, rhop_kl, alpha_kl, beta_kl, &
                          bulk_c_kl, bulk_beta_kl, &
                          rhorho_el_Hessian_final1, rhorho_el_Hessian_final2, &
-                         rhorho_el_Hessian_final3, rhorho_el_Hessian_final4, &
                          rhostore,mustore,kappastore, &
                          ispec_is_elastic, &
                          deltat,NTSTEP_BETWEEN_COMPUTE_KERNELS, &
@@ -238,7 +250,7 @@
   endif
 
   ! saves to files
-  if (SAVE_ASCII_KERNELS) then
+  if (save_ASCII_kernels) then
     ! ascii format
     if (count(ispec_is_anisotropic(:) .eqv. .true.) >= 1) then
       ! anisotropic
@@ -304,14 +316,6 @@
       open(unit = 98, file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',iostat=ier)
       if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
       if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian3_kernel.dat'
-      open(unit = 99, file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian4_kernel.dat'
-      open(unit = 100, file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
 
       do ispec = 1, nspec
         do j = 1, NGLLZ
@@ -321,16 +325,12 @@
             zz = coord(2,iglob)
             write(97,'(3e15.5e4)') xx,zz,rhorho_el_Hessian_final1(i,j,ispec)
             write(98,'(3e15.5e4)') xx,zz,rhorho_el_Hessian_final2(i,j,ispec)
-            write(99,'(3e15.5e4)') xx,zz,rhorho_el_Hessian_final3(i,j,ispec)
-            write(100,'(3e15.5e4)') xx,zz,rhorho_el_Hessian_final4(i,j,ispec)
           enddo
         enddo
       enddo
 
       close(97)
       close(98)
-      close(99)
-      close(100)
     endif
 
   else
@@ -441,24 +441,12 @@
       open(unit = 215,file=trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
       if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
       if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian3_kernel.bin'
-      open(unit = 216,file=trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian4_kernel.bin'
-      open(unit = 217,file=trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
 
       write(214) rhorho_el_Hessian_final1
       write(215) rhorho_el_Hessian_final2
-      write(216) rhorho_el_Hessian_final3
-      write(217) rhorho_el_Hessian_final4
 
       close(214)
       close(215)
-      close(216)
-      close(217)
     endif
   endif
 
@@ -478,10 +466,9 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
+  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
                          rho_ac_kl, kappa_ac_kl, alpha_ac_kl, rhop_ac_kl, &
                          rhorho_ac_Hessian_final1, rhorho_ac_Hessian_final2, &
-                         rhorho_ac_Hessian_final3, rhorho_ac_Hessian_final4, &
                          APPROXIMATE_HESS_KL
 
   implicit none
@@ -506,7 +493,7 @@
   endif
 
   ! saves to file
-  if (SAVE_ASCII_KERNELS) then
+  if (save_ASCII_kernels) then
     ! ascii format
     write(outputname,'(a,i6.6,a)') 'proc',myrank,'_rho_kappa_kernel.dat'
     open(unit = 95, file = trim(OUTPUT_FILES)//trim(outputname),status ='unknown',iostat=ier)
@@ -542,14 +529,6 @@
       open(unit = 96, file = trim(OUTPUT_FILES)//trim(outputname),status = 'unknown',iostat=ier)
       if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
       if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian3_acoustic_kernel.dat'
-      open(unit = 97, file = trim(OUTPUT_FILES)//trim(outputname),status = 'unknown',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian4_acoustic_kernel.dat'
-      open(unit = 98, file = trim(OUTPUT_FILES)//trim(outputname),status = 'unknown',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
 
       do ispec = 1, nspec
         do j = 1, NGLLZ
@@ -559,16 +538,12 @@
             zz = coord(2,iglob)
             write(95,'(3e15.5e4)') xx,zz,rhorho_ac_Hessian_final1(i,j,ispec)
             write(96,'(3e15.5e4)') xx,zz,rhorho_ac_Hessian_final2(i,j,ispec)
-            write(97,'(3e15.5e4)') xx,zz,rhorho_ac_Hessian_final3(i,j,ispec)
-            write(98,'(3e15.5e4)') xx,zz,rhorho_ac_Hessian_final4(i,j,ispec)
           enddo
         enddo
       enddo
 
       close(95)
       close(96)
-      close(97)
-      close(98)
     endif
 
   else
@@ -610,24 +585,10 @@
       open(unit=213,file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
       if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
       if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian3_acoustic_kernel.bin'
-      open(unit=214,file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-      write(outputname,'(a,i6.6,a)') 'proc',myrank,'_Hessian4_acoustic_kernel.bin'
-      open(unit=215,file = trim(OUTPUT_FILES)//trim(outputname),status='unknown',action='write',form='unformatted',iostat=ier)
-      if (ier /= 0) call stop_the_code('Error writing kernel file to disk')
-      if (myrank == 0) write(IMAIN,*) '  ',trim(OUTPUT_FILES)//trim(outputname)
-
       write(212) rhorho_ac_Hessian_final1
       write(213) rhorho_ac_Hessian_final2
-      write(214) rhorho_ac_Hessian_final3
-      write(215) rhorho_ac_Hessian_final4
-
       close(212)
       close(213)
-      close(214)
-      close(215)
     endif
   endif
 
@@ -648,7 +609,7 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
+  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
                          rhot_kl, rhof_kl, sm_kl, eta_kl, mufr_kl, B_kl, &
                          C_kl, M_kl, rhob_kl, rhofb_kl, phi_kl, mufrb_kl, &
                          rhobb_kl, rhofbb_kl, phib_kl, cpI_kl, cpII_kl, cs_kl, ratio_kl, &
@@ -779,7 +740,7 @@
 
   use constants, only: NGLLX,NGLLZ,IMAIN,CUSTOM_REAL,MAX_STRING_LEN,OUTPUT_FILES
 
-  use specfem_par, only: myrank, nspec, ibool, coord, SAVE_ASCII_KERNELS, &
+  use specfem_par, only: myrank, nspec, ibool, coord, save_ASCII_kernels, &
                          jacobian,wxgll,wzgll
 
   implicit none
@@ -804,7 +765,7 @@
     enddo
   enddo
 
-  if (SAVE_ASCII_KERNELS) then
+  if (save_ASCII_kernels) then
     ! ascii format
     write(outputname,'(a,i6.6,a)') 'proc',myrank,'_weights_kernel.dat'
     open(unit = 144, file = trim(OUTPUT_FILES)//trim(outputname),status = 'unknown',iostat=ier)

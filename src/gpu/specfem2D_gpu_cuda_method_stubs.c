@@ -626,10 +626,10 @@ void FC_FUNC_(transfer_kernels_ac_to_host,
               TRANSFER_KERNELS_AC_TO_HOST)(long* Mesh_pointer,realw* h_rho_ac_kl,realw* h_kappa_ac_kl,int* NSPEC_AB) {}
 
 void FC_FUNC_(transfer_kernels_hess_el_tohost,
-              TRANSFER_KERNELS_HESS_EL_TOHOST)(long* Mesh_pointer,realw* h_hess_kl1,realw* h_hess_kl2,int* NSPEC_AB) {}
+              TRANSFER_KERNELS_HESS_EL_TOHOST)(long* Mesh_pointer,realw* h_hess_kl1,realw* h_hess_kl2,realw* h_hess_kl3,realw* h_hess_kl4,int* NSPEC_AB) {}
 
 void FC_FUNC_(transfer_kernels_hess_ac_tohost,
-              TRANSFER_KERNELS_HESS_AC_TOHOST)(long* Mesh_pointer,realw* h_hess_ac_kl1,realw* h_hess_ac_kl2,int* NSPEC_AB) {}
+              TRANSFER_KERNELS_HESS_AC_TOHOST)(long* Mesh_pointer,realw* h_hess_ac_kl1,realw* h_hess_ac_kl2,realw* h_hess_kl3,realw* h_hess_kl4,int* NSPEC_AB) {}
 
 void FC_FUNC_(transfer_viscoacoustic_b_var_to_device,
               TRANSFER_VISCOACOUSTIC_b_VAR_TO_DEVICE)(int* size,

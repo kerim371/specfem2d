@@ -40,6 +40,8 @@ __global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
                                                    const realw* b_accel,
                                                    realw* hess_kl1,
                                                    realw* hess_kl2,
+                                                   realw* hess_kl3,
+                                                   realw* hess_kl4,
                                                    const int NSPEC_AB,
                                                    const realw dt_factor) {
 
@@ -61,8 +63,8 @@ __global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
         // approximate hessian
       hess_kl1[ij + NGLL2*ispec] +=  b_acc_x * b_acc_x + b_acc_z * b_acc_z;
       hess_kl2[ij + NGLL2*ispec] +=  acc_x * b_acc_x + acc_z * b_acc_z;
-      // hess_kl1[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
-      // hess_kl2[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
+      hess_kl3[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
+      hess_kl4[ij + NGLL2*ispec] +=  (accel[2*iglob]*b_accel[2*iglob] + accel[2*iglob+1]*b_accel[2*iglob+1]);
     }
   }
 }
@@ -81,6 +83,8 @@ __global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
                                                    const realw* d_gammaz,
                                                    realw* hess_kl1,
                                                    realw* hess_kl2,
+                                                   realw* hess_kl3,
+                                                   realw* hess_kl4,
                                                    const int NSPEC_AB,
                                                    const realw dt_factor) {
 
@@ -136,4 +140,6 @@ __global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
 
   hess_kl1[idx] += dot1 * dt_factor;
   hess_kl2[idx] += dot2 * dt_factor;
+  hess_kl3[idx] += dot2 * dt_factor;
+  hess_kl4[idx] += dot2 * dt_factor;
 }

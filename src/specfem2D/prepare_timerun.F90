@@ -998,6 +998,8 @@
     bulk_beta_kl(:,:,:) = 0._CUSTOM_REAL
 
     if (APPROXIMATE_HESS_KL) then
+      rhorho_el_Hessian_final4(:,:,:) = 0._CUSTOM_REAL
+      rhorho_el_Hessian_final3(:,:,:) = 0._CUSTOM_REAL
       rhorho_el_Hessian_final2(:,:,:) = 0._CUSTOM_REAL
       rhorho_el_Hessian_final1(:,:,:) = 0._CUSTOM_REAL
     endif
@@ -1043,6 +1045,8 @@
     alpha_ac_kl(:,:,:) = 0._CUSTOM_REAL
 
     if (APPROXIMATE_HESS_KL) then
+      rhorho_ac_Hessian_final4(:,:,:) = 0._CUSTOM_REAL
+      rhorho_ac_Hessian_final3(:,:,:) = 0._CUSTOM_REAL
       rhorho_ac_Hessian_final2(:,:,:) = 0._CUSTOM_REAL
       rhorho_ac_Hessian_final1(:,:,:) = 0._CUSTOM_REAL
     endif

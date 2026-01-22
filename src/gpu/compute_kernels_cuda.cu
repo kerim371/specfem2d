@@ -153,6 +153,8 @@ void FC_FUNC_(compute_kernels_hess_cuda,
                                                                               mp->d_b_accel,
                                                                               mp->d_hess_el_kl1,
                                                                               mp->d_hess_el_kl2,
+                                                                              mp->d_hess_el_kl3,
+                                                                              mp->d_hess_el_kl4,
                                                                               mp->NSPEC_AB,
                                                                               dt_factor);
   }
@@ -168,6 +170,8 @@ void FC_FUNC_(compute_kernels_hess_cuda,
                                                                               mp->d_gammax,mp->d_gammaz,
                                                                               mp->d_hess_ac_kl1,
                                                                               mp->d_hess_ac_kl2,
+                                                                              mp->d_hess_ac_kl3,
+                                                                              mp->d_hess_ac_kl4,
                                                                               mp->NSPEC_AB,
                                                                               dt_factor);
   }

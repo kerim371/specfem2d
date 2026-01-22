@@ -158,10 +158,15 @@
   rhop_ac_kl(:,:,:) = 0.0_CUSTOM_REAL; alpha_ac_kl(:,:,:) = 0.0_CUSTOM_REAL
 
   ! for APPROXIMATE_HESS_KL
-  allocate(rhorho_ac_Hessian_final2(NGLLX,NGLLZ,b_nspec_acoustic), &
-           rhorho_ac_Hessian_final1(NGLLX,NGLLZ,b_nspec_acoustic),stat=ier)
+  allocate(rhorho_ac_Hessian_final4(NGLLX,NGLLZ,b_nspec_acoustic), &
+           rhorho_ac_Hessian_final3(NGLLX,NGLLZ,b_nspec_acoustic), &
+           rhorho_ac_Hessian_final2(NGLLX,NGLLZ,b_nspec_acoustic), &
+           rhorho_ac_Hessian_final1(NGLLX,NGLLZ,b_nspec_acoustic), stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating rhorho_ac_Hessian_final arrays')
-  rhorho_ac_Hessian_final1(:,:,:) = 0.0_CUSTOM_REAL; rhorho_ac_Hessian_final2(:,:,:) = 0.0_CUSTOM_REAL
+  rhorho_ac_Hessian_final1(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_ac_Hessian_final2(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_ac_Hessian_final3(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_ac_Hessian_final4(:,:,:) = 0.0_CUSTOM_REAL; 
 
   !
   ! elastic domains
@@ -276,10 +281,15 @@
   endif
 
   ! for APPROXIMATE_HESS_KL
-  allocate(rhorho_el_Hessian_final2(NGLLX,NGLLZ,b_nspec_elastic), &
+  allocate(rhorho_el_Hessian_final4(NGLLX,NGLLZ,b_nspec_elastic), &
+           rhorho_el_Hessian_final3(NGLLX,NGLLZ,b_nspec_elastic), &
+           rhorho_el_Hessian_final2(NGLLX,NGLLZ,b_nspec_elastic), &
            rhorho_el_Hessian_final1(NGLLX,NGLLZ,b_nspec_elastic),stat=ier)
   if (ier /= 0) call stop_the_code('Error allocating elastic Hessian kernel arrays')
-  rhorho_el_Hessian_final1(:,:,:) = 0.0_CUSTOM_REAL; rhorho_el_Hessian_final2(:,:,:) = 0.0_CUSTOM_REAL
+  rhorho_el_Hessian_final1(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_el_Hessian_final2(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_el_Hessian_final3(:,:,:) = 0.0_CUSTOM_REAL; 
+  rhorho_el_Hessian_final4(:,:,:) = 0.0_CUSTOM_REAL;
 
   !
   ! poro-elastic domains
