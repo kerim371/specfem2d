@@ -129,6 +129,58 @@ TRACE("compute_kernels_acoustic_cuda");
 /* ----------------------------------------------------------------------------------------------- */
 
 
+// extern "C"
+// void FC_FUNC_(compute_kernels_hess_cuda,
+//               COMPUTE_KERNELS_HESS_CUDA)(long* Mesh_pointer,
+//                                          int* ELASTIC_SIMULATION,
+//                                          int* ACOUSTIC_SIMULATION) {
+
+//   Mesh* mp = (Mesh*)(*Mesh_pointer);
+//   realw dt_factor = mp->deltat * (realw)(mp->NTSTEP_BETWEEN_COMPUTE_KERNELS);
+
+//   int blocksize = NGLL2; // NGLLX*NGLLZ
+
+//   int num_blocks_x, num_blocks_y;
+//   get_blocks_xy(mp->NSPEC_AB,&num_blocks_x,&num_blocks_y);
+
+//   dim3 grid(num_blocks_x,num_blocks_y);
+//   dim3 threads(blocksize,1,1);
+
+//   if (*ELASTIC_SIMULATION) {
+//     compute_kernels_hess_el_cudakernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_ispec_is_elastic,
+//                                                                               mp->d_ibool,
+//                                                                               mp->d_accel,
+//                                                                               mp->d_b_accel,
+//                                                                               mp->d_hess_el_kl1,
+//                                                                               mp->d_hess_el_kl2,
+//                                                                               mp->d_hess_el_kl3,
+//                                                                               mp->d_hess_el_kl4,
+//                                                                               mp->NSPEC_AB,
+//                                                                               dt_factor);
+//   }
+
+//   if (*ACOUSTIC_SIMULATION) {
+//     compute_kernels_hess_ac_cudakernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_ispec_is_acoustic,
+//                                                                               mp->d_ibool,
+//                                                                               mp->d_potential_acoustic,
+//                                                                               mp->d_b_potential_acoustic,
+//                                                                               mp->d_rhostore,
+//                                                                               mp->d_hprime_xx,
+//                                                                               mp->d_xix,mp->d_xiz,
+//                                                                               mp->d_gammax,mp->d_gammaz,
+//                                                                               mp->d_hess_ac_kl1,
+//                                                                               mp->d_hess_ac_kl2,
+//                                                                               mp->d_hess_ac_kl3,
+//                                                                               mp->d_hess_ac_kl4,
+//                                                                               mp->NSPEC_AB,
+//                                                                               dt_factor);
+//   }
+
+
+//   GPU_ERROR_CHECKING ("compute_kernels_hess_cuda");
+// }
+
+
 extern "C"
 void FC_FUNC_(compute_kernels_hess_cuda,
               COMPUTE_KERNELS_HESS_CUDA)(long* Mesh_pointer,
@@ -147,35 +199,44 @@ void FC_FUNC_(compute_kernels_hess_cuda,
   dim3 threads(blocksize,1,1);
 
   if (*ELASTIC_SIMULATION) {
-    compute_kernels_hess_el_cudakernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_ispec_is_elastic,
-                                                                              mp->d_ibool,
-                                                                              mp->d_accel,
-                                                                              mp->d_b_accel,
-                                                                              mp->d_hess_el_kl1,
-                                                                              mp->d_hess_el_kl2,
-                                                                              mp->d_hess_el_kl3,
-                                                                              mp->d_hess_el_kl4,
-                                                                              mp->NSPEC_AB,
-                                                                              dt_factor);
+    compute_kernels_hess_el_cudakernel<<<grid,threads,0,mp->compute_stream>>>(
+        mp->d_ispec_is_elastic,
+        mp->d_ibool,
+        mp->d_accel,
+        mp->d_b_accel,
+        mp->d_veloc,            // добавлено: скорости прямого поля
+        mp->d_b_veloc,          // добавлено: скорости сопряженного поля
+        mp->d_xix, mp->d_xiz,   // метрические коэффициенты
+        mp->d_gammax, mp->d_gammaz,
+        mp->d_hprime_xx,        // для производных
+        mp->d_rhostore,         // плотность
+        mp->d_rho_vp,           // ρ * α (Vp)
+        mp->d_rho_vs,           // ρ * β (Vs)
+        mp->d_hess_el_kl1,
+        mp->d_hess_el_kl2,
+        mp->d_hess_el_kl3,
+        mp->d_hess_el_kl4,
+        mp->NSPEC_AB,
+        dt_factor);
   }
 
   if (*ACOUSTIC_SIMULATION) {
-    compute_kernels_hess_ac_cudakernel<<<grid,threads,0,mp->compute_stream>>>(mp->d_ispec_is_acoustic,
-                                                                              mp->d_ibool,
-                                                                              mp->d_potential_acoustic,
-                                                                              mp->d_b_potential_acoustic,
-                                                                              mp->d_rhostore,
-                                                                              mp->d_hprime_xx,
-                                                                              mp->d_xix,mp->d_xiz,
-                                                                              mp->d_gammax,mp->d_gammaz,
-                                                                              mp->d_hess_ac_kl1,
-                                                                              mp->d_hess_ac_kl2,
-                                                                              mp->d_hess_ac_kl3,
-                                                                              mp->d_hess_ac_kl4,
-                                                                              mp->NSPEC_AB,
-                                                                              dt_factor);
+    compute_kernels_hess_ac_cudakernel<<<grid,threads,0,mp->compute_stream>>>(
+        mp->d_ispec_is_acoustic,
+        mp->d_ibool,
+        mp->d_potential_acoustic,
+        mp->d_b_potential_acoustic,
+        mp->d_rhostore,
+        mp->d_hprime_xx,
+        mp->d_xix, mp->d_xiz,
+        mp->d_gammax, mp->d_gammaz,
+        mp->d_hess_ac_kl1,
+        mp->d_hess_ac_kl2,
+        mp->d_hess_ac_kl3,
+        mp->d_hess_ac_kl4,
+        mp->NSPEC_AB,
+        dt_factor);
   }
-
 
   GPU_ERROR_CHECKING ("compute_kernels_hess_cuda");
 }

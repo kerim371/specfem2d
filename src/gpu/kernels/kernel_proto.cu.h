@@ -315,33 +315,71 @@ __global__ void compute_kernels_ani_cudakernel(int* ispec_is_elastic,
 // src/gpu/kernels/compute_kernels_hess_ac_cuda_kernel.cu
 //
 
+// __global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
+//                                                 const int* ibool,
+//                                                 const realw* accel,
+//                                                 const realw* b_accel,
+//                                                 realw* hess_kl1,
+//                                                 realw* hess_kl2,
+//                                                 realw* hess_kl3,
+//                                                 realw* hess_kl4,
+//                                                 const int NSPEC_AB,
+//                                                 const realw dt_factor);
+
 __global__ void compute_kernels_hess_el_cudakernel(const int* ispec_is_elastic,
-                                                const int* ibool,
-                                                const realw* accel,
-                                                const realw* b_accel,
-                                                realw* hess_kl1,
-                                                realw* hess_kl2,
-                                                realw* hess_kl3,
-                                                realw* hess_kl4,
-                                                const int NSPEC_AB,
-                                                const realw dt_factor);
+                                                   const int* ibool,
+                                                   const realw* accel,          // прямое поле: ускорение ∂t v
+                                                   const realw* b_accel,        // сопряженное поле: ускорение ∂t v̄
+                                                   const realw* veloc,          // прямое поле: скорость v (для P3, P4)
+                                                   const realw* b_veloc,        // сопряженное поле: скорость v̄ (для P4)
+                                                   const realw* d_xix,          // метрические коэффициенты
+                                                   const realw* d_xiz,
+                                                   const realw* d_gammax,
+                                                   const realw* d_gammaz,
+                                                   const realw* d_hprime_xx,    // для производных
+                                                   const realw* rhostore,       // плотность
+                                                   const realw* rho_vp,         // ρ * α (для P3)
+                                                   const realw* rho_vs,         // ρ * β (для P4)
+                                                   realw* hess_kl1,             // P1: только источник (Hρρ)
+                                                   realw* hess_kl2,             // P2: источник и приемник (Ĥρρ)
+                                                   realw* hess_kl3,             // P3: Hαα (только источник)
+                                                   realw* hess_kl4,             // P4: Hββ (только источник)
+                                                   const int NSPEC_AB,
+                                                   const realw dt_factor);
+
+// __global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
+//                                                 const int* ibool,
+//                                                 const realw* potential,
+//                                                 const realw* b_potential,
+//                                                 const realw* rhostore,
+//                                                 const realw* hprime_xx,
+//                                                 const realw* xix,
+//                                                 const realw* xiz,
+//                                                 const realw* gammax,
+//                                                 const realw* gammaz,
+//                                                 realw* hess_kl1,
+//                                                 realw* hess_kl2,
+//                                                 realw* hess_kl3,
+//                                                 realw* hess_kl4,
+//                                                 const int NSPEC,
+//                                                 const realw dt_factor);
 
 __global__ void compute_kernels_hess_ac_cudakernel(const int* ispec_is_acoustic,
-                                                const int* ibool,
-                                                const realw* potential,
-                                                const realw* b_potential,
-                                                const realw* rhostore,
-                                                const realw* hprime_xx,
-                                                const realw* xix,
-                                                const realw* xiz,
-                                                const realw* gammax,
-                                                const realw* gammaz,
-                                                realw* hess_kl1,
-                                                realw* hess_kl2,
-                                                realw* hess_kl3,
-                                                realw* hess_kl4,
-                                                const int NSPEC,
-                                                const realw dt_factor);
+                                                   const int* d_ibool,
+                                                   const realw* potential_acoustic,
+                                                   const realw* b_potential_acoustic,
+                                                   const realw* rhostore,
+                                                   const realw* d_hprime_xx,
+                                                   const realw* d_xix,
+                                                   const realw* d_xiz,
+                                                   const realw* d_gammax,
+                                                   const realw* d_gammaz,
+                                                   realw* hess_kl1,    // P1 для акустики
+                                                   realw* hess_kl2,    // P2 для акустики  
+                                                   realw* hess_kl3,    // P3 для акустики
+                                                   realw* hess_kl4,    // P4 для акустики
+                                                   const int NSPEC_AB,
+                                                   const realw dt_factor);
 
 
 //
